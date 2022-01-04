@@ -12,16 +12,21 @@ export default NextAuth({
           password: {  label: "Password", type: "password" }
         },
         async authorize(credentials, req) {
+          try {
             const conn = await getOrCreateConnection();
             const usersRepo = conn.getRepository(User);
 
             const user = await usersRepo.findOne({
-                "email": credentials?.email
+              "email": credentials?.email
             });
-            console.log(user);
             return user ? { 
-                email: credentials?.email
+              email: credentials?.email
             } : null;
+          }
+          catch (e) {
+            console.log(e);
+          }
+          return null;
         }
       })
   ],
