@@ -5,7 +5,7 @@ export const USER_ROLES = {
     USER: "USER"
 }
 
-@Entity()
+@Entity("user")
 export class User {
     @PrimaryGeneratedColumn('uuid')
     id!: string;

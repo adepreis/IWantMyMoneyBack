@@ -32,7 +32,7 @@ export default function App(props: AppProps) {
     const navbar = appMenuOpened ? <Navbar padding="xs" width={{ base: mobile ? "100%" : 300 }} fixed>
         <Navbar.Section>Accueil</Navbar.Section>
         <Navbar.Section grow mt="lg">Lien 1</Navbar.Section>
-        <Navbar.Section>Conditions d'utilisation</Navbar.Section>
+        <Navbar.Section>{"Conditions d'utilisation"}</Navbar.Section>
     </Navbar> : <></>;
 
   return (

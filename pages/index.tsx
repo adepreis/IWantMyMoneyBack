@@ -4,11 +4,11 @@ import { Session } from 'next-auth'
 import { getSession, signIn, signOut, useSession } from 'next-auth/react'
 import styles from '../styles/Home.module.scss'
 
-type HomeProps = {
+type Props = {
   session: Session | null,
 }
 
-export default function Home(props: HomeProps) {
+export default function Home(props: Props) {
   return (
     <div className={styles.container}>
       <main className={styles.main}>
@@ -24,7 +24,7 @@ export default function Home(props: HomeProps) {
   )
 }
 
-export const getServerSideProps: GetServerSideProps<HomeProps> = async (context) => {
+export const getServerSideProps: GetServerSideProps<Props> = async (context) => {
   const session = await getSession(context);
   if (session) {
     return {
