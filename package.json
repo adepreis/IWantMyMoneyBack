@@ -1,22 +1,37 @@
 {
   "name": "iwantmymoneyback",
   "private": true,
+  "type": "commonjs",
   "scripts": {
+    "typeorm": "node --require ts-node/register ./node_modules/typeorm/cli.js",
+    "db": "docker-compose -f docker/mariadb.yml up",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "@mantine/core": "^3.5.0",
+    "@mantine/hooks": "^3.5.0",
+    "@mantine/next": "^3.5.0",
+    "@next-auth/typeorm-legacy-adapter": "^1.0.1",
+    "mysql": "^2.18.1",
     "next": "12.0.7",
+    "next-auth": "^4.0.6",
     "react": "17.0.2",
-    "react-dom": "17.0.2"
+    "react-dom": "17.0.2",
+    "react-icons": "^4.3.1",
+    "reflect-metadata": "^0.1.13",
+    "sass": "^1.45.2",
+    "typeorm": "^0.2.41"
   },
   "devDependencies": {
-    "@types/node": "17.0.7",
+    "@types/node": "^17.0.7",
     "@types/react": "17.0.38",
     "eslint": "8.6.0",
     "eslint-config-next": "12.0.7",
-    "typescript": "4.5.4"
+    "ts-node": "^10.4.0",
+    "typescript": "4.5.4",
+    "typescript-plugin-css-modules": "^3.4.0"
   }
 }
