@@ -3,6 +3,7 @@ import type { GetServerSideProps } from 'next'
 import { Session } from 'next-auth'
 import { getSession, signOut } from 'next-auth/react'
 import styles from '../styles/Home.module.scss'
+import { HiOutlineLogout } from "react-icons/hi";
 
 type Props = {
   session: Session | null,
@@ -21,7 +22,9 @@ export default function Home(props: Props) {
             <span style={{display: "block", paddingBottom: "1rem"}}>
                 Bonjour <strong>{session?.user?.email}</strong>,
             </span>
-            <Button onClick={() => signOut()} size="md">Se déconnecter</Button>
+            <Button onClick={() => signOut()} size="md" leftIcon={
+                <HiOutlineLogout />
+            }>Se déconnecter</Button>
         </div>
       </main>
     </div>;

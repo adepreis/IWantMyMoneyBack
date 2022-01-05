@@ -3,6 +3,7 @@ import type { GetServerSideProps } from 'next'
 import { Session } from 'next-auth'
 import { getSession, signIn, signOut, useSession } from 'next-auth/react'
 import styles from '../styles/Home.module.scss'
+import { HiOutlineLogin } from "react-icons/hi";
 
 type Props = {
   session: Session | null,
@@ -17,7 +18,9 @@ export default function Home(props: Props) {
         </h1>
 
         <div className={styles.grid} style={{marginTop: "1.75rem"}}>
-          <Button onClick={() => signIn()} size="md">Se connecter</Button>
+          <Button onClick={() => signIn()} size="md" leftIcon={
+            <HiOutlineLogin />
+          }>Se connecter</Button>
         </div>
       </main>
     </div>
