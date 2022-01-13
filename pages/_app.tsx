@@ -54,9 +54,7 @@ export default function App(props: AppProps) {
           <AppShell header={header} fixed styles={(theme) => ({
             main: {display: "flex", backgroundColor: theme.colors.dark[8], paddingLeft: 0},
           })} navbar={navbar}>
-            <Container>
-              <Component {...pageProps} />
-            </Container>
+            <Component {...pageProps} />
           </AppShell>
         </SessionProvider>
       </MantineProvider>
