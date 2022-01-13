@@ -24,6 +24,7 @@ export default NextAuth({
               "password": credentials?.password
             });
             return user ? { 
+              //variable global rendu pour l'utilisateur
               email: credentials?.email
             } : null;
           }

@@ -1,5 +1,5 @@
 import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
-
+//ajouter a database.ts la classe 
 export const USER_ROLES = {
     ADMIN: "ADMIN",
     USER: "USER"
@@ -13,6 +13,16 @@ export class User {
     @Column({type: "varchar"})
     @Index({ unique: true })
     public email!: string;
+
+    @Column({type: "varchar"})
+    @Index({ unique: true })
+    public login!: string;
+
+    @Column({type: "varchar"})
+    public nom!: string;
+
+    @Column({type: "varchar"})
+    public prenom!: string;
 
     @Column({
         type: "enum",
