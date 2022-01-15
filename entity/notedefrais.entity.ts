@@ -1,14 +1,13 @@
 import { Column, Entity, Index, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { Lignes } from "../pages/api/ligne/[ligne]";
 import { LigneDeFrais } from "./lignedefrais.entity";
 import { User } from "./user.entity";
 //ajouter a database.ts la classe 
 
-export const NOTEDEFRAIS_ETAT = {
-    NON_VALIDEE: "NON_VALIDEE",
-    EN_ATTENTE_DE_VALIDATION: "EN_ATTENTE_DE_VALIDATION",
-    VALIDEE: "VALIDEE",
-    REFUSEE: "REFUSEE"
+export enum NOTEDEFRAIS_ETAT {
+    NON_VALIDEE = "NON_VALIDEE",
+    EN_ATTENTE_DE_VALIDATION = "EN_ATTENTE_DE_VALIDATION",
+    VALIDEE = "VALIDEE",
+    REFUSEE = "REFUSEE"
 }
 
 @Entity("notedefrais")

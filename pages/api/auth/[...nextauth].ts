@@ -27,7 +27,10 @@ export default NextAuth({
           
             return user ? { 
               //variable global rendu pour l'utilisateur
-              email: user
+              id: user.id,
+              email: user.email,
+              nom: user.nom,
+              prenom: user.prenom
             } : null;
           }
           catch (e) {
@@ -56,11 +59,24 @@ export default NextAuth({
     //   return true 
     // },
     // // async redirect({ url, baseUrl }) { return baseUrl },
-    /*async session({ session, token, user }) {
-      session.user.id = user.id;
+    async session({ session, token }) {
+      session.id = (token as any).id;
+      session.nom = (token as any).nom;
+      session.prenom = (token as any).prenom;
+      session.email = (token as any).email;
+
       return session
-    },*/
-    // async jwt({ token, user, account, profile, isNewUser }) { return token }
+    },
+    async jwt({ token, user, account, profile, isNewUser }) {
+      if (user) {
+        token.id = user.id;
+        token.nom = user.nom;
+        token.prenom = user.prenom;
+        token.email = user.email;
+      }
+
+      return token
+    }
   },
   events: {},
   debug: false,

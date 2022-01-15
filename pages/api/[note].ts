@@ -3,19 +3,12 @@ import { getSession } from "next-auth/react";
 import internal from "stream";
 import { getConnection } from "typeorm";
 import { RequestError } from "../../entity/geneal_struct";
+import { LigneDeFrais } from "../../entity/lignedefrais.entity";
 import { NoteDeFrais } from "../../entity/notedefrais.entity";
 import { prepareConnection } from "./database";
-import { Lignes } from "./ligne/[ligne]";
+import { LigneRequest } from "./ligne/[ligne]";
 
-export type Notes = {
-    id: string,
-    annee:number,
-    mois:number,
-    etat:string
-    ligne:Lignes[]
-}
-export type NotesRequest = Notes | RequestError
-
+export type NotesRequest = NoteDeFrais | RequestError
 
 export async function getNote(noteId: string, userId: string): Promise<NotesRequest | null>{
     await prepareConnection();
@@ -28,32 +21,10 @@ export async function getNote(noteId: string, userId: string): Promise<NotesRequ
         .andWhere("userId = :user", {user:userId})
         .getOne(); 
 
-        var lignes:Lignes[] = new Array();
-        note?.ligne.forEach(ligne => {
-            lignes.push({
-                id: ligne.id,
-                titre: ligne.titre, 
-                mission: ligne.mission,
-                date: ligne.date,
-                validee: ligne.validee,
-                prixHT: ligne.prixHT,
-                prixTTC: ligne.prixTTC,
-                prixTVA: ligne.prixTVA,
-                avance: ligne.avance,
-                raison_avance: ligne.raison_avance,
-                type: ligne.type
-            });
-        });
-    if (note == null) {
+    if (!note) {
         return null;
     } else {
-        return{
-            id: note.id,
-            annee: note.annee,
-            mois: note.mois,
-            etat: note.etat,
-            ligne: lignes
-        }
+        return note
     }
 
 }
@@ -61,20 +32,20 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<NotesRequest>
   ) {
-    var userId = null;
+    var userId: string | null = null;
     try {
         
         //recupération de la session
-        const session = await getSession({ req })
+        const session = await getSession({ req });
         if (session) {
-            userId = session.user?.email?.id;
+            userId = (session as any)?.id;
         } else {
             res.status(403).json({error: "acces interdit" as string, code: 403});
         }
 
-        const note = await getNote(req.query.note, userId)
+        const note = await getNote(req.query?.note as string, userId as string)
 
-        if (note ==null) {
+        if (!note) {
           throw Error;
         }
   

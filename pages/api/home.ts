@@ -5,11 +5,11 @@ import { getConnection } from "typeorm";
 import { RequestError } from "../../entity/geneal_struct";
 import { NoteDeFrais } from "../../entity/notedefrais.entity";
 import { prepareConnection } from "./database";
-import { getNote, Notes } from "./[note]";
+import { getNote } from "./[note]";
 
 export type HomeNote = {
+    notes:NoteDeFrais[],
     annee:number,
-    notes:Notes[]
 }[]
 export type HomeNoteRequest = HomeNote | RequestError;
 
@@ -17,18 +17,16 @@ export const getHomeNote = async (session: Session | null) => {
     var userId: string | null = null;
     
     if (session) {
-        userId = session.user?.email?.id;
+        userId = session?.id as string;
     } else {
         return {error: "acces interdit" as string, code: 403};
     }
+
     const year = new Date().getFullYear();
     await prepareConnection();
     const conn = getConnection();
 
-    var notes:{
-        annee:number,
-        notes:Notes[]
-    }[] = new Array();
+    var notes: HomeNote[] = [];
     for (let index = -5; index <= 5; index++) {
         var currentyear = year+index;
         const notesResQuery = await conn.getRepository(NoteDeFrais)
@@ -37,15 +35,18 @@ export const getHomeNote = async (session: Session | null) => {
         .andWhere("userId = :user", {user:userId})
         .getMany();
         
-        var notesYear:Notes[] = new Array();
+        var notesYear:NoteDeFrais[] = [];
         notesResQuery.forEach(async element => {
-            const note = await getNote(element.id, userId);
+            const note = await getNote(element.id, userId as string);
             if(note != null){
-                notesYear.push(note);
+                notesYear.push(note as NoteDeFrais);
             }
         });
-        
-        notes.push({annee: currentyear, notes: notesYear});
+
+        notes.push(({
+            annee: currentyear, 
+            notes: notesYear
+        }) as any as HomeNote);
     }
 
     return notes;

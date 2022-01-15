@@ -3,12 +3,12 @@ import { Mission } from "./mission.entity";
 import { NoteDeFrais } from "./notedefrais.entity";
 //ajouter a database.ts la classe 
 
-export const LIGNE_TYPE = {
-    DEPLACEMENT: "DEPLACEMENT",
-    REPAS: "REPAS",
-    LOGEMENT: "LOGEMENT",
-    EVENEMENT_PROFESSIONNEL: "EVENEMENT PROFESSIONNEL",
-    AUTRE: "AUTRE",
+export enum LIGNE_TYPE {
+    DEPLACEMENT = "DEPLACEMENT",
+    REPAS = "REPAS",
+    LOGEMENT = "LOGEMENT",
+    EVENEMENT_PROFESSIONNEL = "EVENEMENT PROFESSIONNEL",
+    AUTRE = "AUTRE"
 }
 
 @Entity("lignedefrais")
@@ -50,7 +50,7 @@ export class LigneDeFrais {
         type: "enum",
         enum: Object.values(LIGNE_TYPE)
     })
-    public type!: string;
+    public type!: LIGNE_TYPE;
 
     @ManyToOne(() => NoteDeFrais)
     note!: NoteDeFrais;
