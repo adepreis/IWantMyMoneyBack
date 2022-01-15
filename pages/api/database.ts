@@ -1,7 +1,8 @@
 import path from "path/posix";
 import {createConnection, getConnection, Connection} from "typeorm";
 import { LigneDeFrais } from "../../entity/lignedefrais.entity";
-import { NoteDeFrais } from "../../entity/NoteDeFrais.entity";
+import { Mission } from "../../entity/mission.entity";
+import { NoteDeFrais } from "../../entity/notedefrais.entity";
 import { User } from "../../entity/user.entity";
 
 let connectionReadyPromise: Promise<void> | null = null;
@@ -27,7 +28,7 @@ export function prepareConnection() {
         password: process.env.TYPEORM_PASSWORD,
         database: process.env.TYPEORM_DATABASE,
         //ajouter a entities tout les class typeORM
-        entities: [User,NoteDeFrais, LigneDeFrais],
+        entities: [User,NoteDeFrais, LigneDeFrais, Mission],
         synchronize: process.env.TYPEORM_SYNCHRONIZE === "true",
         logging: process.env.TYPEORM_LOGGING === "true",
       });

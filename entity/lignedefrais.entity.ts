@@ -1,5 +1,6 @@
 import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { NoteDeFrais } from "./NoteDeFrais.entity";
+import { Mission } from "./mission.entity";
+import { NoteDeFrais } from "./notedefrais.entity";
 //ajouter a database.ts la classe 
 
 export const LIGNE_TYPE = {
@@ -13,13 +14,13 @@ export const LIGNE_TYPE = {
 @Entity("lignedefrais")
 export class LigneDeFrais {
     @PrimaryGeneratedColumn('uuid')
-    id!: number;
+    id!: string;
 
     @Column({type: "varchar"})
     public titre!: string;
 
     @Column({type: "date"})
-    public moisAnnee!: Date;
+    public date!: Date;
 
     @Column({type: "int"})
     public validee!: number;
@@ -53,4 +54,7 @@ export class LigneDeFrais {
 
     @ManyToOne(() => NoteDeFrais)
     note!: NoteDeFrais;
+
+    @ManyToOne(() => Mission)
+    mission!: Mission;
 }

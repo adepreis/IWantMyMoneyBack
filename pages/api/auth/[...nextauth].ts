@@ -1,4 +1,5 @@
-import NextAuth from "next-auth";
+import { Session } from "inspector";
+import NextAuth, { getServerSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { getConnection } from "typeorm";
 import { User } from "../../../entity/user.entity";
@@ -23,9 +24,10 @@ export default NextAuth({
               // Must be hashed :)
               "password": credentials?.password
             });
+          
             return user ? { 
               //variable global rendu pour l'utilisateur
-              email: credentials?.email
+              email: user
             } : null;
           }
           catch (e) {
@@ -54,9 +56,10 @@ export default NextAuth({
     //   return true 
     // },
     // // async redirect({ url, baseUrl }) { return baseUrl },
-    // async session({ session, token, user }) {
-    //   return session
-    // },
+    /*async session({ session, token, user }) {
+      session.user.id = user.id;
+      return session
+    },*/
     // async jwt({ token, user, account, profile, isNewUser }) { return token }
   },
   events: {},
