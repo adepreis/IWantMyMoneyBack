@@ -4,6 +4,8 @@ import { Session } from 'next-auth'
 import { getSession, signOut } from 'next-auth/react'
 import styles from '../styles/Home.module.scss'
 import { HiOutlineLogout, HiClock, HiXCircle, HiCheck } from "react-icons/hi";
+import { getHomeNote, HomeNote, HomeNoteRequest } from './api/home'
+import { useState, useEffect } from 'react'
 
 type Props = {
   session: Session | null,
@@ -22,6 +24,16 @@ const segmentedData: Data[] = ["Janvier", "Février", "Mars", "Avril", "Mai", "J
 
 export default function Home(props: Props) {
     const {session} = props;
+    const [note, setNotes] = useState([] as HomeNote);
+
+    useEffect(async () => {
+      const result = await fetch("/api/home");
+      const json = await result.json();
+  
+      setNotes(json);
+    }, [setNotes]);
+
+    console.log(props);
 
     // return <>
     //   <Button onClick={() => signOut()} size="md" leftIcon={

@@ -44,16 +44,16 @@ export async function getLigne(ligneId: string, userId: string): Promise<Lignes 
   }else{
     return {
       id: ligne.id,
-                titre: ligne.titre, 
-                mission: ligne.mission,
-                date: ligne.date,
-                validee: ligne.validee,
-                prixHT: ligne.prixHT,
-                prixTTC: ligne.prixTTC,
-                prixTVA: ligne.prixTVA,
-                avance: ligne.avance,
-                raison_avance: ligne.raison_avance,
-                type: ligne.type
+      titre: ligne.titre, 
+      mission: ligne.mission,
+      date: ligne.date,
+      validee: ligne.validee,
+      prixHT: ligne.prixHT,
+      prixTTC: ligne.prixTTC,
+      prixTVA: ligne.prixTVA,
+      avance: ligne.avance,
+      raison_avance: ligne.raison_avance,
+      type: ligne.type
     };
   }
   
@@ -69,7 +69,7 @@ export default async function handler(
       if (session) {
         userId = session.user?.email?.id;
       } else {
-          res.status(403).json({error: "acces interdit" as string, maSuperVariableAjoute: 403});
+          res.status(403).json({error: "acces interdit" as string, code: 403});
       }
 
       const ligne = await getLigne(req.query.ligne, userId)
@@ -80,7 +80,7 @@ export default async function handler(
       res.status(200).json(ligne);
       
   } catch(e) {
-      res.status(404).json({error: e as string, maSuperVariableAjoute: 404});
+      res.status(404).json({error: e as string, code: 404});
   }
   
 }

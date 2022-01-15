@@ -19,8 +19,8 @@ export class NoteDeFrais {
     @Column({type: "int"})
     public annee!: number;
 
-    @Column({type: "varchar"})
-    public mois!: string;
+    @Column({type: "int"})
+    public mois!: number;
 
     @ManyToOne(() => User)
     user!: User;

@@ -10,7 +10,7 @@ import { Lignes } from "./ligne/[ligne]";
 export type Notes = {
     id: string,
     annee:number,
-    mois:string,
+    mois:number,
     etat:string
     ligne:Lignes[]
 } | RequestError
@@ -68,7 +68,7 @@ export default async function handler(
         if (session) {
             userId = session.user?.email?.id;
         } else {
-            res.status(403).json({error: "acces interdit" as string, maSuperVariableAjoute: 403});
+            res.status(403).json({error: "acces interdit" as string, code: 403});
         }
 
         const note = await getNote(req.query.note, userId)
@@ -80,7 +80,7 @@ export default async function handler(
         res.status(200).json(note);
         
     } catch(e) {
-        res.status(404).json({error: e as string, maSuperVariableAjoute: 404});
+        res.status(404).json({error: e as string, code: 404});
     }
     
   }
