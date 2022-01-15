@@ -13,10 +13,11 @@ export type Notes = {
     mois:number,
     etat:string
     ligne:Lignes[]
-} | RequestError
+}
+export type NotesRequest = Notes | RequestError
 
 
-export async function getNote(noteId: string, userId: string): Promise<Notes | null>{
+export async function getNote(noteId: string, userId: string): Promise<NotesRequest | null>{
     await prepareConnection();
     const conn = getConnection();
     const note = await conn.getRepository(NoteDeFrais)
@@ -58,7 +59,7 @@ export async function getNote(noteId: string, userId: string): Promise<Notes | n
 }
 export default async function handler(
     req: NextApiRequest,
-    res: NextApiResponse<Notes>
+    res: NextApiResponse<NotesRequest>
   ) {
     var userId = null;
     try {
