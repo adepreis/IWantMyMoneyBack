@@ -2,10 +2,10 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
 import { getConnection } from "typeorm";
 import { RequestError } from "../../../entity/geneal_struct";
-import { LigneDeFrais, LIGNE_TYPE } from "../../../entity/lignedefrais.entity";
+import { ILigneDeFrais, LigneDeFrais, lineToApi } from "../../../entity/lignedefrais.entity";
 import { prepareConnection } from "../database";
 
-export type LigneRequest = LigneDeFrais | RequestError;
+export type LigneRequest = ILigneDeFrais | RequestError;
 
 export async function getLigne(ligneId: string | null, userId: string): Promise<LigneRequest | null>{
   await prepareConnection();
@@ -22,7 +22,7 @@ export async function getLigne(ligneId: string | null, userId: string): Promise<
   if(!ligne){
     return null;
   }else{
-    return ligne;
+    return lineToApi(ligne);
   }
   
 }

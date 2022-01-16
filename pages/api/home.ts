@@ -3,12 +3,12 @@ import { Session } from "next-auth";
 import { getSession } from "next-auth/react";
 import { getConnection } from "typeorm";
 import { RequestError } from "../../entity/geneal_struct";
-import { NoteDeFrais } from "../../entity/notedefrais.entity";
+import { INoteDeFrais, NoteDeFrais, noteToApi } from "../../entity/notedefrais.entity";
 import { prepareConnection } from "./database";
 import { getNote } from "./[note]";
 
 export type HomeNote = {
-    notes:NoteDeFrais[],
+    notes:INoteDeFrais[],
     annee:number,
 }[]
 export type HomeNoteRequest = HomeNote | RequestError;
@@ -34,19 +34,22 @@ export const getHomeNote = async (session: Session | null) => {
         .where("notedefrais.annee = :annee", {annee: currentyear})
         .andWhere("userId = :user", {user:userId})
         .getMany();
-        
-        var notesYear:NoteDeFrais[] = [];
-        notesResQuery.forEach(async element => {
-            const note = await getNote(element.id, userId as string);
-            if(note != null){
-                notesYear.push(note as NoteDeFrais);
-            }
-        });
 
-        notes.push(({
-            annee: currentyear, 
-            notes: notesYear
-        }) as any as HomeNote);
+        if (notesResQuery) {
+            var notesYear:INoteDeFrais[] = [];
+            for (const element of notesResQuery) {
+                const note = await getNote(element.id, userId as string);
+                if(note != null){
+                    notesYear.push({...note} as INoteDeFrais);
+                }
+            }
+    
+            notes.push(({
+                annee: currentyear, 
+                notes: notesYear
+            }) as any as HomeNote);
+
+        }
     }
 
     return notes;

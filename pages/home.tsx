@@ -1,4 +1,4 @@
-import { Button, Group, SegmentedControl, Center, Select } from '@mantine/core'
+import { Button, Group, SegmentedControl, Center, Select, Table, GroupedTransition, Container } from '@mantine/core'
 import type { GetServerSideProps } from 'next'
 import { Session } from 'next-auth'
 import { getSession, signOut } from 'next-auth/react'
@@ -6,82 +6,115 @@ import styles from '../styles/Home.module.scss'
 import { getHomeNote, HomeNote, HomeNoteRequest } from './api/home'
 import { useState, useEffect } from 'react'
 import { HiOutlineLogout, HiClock, HiXCircle, HiCheck } from "react-icons/hi";
-/// <reference types="@dayjs/relative-time" />
 import dayjs from 'dayjs'
 import "dayjs/locale/fr";
 import localeData from "dayjs/plugin/localeData";
-import { Notes } from './api/[note]'
-import { NOTEDEFRAIS_ETAT } from '../entity/notedefrais.entity'
+import { INoteDeFrais } from '../entity/notedefrais.entity'
+import { NOTEDEFRAIS_ETAT } from '../entity/utils'
+import numbro from 'numbro'
 dayjs.extend(localeData);
 dayjs().format();
 dayjs.locale("fr");
 
 type Props = {
   session: Session | null,
+  notes?: HomeNote,
+  years?: number[],
+  currentYear?: number;
+}
+
+type State = {
+  year: null | number,
+  month: number,
 }
 
 enum DataState {NONE, SENT_AND_WAITING, ERROR, VALID};
-type Data = {label: string; state: DataState}
+type Data = {label: string; state: DataState, index: number}
 
-function getSegmentedData(homeNote: HomeNote, year: number | null): Data[] {
-  const yearlyNote = year ? (homeNote.find(note => note.annee === year) ?? null) : null;
-  console.log(yearlyNote);
+function getSegmentedData(props: Props, state: State): Data[] {
+  const yearlyNote = state.year ? ((props?.notes ?? []).find(note => note.annee === state.year) ?? null) : null;
   return dayjs.months().map((month, monthIndex) => {
-    const monthNote: Notes | null = yearlyNote ? (yearlyNote.notes.find(note => note.mois === monthIndex) ?? null) : null;
-    // console.log(monthNote);
+    const monthNote: INoteDeFrais | null = yearlyNote ? (yearlyNote.notes.find(note => note.mois === monthIndex) ?? null) : null;
+
     return {
       label: `${month}`,
       state: !monthNote ? DataState.NONE : 
         monthNote.etat === NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION ? DataState.SENT_AND_WAITING : 
         monthNote.etat === NOTEDEFRAIS_ETAT.REFUSEE ? DataState.ERROR :
-        monthNote.etat === NOTEDEFRAIS_ETAT.VALIDEE ? DataState.VALID : DataState.NONE
+        monthNote.etat === NOTEDEFRAIS_ETAT.VALIDEE ? DataState.VALID : DataState.NONE,
+      index: monthIndex
     }
   })
 }
 
 export default function Home(props: Props) {
-    const [homeNote, setNotes] = useState([] as HomeNote);
-    const [years, setYears] = useState([] as number[]);
-    const [year, setYear] = useState(null as (null | number));
-    
-    useEffect(() => {
-      const fetchData = async () => {
-        const currentYear = dayjs().year();
+    const [state, setState] = useState({
+      year: props?.currentYear as null | number,
+      month: 0
+    });
 
-        const result = await fetch("/api/home");
-        const notes = await result.json() as HomeNote;
+    const currentNote = props.notes?.find(note => note.annee === state.year)?.notes?.find(note => note.mois === state.month) ?? null;
 
-        const years = notes.map(note => note.annee);
-        
-        setNotes(notes);
-        setYears(years);
-        setYear(years.find(year => year === currentYear) ? currentYear : null)
-      };
-      fetchData();
-    }, []);
-    
+    const renderNote = (note: INoteDeFrais | null) => {
+      const rows = (note?.ligne ?? []).map((ligne, index) => (
+        <tr key={index}>
+          <td>{ligne.titre}</td>
+          <td>{dayjs(ligne.date).format("DD-MM-YYYY")}</td>
+          <td>{numbro(ligne.prixHT).formatCurrency({ mantissa: 2, 
+            currencySymbol: "€", 
+            currencyPosition: "postfix",
+            spaceSeparated: true ,
+            spaceSeparatedCurrency: true,
+            thousandSeparated: true,
+          }).replace(",", " ")}</td>
+          <td>{"TODO"}</td>
+        </tr>
+      ));
+
+      return <Table striped highlightOnHover>
+        <thead>
+          <tr>
+            <th>Titre</th>
+            <th>Date</th>
+            <th>Montant HT</th>
+            <th>Justificatif</th>
+          </tr>
+        </thead>
+        <tbody>{rows}</tbody>
+      </Table>
+    }
 
     return <Group grow direction="column" style={{width: "100%"}} spacing={0}>
-      <Center>
-        <p>Ma note de frais</p>
-      </Center>
+      <Group style={{alignItems: "baseline"}} grow>
+        <Container padding="lg">
+          {renderNote(currentNote)}
+        </Container>
+      </Group>
       <Group style={{flex: 0, width: "100%"}} spacing={0}>
         <Select
           placeholder="Année"
-          data={years.map(year => { return {
+          data={(props?.years ?? []).map(year => { return {
               value: `${year}`,
               label: `${year}`
             }
           })}
-          value={year ? `${year}` : null}
+          value={state.year ? `${state.year}` : null}
           onChange={(item: string) => {
-            setYear(parseInt(item));
+            setState({
+              ...state,
+              year: parseInt(item)
+            });
           }}
           style={{
             flex: "unset"
           }}
         />
-        <SegmentedControl style={{flex: 1}} fullWidth data={getSegmentedData(homeNote, year).map(el => {
+        <SegmentedControl style={{flex: 1}} value={`${state.month}`} onChange={(item: string) => {
+          setState({
+            ...state,
+            month: parseInt(item)
+          });
+          }} fullWidth data={getSegmentedData(props, state).map(el => {
           var icon = <></>;
           switch (el.state) {
             case DataState.NONE:
@@ -97,7 +130,7 @@ export default function Home(props: Props) {
               break;
           }
           return {
-            value: el.label,
+            value: `${el.index}`,
             label: (
               <Center>
                 <div style={{ marginRight: 10, textTransform: "capitalize" }}>{el.label}</div>
@@ -106,7 +139,7 @@ export default function Home(props: Props) {
             ),
           }
         })} />
-      </Group>
+      </Group> 
     </Group>
 }
 
@@ -122,9 +155,16 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
     }
   }
 
+  const currentYear = dayjs().year();
+  const notes = JSON.parse(JSON.stringify(await getHomeNote(session))) as HomeNote;
+  const years = notes.map(note => note.annee);
+
   return {
     props: {
-      session
+      session,
+      notes,
+      years,
+      currentYear
     },
   }
 }

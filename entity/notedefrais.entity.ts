@@ -1,17 +1,19 @@
 import { Column, Entity, Index, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { LigneDeFrais } from "./lignedefrais.entity";
+import { ILigneDeFrais, LigneDeFrais, lineToApi } from "./lignedefrais.entity";
 import { User } from "./user.entity";
+import { NOTEDEFRAIS_ETAT } from "./utils";
 //ajouter a database.ts la classe 
 
-export enum NOTEDEFRAIS_ETAT {
-    NON_VALIDEE = "NON_VALIDEE",
-    EN_ATTENTE_DE_VALIDATION = "EN_ATTENTE_DE_VALIDATION",
-    VALIDEE = "VALIDEE",
-    REFUSEE = "REFUSEE"
+export interface INoteDeFrais {
+    id: string,
+    annee: number,
+    mois: number,
+    etat: NOTEDEFRAIS_ETAT,
+    ligne: ILigneDeFrais[]
 }
 
 @Entity("notedefrais")
-export class NoteDeFrais {
+export class NoteDeFrais implements INoteDeFrais {
     @PrimaryGeneratedColumn('uuid')
     id!: string;
 
@@ -29,8 +31,18 @@ export class NoteDeFrais {
         enum: Object.values(NOTEDEFRAIS_ETAT),
         default: NOTEDEFRAIS_ETAT.NON_VALIDEE
     })
-    public etat!: string;
+    public etat!: NOTEDEFRAIS_ETAT;
 
     @OneToMany(type => LigneDeFrais, ligne => ligne.note)
     ligne!: LigneDeFrais[];
+}
+
+export const noteToApi = (note: NoteDeFrais): INoteDeFrais => {
+    return {
+        id: note.id,
+        annee: note.annee,
+        mois: note.mois,
+        etat: note.etat,
+        ligne: (note?.ligne ?? []).map(ligne => lineToApi(ligne))
+    };
 }

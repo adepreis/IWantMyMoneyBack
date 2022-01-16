@@ -1,18 +1,25 @@
 import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Mission } from "./mission.entity";
+import { IMission, Mission, missionToApi } from "./mission.entity";
 import { NoteDeFrais } from "./notedefrais.entity";
+import { LIGNE_TYPE } from "./utils";
 //ajouter a database.ts la classe 
 
-export enum LIGNE_TYPE {
-    DEPLACEMENT = "DEPLACEMENT",
-    REPAS = "REPAS",
-    LOGEMENT = "LOGEMENT",
-    EVENEMENT_PROFESSIONNEL = "EVENEMENT PROFESSIONNEL",
-    AUTRE = "AUTRE"
+export interface ILigneDeFrais {
+    id: string;
+    titre: string;
+    date: Date;
+    validee: number;
+    prixHT: number;
+    prixTVA: number;
+    justificatif: string;
+    perdu: boolean;
+    raison_avance: string;
+    type: LIGNE_TYPE;
+    mission: IMission
 }
 
 @Entity("lignedefrais")
-export class LigneDeFrais {
+export class LigneDeFrais implements ILigneDeFrais {
     @PrimaryGeneratedColumn('uuid')
     id!: string;
 
@@ -57,4 +64,21 @@ export class LigneDeFrais {
 
     @ManyToOne(() => Mission)
     mission!: Mission;
+}
+
+export const lineToApi = (ligne: LigneDeFrais): ILigneDeFrais => {
+    console.log(ligne);
+    return {
+        id: ligne.id,
+        titre: ligne.titre,
+        date: ligne.date,
+        validee: ligne.validee,
+        prixHT: ligne.prixHT,
+        prixTVA: ligne.prixTVA,
+        justificatif: ligne.justificatif,
+        perdu: ligne.perdu,
+        raison_avance: ligne.raison_avance,
+        type: ligne.type,
+        mission: missionToApi(ligne.mission)
+    };
 }

@@ -4,11 +4,11 @@ import internal from "stream";
 import { getConnection } from "typeorm";
 import { RequestError } from "../../entity/geneal_struct";
 import { LigneDeFrais } from "../../entity/lignedefrais.entity";
-import { NoteDeFrais } from "../../entity/notedefrais.entity";
+import { INoteDeFrais, NoteDeFrais, noteToApi } from "../../entity/notedefrais.entity";
 import { prepareConnection } from "./database";
 import { LigneRequest } from "./ligne/[ligne]";
 
-export type NotesRequest = NoteDeFrais | RequestError
+export type NotesRequest = INoteDeFrais | RequestError
 
 export async function getNote(noteId: string, userId: string): Promise<NotesRequest | null>{
     await prepareConnection();
@@ -24,7 +24,7 @@ export async function getNote(noteId: string, userId: string): Promise<NotesRequ
     if (!note) {
         return null;
     } else {
-        return note
+        return noteToApi(note);
     }
 
 }
