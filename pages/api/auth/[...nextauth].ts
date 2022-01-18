@@ -1,6 +1,8 @@
+import { compare } from "bcrypt";
 import { Session } from "inspector";
 import NextAuth, { getServerSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { decode } from "punycode";
 import { getConnection } from "typeorm";
 import { User } from "../../../entity/user.entity";
 import { prepareConnection } from "../database";
@@ -18,20 +20,25 @@ export default NextAuth({
             await prepareConnection();
             const conn = getConnection();
             const usersRepo = conn.getRepository(User);
-
+            
             const user = await usersRepo.findOne({
-              "email": credentials?.email,
-              // Must be hashed :)
-              "password": credentials?.password
+              "email": credentials?.email
             });
+            
+
+            if (user && credentials?.password) {
+              if (await compare(credentials?.password,user.password)) {
+                return { 
+                  //variable global rendu pour l'utilisateur
+                  id: user.id,
+                  email: user.email,
+                  nom: user.nom,
+                  prenom: user.prenom
+                } 
+              }
+            }
           
-            return user ? { 
-              //variable global rendu pour l'utilisateur
-              id: user.id,
-              email: user.email,
-              nom: user.nom,
-              prenom: user.prenom
-            } : null;
+            return null;
           }
           catch (e) {
             console.log(e);
