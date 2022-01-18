@@ -38,10 +38,7 @@ export const getHomeNote = async (session: Session | null) => {
         if (notesResQuery) {
             var notesYear:INoteDeFrais[] = [];
             for (const element of notesResQuery) {
-                const note = await getNote(element.id, userId as string);
-                if(note != null){
-                    notesYear.push({...note} as INoteDeFrais);
-                }
+                notesYear.push({...element} as INoteDeFrais);
             }
     
             notes.push(({
