@@ -25,15 +25,16 @@ export const getHomeNote = async (session: Session | null) => {
     const year = new Date().getFullYear();
     await prepareConnection();
     const conn = getConnection();
+    const notesResRepo = await conn.getRepository(NoteDeFrais)
 
     var notes: HomeNote[] = [];
     for (let index = -5; index <= 5; index++) {
         var currentyear = year+index;
-        const notesResQuery = await conn.getRepository(NoteDeFrais)
-        .createQueryBuilder("notedefrais")
-        .where("notedefrais.annee = :annee", {annee: currentyear})
-        .andWhere("userId = :user", {user:userId})
-        .getMany();
+        const notesResQuery = await notesResRepo
+            .createQueryBuilder("notedefrais")
+            .where("notedefrais.annee = :annee", {annee: currentyear})
+            .andWhere("userId = :user", {user:userId})
+            .getMany();
 
         if (notesResQuery) {
             var notesYear:INoteDeFrais[] = [];

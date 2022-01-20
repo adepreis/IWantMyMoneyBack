@@ -51,54 +51,51 @@ function getSegmentedData(props: Props): Data[] {
 export default function Home(props: Props) {
   const router = useRouter();
   const year = parseInt(router.query.params as string);
-  const [state, setState] = useState({
-    note: null as INoteDeFrais | EmptyNote | null,
-    month: 0
-  });
+  const [month, setMonth] = useState(0);
+  const [note, setNote] = useState(null as INoteDeFrais | EmptyNote | null);
+
+  const updateNoteState = async (month: number) => {
+    const currentNoteId = props?.notes?.find(note => note.mois === month)?.id;
+
+    const emptyNote: EmptyNote = {
+      annee: year,
+      mois: month,
+      etat: NOTEDEFRAIS_ETAT.NON_VALIDEE,
+      ligne: []
+    }
+
+    const fetchNote = async (id: string) => {
+      const request = await fetch(`/api/${id}`);
+
+      if (request.status === 200) {
+        const result = await request.json();
+        return result;
+      } 
+      // Error while fetching
+      else {
+        return null;
+      }
+    }
+
+    if (currentNoteId) {
+      const res = await fetchNote(currentNoteId);
+      setNote(res);
+    } else {
+      setNote(emptyNote)
+    }
+  }
 
   useEffect(() => {
-    (async () => {
-      const id = props?.notes?.find(note => note.mois === state.month)?.id;
-      if ((!state.note && id) || (id && state.note && (state.note as INoteDeFrais)?.id !== id)) {
-        const URL = `/api/${id}`;
-        const request = await fetch(URL);
-        
-        if (request.status === 200) {
-          const result = await request.json();
-          console.log(result);
-          setState({
-            ...state,
-            note: result
-          });
-        } else {
-          setState({
-            ...state,
-            note: null
-          });
-        }
-  
-      } else if ((state.note as INoteDeFrais)?.id && !id) {
-        setState({
-          ...state,
-          note: {
-            annee: year,
-            mois: state.month,
-            etat: NOTEDEFRAIS_ETAT.NON_VALIDEE,
-            ligne: []
-          }
-        });
-      }
-    })()
-  });
+    updateNoteState(0);
+  }, []);
 
   const renderNote = () => {
-    if (!state.note) {
+    if (!note) {
       return <Center style={{height: "100%"}}>
         <Loader />
       </Center>
     }
 
-    const {note}: State = state;
     const rows = (note?.ligne ?? []).map((ligne, index) => (
       <tr key={index}>
         <td>{ligne.titre}</td>
@@ -142,19 +139,21 @@ export default function Home(props: Props) {
           }
         })}
         value={year ? `${year}` : null}
-        onChange={(item: string) => {
+        onChange={async (item: string) => {
+          setMonth(0),
+          setNote(null),
           router.push(`/home/${item}`);
+          updateNoteState(0);
         }}
         style={{
           flex: "unset"
         }}
       />
-      <SegmentedControl style={{flex: 1}} value={`${state.month}`} onChange={(item: string) => {
-        setState({
-          ...state,
-          month: parseInt(item)
-        });
-        }} fullWidth data={getSegmentedData(props).map(el => {
+      <SegmentedControl style={{flex: 1}} value={`${month}`} onChange={async (item: string) => {
+        const month = parseInt(item);
+        setMonth(month);
+        await updateNoteState(month);
+      }} fullWidth data={getSegmentedData(props).map(el => {
         var icon = <></>;
         switch (el.state) {
           case DataState.NONE:
