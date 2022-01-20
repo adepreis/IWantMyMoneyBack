@@ -12,12 +12,12 @@ export async function getLigne(ligneId: string | null, userId: string): Promise<
   const conn = getConnection();
 
   const ligne = await conn.getRepository(LigneDeFrais)
-  .createQueryBuilder("lignedefrais")
-  .leftJoinAndSelect("lignedefrais.mission", "mission")
-  .leftJoinAndSelect("lignedefrais.note", "notedefrais")
-  .where("lignedefrais.id = :id", {id: ligneId})
-  .andWhere("userId = :user", {user:userId})
-  .getOne();
+    .createQueryBuilder("lignedefrais")
+    .leftJoinAndSelect("lignedefrais.mission", "mission")
+    .leftJoinAndSelect("lignedefrais.note", "notedefrais")
+    .where("lignedefrais.id = :id", {id: ligneId})
+    .andWhere("userId = :user", {user:userId})
+    .getOne();
   
   if(!ligne){
     return null;

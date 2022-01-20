@@ -8,13 +8,14 @@ import { HiClock, HiXCircle, HiCheck } from "react-icons/hi";
 import dayjs from 'dayjs'
 import "dayjs/locale/fr";
 import localeData from "dayjs/plugin/localeData";
-import { INoteDeFrais } from '../../entity/notedefrais.entity'
+import { INoteDeFrais, noteToApi } from '../../entity/notedefrais.entity'
 import { NOTEDEFRAIS_ETAT } from '../../entity/utils'
 import numbro from 'numbro'
 import { useRouter } from 'next/router'
 dayjs.extend(localeData);
 dayjs().format();
 dayjs.locale("fr");
+
 
 type Props = {
   session: Session | null,
@@ -23,8 +24,9 @@ type Props = {
   currentYear?: number;
 }
 
+type EmptyNote = Omit<INoteDeFrais, "id">;
 type State = {
-  note: INoteDeFrais | null,
+  note: INoteDeFrais | EmptyNote | null,
   month: number,
 }
 
@@ -50,21 +52,44 @@ export default function Home(props: Props) {
   const router = useRouter();
   const year = parseInt(router.query.params as string);
   const [state, setState] = useState({
-    note: null,
+    note: null as INoteDeFrais | EmptyNote | null,
     month: 0
   });
 
   useEffect(() => {
     (async () => {
-      // const request = await fetch(`/api/${props?.notes?.find(note => note.mois === state.month)?.id}`);
-      // const result = await request.json();
-
-      // setState({
-      //   ...state,
-      //   note: result
-      // });
+      const id = props?.notes?.find(note => note.mois === state.month)?.id;
+      if ((!state.note && id) || (id && state.note && (state.note as INoteDeFrais)?.id !== id)) {
+        const URL = `/api/${id}`;
+        const request = await fetch(URL);
+        
+        if (request.status === 200) {
+          const result = await request.json();
+          console.log(result);
+          setState({
+            ...state,
+            note: result
+          });
+        } else {
+          setState({
+            ...state,
+            note: null
+          });
+        }
+  
+      } else if ((state.note as INoteDeFrais)?.id && !id) {
+        setState({
+          ...state,
+          note: {
+            annee: year,
+            mois: state.month,
+            etat: NOTEDEFRAIS_ETAT.NON_VALIDEE,
+            ligne: []
+          }
+        });
+      }
     })()
-  }, []);
+  });
 
   const renderNote = () => {
     if (!state.note) {

@@ -24,7 +24,6 @@ export default NextAuth({
             const user = await usersRepo.findOne({
               "email": credentials?.email
             });
-            
 
             if (user && credentials?.password) {
               if (await compare(credentials?.password,user.password)) {

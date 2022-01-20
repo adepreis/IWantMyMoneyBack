@@ -67,7 +67,6 @@ export class LigneDeFrais implements ILigneDeFrais {
 }
 
 export const lineToApi = (ligne: LigneDeFrais): ILigneDeFrais => {
-    console.log(ligne);
     return {
         id: ligne.id,
         titre: ligne.titre,
