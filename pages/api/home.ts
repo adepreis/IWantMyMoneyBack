@@ -50,6 +50,8 @@ export const getHomeNote = async (session: Session | null) => {
         }
     }
 
+    conn.close();
+
     return notes;
 }
 

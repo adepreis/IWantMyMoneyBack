@@ -142,7 +142,7 @@ export default function Home(props: Props) {
         onChange={async (item: string) => {
           setMonth(0),
           setNote(null),
-          router.push(`/home/${item}`);
+          await router.push(`/home/${item}`);
           updateNoteState(0);
         }}
         style={{

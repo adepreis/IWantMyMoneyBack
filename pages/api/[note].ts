@@ -19,7 +19,9 @@ export async function getNote(noteId: string, userId: string): Promise<NotesRequ
         .leftJoinAndSelect("lignedefrais.mission", "mission")
         .where("notedefrais.id = :id", {id: noteId})
         .andWhere("userId = :user", {user:userId})
-        .getOne(); 
+        .getOne();
+    
+    conn.close();
 
     if (!note) {
         return null;

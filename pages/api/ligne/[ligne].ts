@@ -18,6 +18,8 @@ export async function getLigne(ligneId: string | null, userId: string): Promise<
     .where("lignedefrais.id = :id", {id: ligneId})
     .andWhere("userId = :user", {user:userId})
     .getOne();
+
+  conn.close();
   
   if(!ligne){
     return null;
