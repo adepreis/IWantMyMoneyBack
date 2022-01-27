@@ -9,7 +9,7 @@ import { User } from "../../entity/user.entity";
 import { NOTEDEFRAIS_ETAT, LIGNE_TYPE } from "../../entity/utils";
 import { NextApiRequest, NextApiResponse } from "next";
 
-const USER_ID = "c61b8322-75eb-11ec-b7f5-0242ac120003";
+const USER_ID = "0";
 const MISSION_NUMBER = 3;
 const LIGNE_NUMBER = 3;
 const BEGIN_YEAR = 2018;

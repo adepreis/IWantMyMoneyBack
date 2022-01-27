@@ -1,10 +1,10 @@
-import { Group, SegmentedControl, Center, Select, Table, GroupedTransition, Container, Loader } from '@mantine/core'
+import { Group, SegmentedControl, Center, Select, Table, GroupedTransition, Container, Loader, Button, Modal } from '@mantine/core'
 import type { GetServerSideProps } from 'next'
 import { Session } from 'next-auth'
 import { getSession } from 'next-auth/react'
 import { getHomeNote, HomeNote } from '../api/home'
 import { useEffect, useState } from 'react'
-import { HiClock, HiXCircle, HiCheck } from "react-icons/hi";
+import { HiClock, HiXCircle, HiCheck, HiOutlinePencil, HiX } from "react-icons/hi";
 import dayjs from 'dayjs'
 import "dayjs/locale/fr";
 import localeData from "dayjs/plugin/localeData";
@@ -53,6 +53,7 @@ export default function Home(props: Props) {
   const year = parseInt(router.query.params as string);
   const [month, setMonth] = useState(0);
   const [note, setNote] = useState(null as INoteDeFrais | EmptyNote | null);
+  const [opened, setOpened] = useState(false);
 
   const updateNoteState = async (month: number) => {
     const currentNoteId = props?.notes?.find(note => note.mois === month)?.id;
@@ -96,6 +97,21 @@ export default function Home(props: Props) {
       </Center>
     }
 
+    const modal = <Modal centered opened={opened}
+        onClose={() => setOpened(false)}
+        title="Modifier une ligne de frais"
+      >
+        Bonjour ceci sera le futur formulaire d'édition <br/><br/>
+        {/*<EditLineForm />*/}
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        In aliquet magna nunc, eget porttitor purus porta a.
+        Nam aliquam vel dui id auctor. Sed quis lacus ultrices, tempor lorem ac, sodales arcu.
+        Cras auctor, libero vitae posuere accumsan, tellus nunc tincidunt leo, eget lobortis lectus lectus et arcu.
+        <br/>
+        <br/>
+        <Button color="green">Enregistrer les modifications</Button>
+      </Modal>;
+
     const rows = (note?.ligne ?? []).map((ligne, index) => (
       <tr key={index}>
         <td>{ligne.titre}</td>
@@ -103,15 +119,35 @@ export default function Home(props: Props) {
         <td>{numbro(ligne.prixHT).formatCurrency({ mantissa: 2, 
           currencySymbol: "€", 
           currencyPosition: "postfix",
-          spaceSeparated: true ,
+          spaceSeparated: true,
           spaceSeparatedCurrency: true,
           thousandSeparated: true,
         }).replace(",", " ")}</td>
         <td>{"TODO"}</td>
+        <td>
+          {/*TODO : display form and send PUT query with smtg like :
+            const requestOptions = {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: 'React PUT Request Example' })
+            };
+            fetch(`/api/${note?.ligne}`, requestOptions)
+                .then(response => response.json())
+                .then(data => this.setState({ postId: data.id }));
+          */}
+          <Button variant="outline" leftIcon={<HiOutlinePencil size={18} />} onClick={() => setOpened(true)}></Button>
+          {/*TODO : send DELETE query with smtg like :
+            fetch(`/api/${note?.ligne}`, {method: "DELETE"})
+              .then(response => { console.log(response.status); }
+            );
+          */}
+          <Button variant="outline" color="red" leftIcon={<HiX size={18} />}></Button>
+        </td>
       </tr>
     ));
 
     return <Container padding="lg">
+      {modal}
       <Table striped highlightOnHover>
         <thead>
           <tr>
