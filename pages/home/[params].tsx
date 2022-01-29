@@ -1,4 +1,4 @@
-import { Group, SegmentedControl, Center, Select, Table, GroupedTransition, Container, Loader } from '@mantine/core'
+import { Group, SegmentedControl, Center, Select, Table, GroupedTransition, Container, Loader, Accordion } from '@mantine/core'
 import type { GetServerSideProps } from 'next'
 import { Session } from 'next-auth'
 import { getSession } from 'next-auth/react'
@@ -12,6 +12,8 @@ import { INoteDeFrais, noteToApi } from '../../entity/notedefrais.entity'
 import { NOTEDEFRAIS_ETAT } from '../../entity/utils'
 import numbro from 'numbro'
 import { useRouter } from 'next/router'
+import { Mission } from '../../entity/mission.entity'
+import { ILigneDeFrais } from '../../entity/lignedefrais.entity'
 dayjs.extend(localeData);
 dayjs().format();
 dayjs.locale("fr");
@@ -89,14 +91,8 @@ export default function Home(props: Props) {
     updateNoteState(0);
   }, []);
 
-  const renderNote = () => {
-    if (!note) {
-      return <Center style={{height: "100%"}}>
-        <Loader />
-      </Center>
-    }
-
-    const rows = (note?.ligne ?? []).map((ligne, index) => (
+  const renderLines = (lines: ILigneDeFrais[]) => {
+    const rows = lines.map((ligne, index) => (
       <tr key={index}>
         <td>{ligne.titre}</td>
         <td>{dayjs(ligne.date).format("DD-MM-YYYY")}</td>
@@ -111,24 +107,58 @@ export default function Home(props: Props) {
       </tr>
     ));
 
-    return <Container padding="lg">
-      <Table striped highlightOnHover>
-        <thead>
-          <tr>
-            <th>Titre</th>
-            <th>Date</th>
-            <th>Montant HT</th>
-            <th>Justificatif</th>
-          </tr>
-        </thead>
-        <tbody>{rows}</tbody>
-      </Table>
-    </Container>
+    return <Table striped highlightOnHover>
+      <thead>
+        <tr>
+          <th>Titre</th>
+          <th>Date</th>
+          <th>Montant HT</th>
+          <th>Justificatif</th>
+        </tr>
+      </thead>
+      <tbody>{rows}</tbody>
+    </Table>
+  }
+
+  const renderMissions = () => {
+    if (!note) {
+      return <Center style={{height: "100%"}}>
+        <Loader />
+      </Center>
+    }
+
+    type MissionData = {
+      mission: Mission,
+      lignes: ILigneDeFrais[]
+    }
+    const missions = new Map<string, MissionData>();
+    
+    for (const ligne of note.ligne) {
+      if (missions.has(ligne.mission.id)) {
+        ((missions.get(ligne.mission.id) as MissionData).lignes as ILigneDeFrais[]).push(ligne);
+      } else {
+        missions.set(ligne.mission.id, {
+          mission: ligne.mission,
+          lignes: [ligne]
+        });
+      }
+    }
+
+    return <Accordion offsetIcon={false}>
+      {
+        Array.from(missions).map((mission, key) => {
+          return <Accordion.Item label={mission[1].mission.titre} key={key}>
+            {renderLines(mission[1].lignes)}
+          </Accordion.Item>
+        })
+      }
+    </Accordion>
   }
 
   return <Group grow direction="column" style={{width: "100%"}} spacing={0}>
     <Group style={{alignItems: "baseline"}} grow>
-      {renderNote()}
+      {renderMissions()}
+      {/* {renderNote()} */}
     </Group>
     <Group style={{flex: 0, width: "100%"}} spacing={0}>
       <Select
