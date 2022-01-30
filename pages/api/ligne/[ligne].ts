@@ -45,7 +45,7 @@ export async function rmLigne(ligneId: string, userId: string): Promise<boolean>
 
   if (!ligne) {
     throw new Error("Ligne inexistante");
-  }else if (!(ligne.note.etat === NOTEDEFRAIS_ETAT.NON_VALIDEE || ligne.note.etat === NOTEDEFRAIS_ETAT.REFUSEE)) {
+  }else if (!(ligne.note.etat === NOTEDEFRAIS_ETAT.BROUILLON || ligne.note.etat === NOTEDEFRAIS_ETAT.REFUSEE)) {
     return false;
   }
 
