@@ -12,11 +12,14 @@ export class User {
 
     @Column({type: "varchar"})
     @Index({ unique: true })
-    public email!: string;
+    public login!: string;
+
+    @Column({type: "varchar"})
+    public password!: string;
 
     @Column({type: "varchar"})
     @Index({ unique: true })
-    public login!: string;
+    public email!: string;
 
     @Column({type: "varchar"})
     public nom!: string;
@@ -30,7 +33,4 @@ export class User {
         default: USER_ROLES.USER
     })
     public role!: string;
-
-    @Column({type: "varchar"})
-    public password!: string;
 }

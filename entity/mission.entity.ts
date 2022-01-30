@@ -1,4 +1,5 @@
-import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Service } from "./service.entity";
 //ajouter a database.ts la classe 
 
 export interface IMission {
@@ -25,6 +26,9 @@ export class Mission {
 
     @Column({type: "varchar"})
     public description!: string;
+
+    @ManyToOne(() => Service)
+    service!: Service;
 }
 
 export const missionToApi = (misson: Mission): IMission => {
