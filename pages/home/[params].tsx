@@ -1,15 +1,16 @@
-import { Group, SegmentedControl, Center, Select, Table, GroupedTransition, Container, Loader, Button, Modal } from '@mantine/core'
+import { Group, SegmentedControl, Center, Select, Table, GroupedTransition, Container, Loader, Button, ActionIcon, Modal, Text } from '@mantine/core'
 import type { GetServerSideProps } from 'next'
 import { Session } from 'next-auth'
 import { getSession } from 'next-auth/react'
 import { getHomeNote, HomeNote } from '../api/home'
 import { useEffect, useState } from 'react'
-import { HiClock, HiXCircle, HiCheck, HiOutlinePencil, HiX } from "react-icons/hi";
+import { HiClock, HiXCircle, HiCheck, HiOutlinePencil, HiX, HiOutlinePaperClip, HiPlus } from "react-icons/hi";
 import dayjs from 'dayjs'
 import "dayjs/locale/fr";
 import localeData from "dayjs/plugin/localeData";
 import { INoteDeFrais, noteToApi } from '../../entity/notedefrais.entity'
 import { NOTEDEFRAIS_ETAT } from '../../entity/utils'
+import EditLineForm from '../../components/EditLineForm'
 import numbro from 'numbro'
 import { useRouter } from 'next/router'
 dayjs.extend(localeData);
@@ -100,16 +101,9 @@ export default function Home(props: Props) {
     const modal = <Modal centered opened={opened}
         onClose={() => setOpened(false)}
         title="Modifier une ligne de frais"
+        size="lg"
       >
-        Bonjour ceci sera le futur formulaire d'édition <br/><br/>
-        {/*<EditLineForm />*/}
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-        In aliquet magna nunc, eget porttitor purus porta a.
-        Nam aliquam vel dui id auctor. Sed quis lacus ultrices, tempor lorem ac, sodales arcu.
-        Cras auctor, libero vitae posuere accumsan, tellus nunc tincidunt leo, eget lobortis lectus lectus et arcu.
-        <br/>
-        <br/>
-        <Button color="green">Enregistrer les modifications</Button>
+        <EditLineForm />
       </Modal>;
 
     const rows = (note?.ligne ?? []).map((ligne, index) => (
@@ -123,25 +117,36 @@ export default function Home(props: Props) {
           spaceSeparatedCurrency: true,
           thousandSeparated: true,
         }).replace(",", " ")}</td>
-        <td>{"TODO"}</td>
         <td>
-          {/*TODO : display form and send PUT query with smtg like :
-            const requestOptions = {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title: 'React PUT Request Example' })
-            };
-            fetch(`/api/${note?.ligne}`, requestOptions)
-                .then(response => response.json())
-                .then(data => this.setState({ postId: data.id }));
-          */}
-          <Button variant="outline" leftIcon={<HiOutlinePencil size={18} />} onClick={() => setOpened(true)}></Button>
-          {/*TODO : send DELETE query with smtg like :
-            fetch(`/api/${note?.ligne}`, {method: "DELETE"})
-              .then(response => { console.log(response.status); }
-            );
-          */}
-          <Button variant="outline" color="red" leftIcon={<HiX size={18} />}></Button>
+          { ligne.perdu
+            ? <Text color="red">Pas de justificatif</Text>
+            : <Button title="TODO: afficher ligne.justificatif" variant="subtle" rightIcon={<HiOutlinePaperClip size={16}/>}>Justificatif</Button>
+          }
+        </td>
+        <td>
+          <Group position="center" direction="row" spacing={0}>
+            {/*TODO : display form and send PUT query with smtg like :
+              const requestOptions = {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ title: 'React PUT Request Example' })
+              };
+              fetch(`/api/${note?.ligne}`, requestOptions)
+                  .then(response => response.json())
+                  .then(data => this.setState({ postId: data.id }));
+            */}
+            <ActionIcon size="xl" radius="lg" title="Modifier la ligne" color="blue" onClick={() => setOpened(true)}>
+              <HiOutlinePencil/>
+            </ActionIcon>
+            {/*TODO : send DELETE query with smtg like :
+              fetch(`/api/${note?.ligne}`, {method: "DELETE"})
+                .then(response => { console.log(response.status); }
+              );
+            */}
+            <ActionIcon size="xl" radius="lg" title="Supprimer la ligne" color="red">
+              <HiX/>
+            </ActionIcon>
+          </Group>
         </td>
       </tr>
     ));
@@ -159,6 +164,9 @@ export default function Home(props: Props) {
         </thead>
         <tbody>{rows}</tbody>
       </Table>
+      <Button title="Ajouter une ligne de frais" color="green" leftIcon={<HiPlus size={16}/>} onClick={() => setOpened(true)} fullWidth>
+        Ajouter une ligne
+      </Button>
     </Container>
   }
 
