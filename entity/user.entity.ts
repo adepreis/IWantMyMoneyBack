@@ -1,4 +1,8 @@
-import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Avance } from "./avance.entity";
+import { NoteDeFrais } from "./notedefrais.entity";
+import { Notification } from "./notification.entity";
+import { Service } from "./service.entity";
 //ajouter a database.ts la classe 
 export const USER_ROLES = {
     ADMIN: "ADMIN",
@@ -33,4 +37,17 @@ export class User {
         default: USER_ROLES.USER
     })
     public role!: string;
+
+    @OneToMany(type => Notification, notifications => notifications.user)
+    notifications!: Notification[];
+
+    @OneToMany(type => NoteDeFrais, notes => notes.user)
+    notes!: NoteDeFrais[];
+
+    @OneToMany(type => Avance, avances => avances.user)
+    avances!: Avance[];
+
+    // ManyToOne ChefDeService (user)
+    // ManyToMany services
+    // ManyToMany chefAnterieurs
 }

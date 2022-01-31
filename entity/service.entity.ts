@@ -5,7 +5,10 @@ import { IMission, Mission, missionToApi } from "./mission.entity";
 export interface IService {
     id: string,
     nom: string,
-    mission: IMission[]
+    mission: IMission[],
+    // OneToMany ChefDeService (user)
+    // ManyToMany services
+    // ManyToMany chefAnterieurs
 }
 
 @Entity("service")
@@ -18,6 +21,10 @@ export class Service {
 
     @OneToMany(type => Mission, mission => mission.service)
     mission!: Mission[];
+
+    // OneToMany ChefDeService (user)
+    // ManyToMany services
+    // ManyToMany chefAnterieurs
 }
 
 export const serviceToApi = (service: Service): IService => {
@@ -25,5 +32,8 @@ export const serviceToApi = (service: Service): IService => {
         id: service.id,
         nom: service.nom,
         mission: (service?.mission ?? []).map(mission => missionToApi(mission))
+        // OneToMany ChefDeService (user)
+        // ManyToMany services
+        // ManyToMany chefAnterieurs
     };
 }
