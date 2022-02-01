@@ -59,9 +59,10 @@ export default async function handler(
                 mois: month,
                 etat: Math.random() > 0.5 ? NOTEDEFRAIS_ETAT.VALIDEE :
                     Math.random() > 0.5 ? NOTEDEFRAIS_ETAT.REFUSEE :
-                    Math.random() > 0.5 ? NOTEDEFRAIS_ETAT.NON_VALIDEE :
+                    Math.random() > 0.5 ? NOTEDEFRAIS_ETAT.BROUILLON :
                     NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION,
                 user: user
+               
             })
 
             notes.push(newNote);
@@ -105,7 +106,9 @@ export default async function handler(
                                 Math.random() > 0.5 ? LIGNE_TYPE.REPAS :
                                 LIGNE_TYPE.AUTRE,
                             note: note,
-                            mission: mission
+                            mission: mission,
+                            commentaire: "",
+                            commentaire_validateur:""
                         }
                     ])
                     .execute();

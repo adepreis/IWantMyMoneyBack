@@ -38,3 +38,6 @@ yarn-error.log*
 
 # environment variable
 .env
+
+# justificatif
+/pages/api/ligne/justificatif/

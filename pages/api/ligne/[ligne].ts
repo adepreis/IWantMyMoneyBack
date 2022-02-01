@@ -8,6 +8,8 @@ import { prepareConnection } from "../database";
 
 export type LigneRequest = ILigneDeFrais | RequestError | string;
 
+
+//récupère une ligne dans la bd
 export async function getLigne(ligneId: string, userId: string): Promise<LigneRequest | null>{
   await prepareConnection();
   const conn = getConnection();
@@ -29,6 +31,8 @@ export async function getLigne(ligneId: string, userId: string): Promise<LigneRe
   }
   
 }
+
+//suprime une ligne
 export async function rmLigne(ligneId: string, userId: string): Promise<boolean>{
   await prepareConnection();
   var conn = getConnection();
