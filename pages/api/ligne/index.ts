@@ -11,6 +11,7 @@ import { prepareConnection } from '../database';
 
 import nextConnect from 'next-connect';
 import multer from 'multer';
+import { NOTEDEFRAIS_ETAT } from '../../../entity/utils';
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -126,6 +127,8 @@ apiRoute.post(async (req:any, res:NextApiResponse) => {
     if(!notes){
       res.status(404).json({error: "Notes non trouvée", code: 404});
       return;
+    }else if (!(notes.etat === NOTEDEFRAIS_ETAT.BROUILLON || notes.etat === NOTEDEFRAIS_ETAT.REFUSEE)) {
+      res.status(423).json({error: "Vous ne pouvez pas supprimer cette ligne" as string, code: 423});
     }
     
   if(await insertLigne(req.body,req.file.filename)){
@@ -155,6 +158,8 @@ apiRoute.put(async (req:any, res:NextApiResponse) => {
 
     if(!notes){
       res.status(404).json({error: "Notes non trouvée", code: 404});
+    }else if (!(notes.etat === NOTEDEFRAIS_ETAT.BROUILLON || notes.etat === NOTEDEFRAIS_ETAT.REFUSEE)) {
+      res.status(423).json({error: "Vous ne pouvez pas supprimer cette ligne" as string, code: 423});
     }
 
   if(await updateLigne(req.body, req.file.filename)){
