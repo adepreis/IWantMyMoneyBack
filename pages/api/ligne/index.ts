@@ -128,7 +128,7 @@ apiRoute.post(async (req:any, res:NextApiResponse) => {
       res.status(404).json({error: "Notes non trouvée", code: 404});
       return;
     }else if (!(notes.etat === NOTEDEFRAIS_ETAT.BROUILLON || notes.etat === NOTEDEFRAIS_ETAT.REFUSEE)) {
-      res.status(423).json({error: "Vous ne pouvez pas supprimer cette ligne" as string, code: 423});
+      res.status(423).json({error: "Vous ne pouvez pas ajouté de ligne à cette notes" as string, code: 423});
     }
     
   if(await insertLigne(req.body,req.file.filename)){
@@ -159,7 +159,7 @@ apiRoute.put(async (req:any, res:NextApiResponse) => {
     if(!notes){
       res.status(404).json({error: "Notes non trouvée", code: 404});
     }else if (!(notes.etat === NOTEDEFRAIS_ETAT.BROUILLON || notes.etat === NOTEDEFRAIS_ETAT.REFUSEE)) {
-      res.status(423).json({error: "Vous ne pouvez pas supprimer cette ligne" as string, code: 423});
+      res.status(423).json({error: "Vous ne pouvez pas mettre à jours cette ligne" as string, code: 423});
     }
 
   if(await updateLigne(req.body, req.file.filename)){
