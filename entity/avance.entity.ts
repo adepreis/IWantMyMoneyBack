@@ -9,7 +9,7 @@ export interface IAvance {
     montant: number,
     rembourse: number,
     //mission: IMission,
-    //user:
+    //user: User
 }
 
 @Entity("avance")
@@ -35,7 +35,7 @@ export const avanceToApi = (avance: Avance): IAvance => {
         id: avance.id,
         montant: avance.montant,
         rembourse: avance.rembourse,
-        //mission: avance.mission,
+        //mission:
         //users
     };
 }

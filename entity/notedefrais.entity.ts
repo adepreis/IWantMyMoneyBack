@@ -10,8 +10,9 @@ export interface INoteDeFrais {
     mois: number,
     annee: number,
     etat: NOTEDEFRAIS_ETAT,
-    ligne: ILigneDeFrais[],
-    notification: INotification[]
+    //user: User
+    lignes: ILigneDeFrais[],
+    notifications: INotification[]
 }
 
 @Entity("notedefrais")
@@ -36,10 +37,10 @@ export class NoteDeFrais implements INoteDeFrais {
     user!: User;
 
     @OneToMany(type => LigneDeFrais, ligne => ligne.note)
-    ligne!: LigneDeFrais[];
+    lignes!: LigneDeFrais[];
 
     @OneToMany(type => Notification, notification => notification.note)
-    notification!: Notification[];
+    notifications!: Notification[];
 }
 
 export const noteToApi = (note: NoteDeFrais): INoteDeFrais => {
@@ -48,7 +49,8 @@ export const noteToApi = (note: NoteDeFrais): INoteDeFrais => {
         mois: note.mois,
         annee: note.annee,
         etat: note.etat,
-        ligne: (note?.ligne ?? []).map(ligne => lineToApi(ligne)),
-        notification: (note?.notification ?? []).map(notification => notificationToApi(notification)),
+        //user:
+        lignes: (note?.lignes ?? []).map(lignes => lineToApi(lignes)),
+        notifications: (note?.notifications ?? []).map(notifications => notificationToApi(notifications)),
     };
 }

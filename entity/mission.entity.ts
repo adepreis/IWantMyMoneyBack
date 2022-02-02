@@ -50,7 +50,7 @@ export const missionToApi = (mission: Mission): IMission => {
         dateDebut: mission.dateDebut,
         dateFin: mission.dateFin,
         description: mission.description,
-        //service: mission.service,
+        //service:
         avances: (mission?.avances ?? []).map(avances => avanceToApi(avances)),
         lignes: (mission?.lignes ?? []).map(lignes => lineToApi(lignes))
     };

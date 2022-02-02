@@ -1,5 +1,6 @@
-import { Column, Entity, Index, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Avance } from "./avance.entity";
+import { ChefAnterieur } from "./chefanterieur.entity";
 import { NoteDeFrais } from "./notedefrais.entity";
 import { Notification } from "./notification.entity";
 import { Service } from "./service.entity";
@@ -47,7 +48,17 @@ export class User {
     @OneToMany(type => Avance, avances => avances.user)
     avances!: Avance[];
 
-    // ManyToOne ChefDeService (user)
-    // ManyToMany services
-    // ManyToMany chefAnterieurs
+    @OneToMany(type => User, collaborateurs => collaborateurs.chef)
+    collaborateurs!: User[];
+
+    @ManyToOne(type => User, user => user.collaborateurs)
+    chef!: User;
+
+    @ManyToMany(type => Service, servicesAnterieurs => servicesAnterieurs.collaborateursAnterieurs)
+    @JoinTable()
+    servicesAnterieurs!: Service[];
+    // (avec collaborateursAnterieurs de Service)
+
+    @OneToMany(type => ChefAnterieur, chefAnterieurs => chefAnterieurs.chefAnterieur)
+    chefsAnterieurs!: ChefAnterieur[];
 }

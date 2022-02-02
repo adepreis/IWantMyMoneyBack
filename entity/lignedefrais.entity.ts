@@ -88,7 +88,7 @@ export const lineToApi = (ligne: LigneDeFrais): ILigneDeFrais => {
         commentaire: ligne.commentaire,
         commentaire_validateur: ligne.commentaire_validateur,
         perdu: ligne.perdu,
-        //note: ligne.note,
-        //ission: ligne.mission
+        //note:
+        //mission:
     };
 }

@@ -1,5 +1,5 @@
 import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { NoteDeFrais } from "./notedefrais.entity";
+import { INoteDeFrais, NoteDeFrais } from "./notedefrais.entity";
 import { User } from "./user.entity";
 //ajouter a database.ts la classe 
 
@@ -7,7 +7,9 @@ export interface INotification {
     id: string,
     description: string,
     lu: boolean,
-    date: Date
+    date: Date,
+    //user: User
+    //note: INoteDeFrais
 }
 
 @Entity("notification")
@@ -36,6 +38,8 @@ export const notificationToApi = (notification: Notification): INotification => 
         id: notification.id,
         description: notification.description,
         lu: notification.lu,
-        date: notification.date
+        date: notification.date,
+        //user:
+        //note:
     };
 }

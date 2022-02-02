@@ -1,6 +1,7 @@
-import { Column, Entity, Index, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { ILigneDeFrais, LigneDeFrais, lineToApi } from "./lignedefrais.entity";
 import { IService, Service, serviceToApi } from "./service.entity";
+import { User } from "./user.entity";
 //import { User } from "./user.entity";
 //ajouter a database.ts la classe 
 
@@ -9,9 +10,9 @@ export interface IChefAnterieur {
     dateDebut: Date,
     dateFin: Date,
     //nom: string,
-    //prenom: string
-    //services: IService,
-    //users : User[]
+    //prenom: string,
+    //chefAnterieur: User (ManyToOne)
+    //service: IService (ManyToOne)
 }
 
 @Entity("chefanterieur")
@@ -31,9 +32,11 @@ export class ChefAnterieur {
     //@Column({type: "varchar"})
     //public prenom!: string;
 
-    // OneToOne service
+    @ManyToOne(type => User, user => user.chefsAnterieurs)
+    chefAnterieur!: User;
 
-    //@ManyToMany user
+    @ManyToOne(() => Service, service => service.chefsAnterieurs)
+    service!: Service;
 }
 
 export const chefanterieurToApi = (chefanterieur: ChefAnterieur): IChefAnterieur => {
@@ -43,7 +46,7 @@ export const chefanterieurToApi = (chefanterieur: ChefAnterieur): IChefAnterieur
         dateFin: chefanterieur.dateFin,
         //nom: chefanterieur.nom,
         //prenom: chefanterieur.prenom,
-        //service: chefanterieur.service,
-        //users
+        //chefAnterieur: (ManyToOne)
+        //service: (ManyToOne)
     };
 }

@@ -1,14 +1,15 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { ChefAnterieur, chefanterieurToApi, IChefAnterieur } from "./chefanterieur.entity";
 import { IMission, Mission, missionToApi } from "./mission.entity";
+import { User } from "./user.entity";
 //ajouter a database.ts la classe 
 
 export interface IService {
     id: string,
     nom: string,
-    mission: IMission[],
-    // OneToMany ChefDeService (user)
-    // ManyToMany services
-    // ManyToMany chefAnterieurs
+    missions: IMission[],
+    chefsAnterieurs: IChefAnterieur[]
+    //collaborateursAnterieurs: User[] (ManyToMany)
 }
 
 @Entity("service")
@@ -20,20 +21,23 @@ export class Service {
     public nom!: string;
 
     @OneToMany(type => Mission, mission => mission.service)
-    mission!: Mission[];
+    missions!: Mission[];
 
-    // OneToMany ChefDeService (user)
-    // ManyToMany services
-    // ManyToMany chefAnterieurs
+    @OneToMany(type => ChefAnterieur, chefAnterieur => chefAnterieur.service)
+    chefsAnterieurs!: ChefAnterieur[];
+
+    @ManyToMany(type => User, collaborateursAnterieurs => collaborateursAnterieurs.servicesAnterieurs)
+    @JoinTable()
+    collaborateursAnterieurs!: User[];
+    // (avec servicesAnterieurs de User)
 }
 
 export const serviceToApi = (service: Service): IService => {
     return {
         id: service.id,
         nom: service.nom,
-        mission: (service?.mission ?? []).map(mission => missionToApi(mission))
-        // OneToMany ChefDeService (user)
-        // ManyToMany services
-        // ManyToMany chefAnterieurs
+        missions: (service?.missions ?? []).map(missions => missionToApi(missions)),
+        chefsAnterieurs: (service?.chefsAnterieurs ?? []).map(chefsAnterieurs => chefanterieurToApi(chefsAnterieurs))
+        //collaborateursAnterieurs: (ManyToMany)
     };
 }
