@@ -40,4 +40,4 @@ yarn-error.log*
 .env
 
 # justificatif
-/pages/api/ligne/justificatif/
+/public/justificatif/

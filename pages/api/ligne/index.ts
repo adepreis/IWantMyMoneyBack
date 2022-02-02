@@ -14,7 +14,7 @@ import multer from 'multer';
 
 const upload = multer({
   storage: multer.diskStorage({
-    destination: './pages/api/ligne/justificatif',
+    destination: './public/justificatif',
     filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
         cb(null, uniqueSuffix + '-' +  file.originalname)
@@ -112,6 +112,7 @@ apiRoute.post(async (req:any, res:NextApiResponse) => {
       userId = (session as any)?.id;
     } else {
       res.status(403).json({error: "acces interdit" as string, code: 403});
+      return;
     }
 
     await prepareConnection();
@@ -124,6 +125,7 @@ apiRoute.post(async (req:any, res:NextApiResponse) => {
 
     if(!notes){
       res.status(404).json({error: "Notes non trouvée", code: 404});
+      return;
     }
     
   if(await insertLigne(req.body,req.file.filename)){
