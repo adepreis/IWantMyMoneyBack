@@ -15,7 +15,7 @@ export async function getNote(noteId: string, userId: string): Promise<NotesRequ
     const conn = getConnection();
     const note = await conn.getRepository(NoteDeFrais)
         .createQueryBuilder("notedefrais")
-        .leftJoinAndSelect("notedefrais.ligne", "lignedefrais")
+        .leftJoinAndSelect("notedefrais.lignes", "lignedefrais")
         .leftJoinAndSelect("lignedefrais.mission", "mission")
         .where("notedefrais.id = :id", {id: noteId})
         .andWhere("userId = :user", {user:userId})
@@ -54,6 +54,7 @@ export default async function handler(
         res.status(200).json(note);
         
     } catch(e) {
+        console.log(e);
         res.status(404).json({error: e as string, code: 404});
     }
     

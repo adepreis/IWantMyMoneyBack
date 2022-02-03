@@ -1,6 +1,6 @@
 import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { IMission, Mission, missionToApi } from "./mission.entity";
-import { NoteDeFrais } from "./notedefrais.entity";
+import { INoteDeFrais, NoteDeFrais } from "./notedefrais.entity";
 import { LIGNE_TYPE } from "./utils";
 //ajouter a database.ts la classe 
 
@@ -8,14 +8,18 @@ export interface ILigneDeFrais {
     id: string;
     titre: string;
     date: Date;
-    validee: number;
+    validee: boolean;
     prixHT: number;
+    prixTTC: number;
     prixTVA: number;
-    justificatif: string;
-    perdu: boolean;
-    raison_avance: string;
     type: LIGNE_TYPE;
-    mission: IMission
+    justificatif: string;
+    avance: boolean;
+    commentaire: string;
+    commentaire_validateur: string;
+    perdu: boolean;
+    //note: INoteDeFrais;
+    mission: IMission;
 }
 
 @Entity("lignedefrais")
@@ -29,8 +33,8 @@ export class LigneDeFrais implements ILigneDeFrais {
     @Column({type: "date"})
     public date!: Date;
 
-    @Column({type: "int"})
-    public validee!: number;
+    @Column({type: "bool"})
+    public validee!: boolean;
 
     @Column({type: "float"})
     public prixHT!: number;
@@ -41,23 +45,26 @@ export class LigneDeFrais implements ILigneDeFrais {
     @Column({type: "float"})
     public prixTVA!: number;
 
-    @Column({type: "varchar"})
-    public justificatif!: string;
-
-    @Column({type: "bool"})
-    public perdu!: boolean;
-    
-    @Column({type: "bool"})
-    public avance!: boolean;
-
-    @Column({type: "varchar"})
-    public raison_avance!: string;
-
     @Column({
         type: "enum",
         enum: Object.values(LIGNE_TYPE)
     })
     public type!: LIGNE_TYPE;
+
+    @Column({type: "varchar"})
+    public justificatif!: string;
+    
+    @Column({type: "bool"})
+    public avance!: boolean;
+
+    @Column({type: "varchar"})
+    public commentaire!: string;
+
+    @Column({type: "varchar"})
+    public commentaire_validateur!: string;
+
+    @Column({type: "bool"})
+    public perdu!: boolean;
 
     @ManyToOne(() => NoteDeFrais)
     note!: NoteDeFrais;
@@ -73,11 +80,15 @@ export const lineToApi = (ligne: LigneDeFrais): ILigneDeFrais => {
         date: ligne.date,
         validee: ligne.validee,
         prixHT: ligne.prixHT,
+        prixTTC: ligne.prixTTC,
         prixTVA: ligne.prixTVA,
-        justificatif: ligne.justificatif,
-        perdu: ligne.perdu,
-        raison_avance: ligne.raison_avance,
         type: ligne.type,
+        justificatif: ligne.justificatif,
+        avance: ligne.avance,
+        commentaire: ligne.commentaire,
+        commentaire_validateur: ligne.commentaire_validateur,
+        perdu: ligne.perdu,
+        //note:
         mission: missionToApi(ligne.mission)
     };
 }
