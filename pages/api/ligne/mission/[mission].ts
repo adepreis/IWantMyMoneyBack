@@ -10,7 +10,7 @@ import { prepareConnection } from '../../database';
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Mission | RequestError>
+  res: NextApiResponse<Mission[] | RequestError>
 ) {
     var userId;
     try {
@@ -29,15 +29,21 @@ export default async function handler(
         const ligne = await conn.getRepository(Mission)
           .createQueryBuilder("mission")
           .leftJoinAndSelect("mission.service", "service")
-          .leftJoinAndSelect("service.user", "service")
-          .andWhere("userId = :user", {user:userId})
-          .where("mission.dateDebut <= :date", {date: req.query.mission})
+          .leftJoinAndSelect("service.collaborateursAnterieurs", "user")
+          .where("user.Id = :user", {user:userId})
+          .andWhere("mission.dateDebut <= :date", {date: req.query.mission})
           .andWhere("mission.dateFin >= :date", {date: req.query.mission})
           .getMany();
-      
+      console.log(ligne);
         conn.close();
+        if(ligne){
+          res.status(200).json(ligne);
+        }else{
+          throw new Error("aucune mission correspondant");
+          
+        }
         
-        
+      
     } catch(e) {
         res.status(404).json({error: e as string, code: 404});
     }
