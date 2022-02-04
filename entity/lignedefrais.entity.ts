@@ -66,7 +66,7 @@ export class LigneDeFrais implements ILigneDeFrais {
     @Column({type: "bool"})
     public perdu!: boolean;
 
-    @ManyToOne(() => NoteDeFrais)
+    @ManyToOne(() => NoteDeFrais, {onDelete: 'CASCADE'})
     note!: NoteDeFrais;
 
     @ManyToOne(() => Mission)
