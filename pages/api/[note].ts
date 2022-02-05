@@ -8,7 +8,7 @@ import { prepareConnection } from "./database";
 
 export type NotesRequest = INoteDeFrais | RequestError | string;
 
-export async function getNote(noteId: string, userId: string): Promise<NotesRequest | null>{
+export async function getNote(noteId: string, userId: string): Promise<INoteDeFrais | null>{
     await prepareConnection();
     const conn = getConnection();
     const note = await conn.getRepository(NoteDeFrais)
