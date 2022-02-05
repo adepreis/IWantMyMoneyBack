@@ -6,7 +6,7 @@ import { INoteDeFrais, NoteDeFrais, noteToApi } from "../../entity/notedefrais.e
 import { NOTEDEFRAIS_ETAT } from "../../entity/utils";
 import { prepareConnection } from "./database";
 
-export type NotesRequest = INoteDeFrais | RequestError | string;
+export type NotesRequest = INoteDeFrais | RequestError | {message: string};
 
 export async function getNote(noteId: string, userId: string): Promise<INoteDeFrais | null>{
     await prepareConnection();
@@ -82,8 +82,9 @@ export default async function handler(
                 res.status(200).json(note);
                 break;
             case "DELETE":
-                if(await rmNote(req.query?.note as string, userId as string)){
-                    res.status(200).send("note supprimé");
+                const rm = await rmNote(req.query?.note as string, userId as string);
+                if(rm){
+                    res.status(200).json({message: "note supprimé"});
                 }else{
                     res.status(423).json({error: "Vous ne pouvez pas supprimer cette note" as string, code: 423});
                 }

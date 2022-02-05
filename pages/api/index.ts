@@ -8,7 +8,7 @@ import { NOTEDEFRAIS_ETAT } from '../../entity/utils';
 import { prepareConnection } from './database';
 import { getNote } from './[note]';
 
-type Data = {
+export type CreateNoteRequest = {
   idNote: string
 } | RequestError | string
 
@@ -56,7 +56,7 @@ export async function soumettreNote(noteid:string):Promise<boolean> {
 }
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Data>
+  res: NextApiResponse<CreateNoteRequest>
 ) {
     var user: User | null = null;
     //recupération de la session

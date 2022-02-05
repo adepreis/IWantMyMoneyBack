@@ -1,4 +1,4 @@
-import { Group, Center, Table, GroupedTransition, Container, Loader, Accordion, Button, ActionIcon, Modal, Text } from '@mantine/core'
+import { Group, Center, Table, GroupedTransition, Container, Loader, Accordion, Button, ActionIcon, Modal, Text, Badge, Popover } from '@mantine/core'
 import type { GetServerSideProps } from 'next'
 import { Session } from 'next-auth'
 import { getSession } from 'next-auth/react'
@@ -17,6 +17,8 @@ import { IMission } from '../../entity/mission.entity'
 import { ILigneDeFrais } from '../../entity/lignedefrais.entity'
 import NavigationBar from '../../components/NavigationBar'
 import { Routes } from '../../utils/api'
+import { useNotifications } from '@mantine/notifications'
+import { PopoverButton } from '../../components/PopoverButton'
 dayjs.extend(localeData);
 dayjs().format();
 dayjs.locale("fr");
@@ -33,6 +35,7 @@ export type UINote = INoteDeFrais | EmptyNote | null;
 
 export default function Home(props: HomeProps) {
   const router = useRouter();
+  const notifications = useNotifications();
   const year = parseInt(router.query.params as string);
   const [month, setMonth] = useState(0);
 
@@ -40,7 +43,6 @@ export default function Home(props: HomeProps) {
   const [opened, setOpened] = useState(false);
 
   const updateNoteState = async (month: number) => {
-    console.log("update", month);
     const currentNoteId = props?.notes?.find(note => note.mois === month)?.id;
 
     const emptyNote: EmptyNote = {
@@ -52,7 +54,7 @@ export default function Home(props: HomeProps) {
     }
 
     if (currentNoteId) {
-      const res = await Routes.NOTE(currentNoteId);
+      const res = await Routes.NOTE.get(currentNoteId);
       setNote(res);
     } else {
       setNote(emptyNote)
@@ -62,6 +64,83 @@ export default function Home(props: HomeProps) {
   useEffect(() => {
     updateNoteState(0);
   }, []);
+
+  useEffect(() => {
+    if (note && note.mois === -1) {
+      updateNoteState(month);
+    }
+  })
+
+  const saveNote = async (notes: INoteDeFrais[], month: number) => {
+    var note = notes.find(n => n.mois === month);
+    if (!note) {
+      const temp = await Routes.NOTE.create({mois: month, annee: year});
+
+      if (temp) {
+        note = {
+          id: (temp.idNote) as string,
+          annee: year,
+          mois: month,
+          etat: NOTEDEFRAIS_ETAT.BROUILLON,
+          lignes: [],
+          notifications: []
+        }
+      }
+      else {
+        notifications.showNotification({
+          title: 'Erreur !',
+          color: "red",
+          message: `Nous venons de rencontrer un problème 😔`,
+        })
+        return;
+      }
+    }
+
+    setMonth(month);
+    setNote(null);
+    await router.replace(router.asPath);
+    await updateNoteState(-1);
+
+    // Procéder à la sauvegarde des lignes
+
+    notifications.showNotification({
+      title: 'Note sauvegardée !',
+      message: `La note de ${dayjs.months()[note.mois]} ${note.annee} a été sauvegardée !`,
+    })
+  }
+
+  const deleteNote = async (notes: INoteDeFrais[], month: number) => {
+    const note = notes.find(n => n.mois === month);
+
+    if (!note) {
+      notifications.showNotification({
+        title: 'Erreur !',
+        color: "red",
+        message: `Nous venons de rencontrer un problème 😔`,
+      });
+      return;
+    } else {
+      const temp = await Routes.NOTE.delete(note.id);
+      if (!temp) {
+        notifications.showNotification({
+          title: 'Erreur !',
+          color: "red",
+          message: `Nous venons de rencontrer un problème 😔`,
+        })
+        return;
+      }
+    }
+
+    setMonth(month);
+    setNote(null);
+    await router.replace(router.asPath);
+    await updateNoteState(-1);
+
+    notifications.showNotification({
+      title: 'Brouillon supprimé !',
+      message: `Le brouillon de la note de ${dayjs.months()[note.mois]} ${note.annee} a été supprimé !`,
+    });
+  }
 
   const renderLines = (lines: ILigneDeFrais[]) => {
     const rows = lines.map((ligne, index) => (
@@ -167,8 +246,16 @@ export default function Home(props: HomeProps) {
         Ajouter une ligne
       </Button>
       <Group style={{padding: "1rem"}}>
-        <Button>Sauvegarder</Button>
-        <Button color="red">Supprimer</Button>
+        <PopoverButton disabled={note.etat !== NOTEDEFRAIS_ETAT.BROUILLON} label="Vous ne pouvez pas sauvegarder une note dans cet état.">
+          <Button 
+            onClick={() => saveNote(props.notes as INoteDeFrais[], month)}
+          >Sauvegarder</Button>
+        </PopoverButton>
+        <PopoverButton disabled={!(note as INoteDeFrais)?.id || note.etat !== NOTEDEFRAIS_ETAT.BROUILLON} label="Vous ne pouvez pas supprimer une note dans cet état.">
+          <Button color="red"
+            onClick={() => deleteNote(props.notes as INoteDeFrais[], month)}
+          >Supprimer</Button>
+        </PopoverButton>
       </Group>
     </>
   }
