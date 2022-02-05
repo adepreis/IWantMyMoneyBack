@@ -1,20 +1,20 @@
 import { Group, SegmentedControl, Center, Select, Table, GroupedTransition, Container, Loader, Accordion, Button, ActionIcon, Modal, Text } from '@mantine/core'
+import { HiClock, HiXCircle, HiCheck, HiOutlinePencil, HiX, HiOutlinePaperClip, HiPlus } from "react-icons/hi";
 import type { GetServerSideProps } from 'next'
 import { Session } from 'next-auth'
 import { getSession } from 'next-auth/react'
+import { useRouter } from 'next/router'
 import { getHomeNote, HomeNote } from '../api/home'
 import { useEffect, useState } from 'react'
-import { HiClock, HiXCircle, HiCheck, HiOutlinePencil, HiX, HiOutlinePaperClip, HiPlus } from "react-icons/hi";
-import dayjs from 'dayjs'
-import "dayjs/locale/fr";
-import localeData from "dayjs/plugin/localeData";
 import { INoteDeFrais, noteToApi } from '../../entity/notedefrais.entity'
+import { ILigneDeFrais } from '../../entity/lignedefrais.entity'
+import { IMission, Mission } from '../../entity/mission.entity'
 import { NOTEDEFRAIS_ETAT } from '../../entity/utils'
 import EditLineForm from '../../components/EditLineForm'
 import numbro from 'numbro'
-import { useRouter } from 'next/router'
-import { IMission, Mission } from '../../entity/mission.entity'
-import { ILigneDeFrais } from '../../entity/lignedefrais.entity'
+import dayjs from 'dayjs'
+import "dayjs/locale/fr";
+import localeData from "dayjs/plugin/localeData";
 dayjs.extend(localeData);
 dayjs().format();
 dayjs.locale("fr");
@@ -57,6 +57,7 @@ export default function Home(props: Props) {
   const [month, setMonth] = useState(0);
   const [note, setNote] = useState(null as INoteDeFrais | EmptyNote | null);
   const [opened, setOpened] = useState(false);
+  const [lineToEdit, setLineToEdit] = useState(null as ILigneDeFrais | null);
 
   const updateNoteState = async (month: number) => {
     console.log("update", month);
@@ -113,31 +114,24 @@ export default function Home(props: Props) {
             : <Button title="TODO: afficher ligne.justificatif" variant="subtle" rightIcon={<HiOutlinePaperClip size={16}/>}>Justificatif</Button>
           }
         </td>
-        <td>
-          <Group position="center" direction="row" spacing={0}>
-            {/*TODO : display form and send PUT query with smtg like :
-              const requestOptions = {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ title: 'React PUT Request Example' })
-              };
-              fetch(`/api/${note?.ligne}`, requestOptions)
-                  .then(response => response.json())
-                  .then(data => this.setState({ postId: data.id }));
-            */}
-            <ActionIcon size="xl" radius="lg" title="Modifier la ligne" color="blue" onClick={() => setOpened(true)}>
-              <HiOutlinePencil/>
-            </ActionIcon>
-            {/*TODO : send DELETE query with smtg like :
-              fetch(`/api/${note?.ligne}`, {method: "DELETE"})
-                .then(response => { console.log(response.status); }
-              );
-            */}
-            <ActionIcon size="xl" radius="lg" title="Supprimer la ligne" color="red">
-              <HiX/>
-            </ActionIcon>
-          </Group>
-        </td>
+        {/* Hide buttons when edit/delete is not allowed by note state */}
+        {note && note.etat !== NOTEDEFRAIS_ETAT.VALIDEE && note.etat !== NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION &&
+          <td>
+            <Group position="center" direction="row" spacing={0}>
+              <ActionIcon size="xl" radius="lg" title="Modifier la ligne" color="blue" onClick={() => {setOpened(true), setLineToEdit(ligne)}}>
+                <HiOutlinePencil/>
+              </ActionIcon>
+              {/* TODO : force update on DELETE confirmed */}
+              <ActionIcon size="xl" radius="lg" title="Supprimer la ligne" color="red" onClick={() => {
+                fetch(`/api/ligne/${ligne.id}`, {method: "DELETE"})
+                  .then(async (response) => { const json = await response.json(); console.log(json); });
+                }}
+              >
+                <HiX/>
+              </ActionIcon>
+            </Group>
+          </td>
+        }
       </tr>
     ));
 
@@ -193,15 +187,20 @@ export default function Home(props: Props) {
     <Group style={{alignItems: "baseline"}} direction="column">
       <Modal centered opened={opened}
         onClose={() => setOpened(false)}
-        title="Modifier une ligne de frais"
-        size="lg"
+        title={lineToEdit ? "Modifier une ligne de frais" : "Ajouter une ligne de frais"}
+        size="lg" padding="xl"
+        closeOnClickOutside={false}  // to avoid miss-clicks
+        closeButtonLabel="Fermer la boite modale"
       >
-        <EditLineForm />
-      </Modal>
+        <EditLineForm line={lineToEdit} setOpened={setOpened} />
+      </Modal>;
+
       {renderMissions()}
-      <Button title="Ajouter une ligne de frais" color="green" leftIcon={<HiPlus size={16}/>} onClick={() => setOpened(true)} fullWidth>
-        Ajouter une ligne
-      </Button>
+      {note && note.etat !== NOTEDEFRAIS_ETAT.VALIDEE && note.etat !== NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION &&
+        <Button title="Ajouter une ligne de frais" color="green" leftIcon={<HiPlus size={16}/>} onClick={() => {setOpened(true), setLineToEdit(null)}} fullWidth>
+          Ajouter une ligne
+        </Button>
+      }
     </Group>
     <Group style={{flex: 0, width: "100%"}} spacing={0}>
       <Select

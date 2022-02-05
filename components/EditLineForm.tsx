@@ -1,9 +1,12 @@
-import { TextInput, Checkbox, Button, Group, Space, RadioGroup, Radio, Select, Textarea, Text, NumberInput, useMantineTheme } from '@mantine/core';
-import { Dropzone, MIME_TYPES } from '@mantine/dropzone';
+import { TextInput, Checkbox, Button, Group, Space, RadioGroup, Radio, Select, Textarea, Text, NumberInput, useMantineTheme, MantineTheme, LoadingOverlay } from '@mantine/core';
+import { HiCalendar, HiUpload, HiOutlineXCircle, HiPhotograph } from "react-icons/hi";
+import { Dropzone, MIME_TYPES, DropzoneStatus } from '@mantine/dropzone';
 import { DatePicker } from '@mantine/dates';
 import { useForm } from '@mantine/hooks';
-import { HiCalendar, HiUpload, HiOutlineXCircle, HiPhotograph } from "react-icons/hi";
 import { LIGNE_TYPE } from '../entity/utils'
+import { ILigneDeFrais } from '../entity/lignedefrais.entity'
+import { useState } from 'react'
+import dayjs from 'dayjs'
 
 function ImageUploadIcon({ status, ...props }) {
   if (status.accepted) {
@@ -17,7 +20,7 @@ function ImageUploadIcon({ status, ...props }) {
   return <HiPhotograph {...props} />;
 }
 
-function getIconColor(status, theme) {
+function getIconColor(status: DropzoneStatus, theme: MantineTheme) {
   return status.accepted
     ? theme.colors[theme.primaryColor][6]
     : status.rejected
@@ -28,28 +31,35 @@ function getIconColor(status, theme) {
 }
 
 
-export default function EditLineForm() {
-  	const theme = useMantineTheme();
+type LineFormProps = {
+  line: ILigneDeFrais | null,
+  setOpened: React.Dispatch<React.SetStateAction<any>>,
+  // formType: "edit" | "add" 	// not needed if line is null
+}
+
+export default function EditLineForm(props: LineFormProps) {
+  const [loading, setLoading] = useState(false);
+  const theme = useMantineTheme();
 
 	const form = useForm({
 		initialValues: {
-			repaymentMode: "expense",
-			lineTitle: '',
-			date: '',
-			expenseType: '',
-			mission: '',
-			ttc: 0.000,
-			ht: 0.000,
-			tva: 0.000,
-			lost: false,
-			justification: '',
-			comment: '',
+			repaymentMode:  props.line ? (props.line.avance ? "advance" : "expense") : "expense",
+			lineTitle: 			props.line ? props.line.titre : '',
+			date: 					props.line ? dayjs(props.line.date).toDate() : null,
+			expenseType:		props.line ? props.line.type : '',
+			mission: 				props.line ? props.line.mission : '',
+			ttc: 	props.line ? props.line.prixTTC : 0.000,
+			ht: 	props.line ? props.line.prixHT 	: 0.000,
+			tva: 	props.line ? props.line.prixTVA : 0.000,
+			lost: props.line ? props.line.perdu 	: false,
+			justification: '',		// TODO
+			comment: props.line ? props.line.commentaire : '',
 		},
 
 		validationRules: {
 			lineTitle: (value) => value.trim().length >= 5,
-			date: (value) => value !== '',
-			expenseType: (value) => Object.values(LIGNE_TYPE).includes(value),
+			date: (value) => value !== null,
+			expenseType: (value) => Object.values(LIGNE_TYPE).includes(value as LIGNE_TYPE),
 			mission: (value) => value !== '',
 			ttc: 	(value) => value > 0.0,	// TODO: assert tax computing
 			ht: 	(value) => value > 0.0,	// TODO: assert tax computing
@@ -63,8 +73,45 @@ export default function EditLineForm() {
 		},
 	});
 
+	const handleSubmit = async (values: typeof form['values']) => {
+    setLoading(true);
+    console.log(values);
+
+    setTimeout(() => {
+      setLoading(false);
+    }, 1500);
+		
+		{/*TODO : send PUT or POST query with smtg like :
+
+
+			enctype="multipart/form-data" see https://stackoverflow.com/a/35206069
+			
+			const requestOptions = {
+			    method: 'PUT',		// or PUT
+			    headers: { 'Content-Type': 'application/json' },
+			    body: JSON.stringify({ id: '{props.ligne.id}', title: 'React PUT Request Example' })
+			};
+			const request = await fetch(`/api/ligne`, requestOptions)
+			    .then(response => response.json())
+			    .then(data => this.setState({ postId: data.id }));
+      
+
+      if (request.status === 200) {
+        const result = await request.json();
+        return result;
+      } 
+      // Error while fetching
+      else {
+        return null;
+      }
+		*/}
+
+    props.setOpened(false);form
+  };
+
 	return (
-		<form onSubmit={form.onSubmit((values) => console.log(values))}>
+		<form onSubmit={form.onSubmit(handleSubmit)}>
+			<LoadingOverlay visible={loading} />
 			<RadioGroup
 				{...form.getInputProps('repaymentMode')} // onChange={setValue}
 				// label="Select your favorite framework/library"
@@ -107,6 +154,7 @@ export default function EditLineForm() {
 
 			<Space h="md" />
 
+			{/* TODO: retrieve mission 		GET /api/mission/[timestamp] */}
 			<Select
 				label="Mission associée"
 				placeholder="Sélectionnez la mission associée"
@@ -147,7 +195,7 @@ export default function EditLineForm() {
 		      	onReject={(files) => console.log('rejected files', files)}
 		      	maxSize={3 * 1024 ** 2}
 		      	accept={[MIME_TYPES.png, MIME_TYPES.jpeg, MIME_TYPES.svg, MIME_TYPES.pdf]}
-				{...form.getInputProps('justification')}
+						{...form.getInputProps('justification')}
 		    >
 		      {(status) => (
 		        <Group position="center" spacing="sm" style={{ pointerEvents: 'none' }}>
@@ -168,9 +216,7 @@ export default function EditLineForm() {
 		      )}
 		    </Dropzone>
 
-			<Checkbox
-				mt="md"
-				label="J'ai perdu mon justificatif"
+			<Checkbox label="J'ai perdu mon justificatif" mt="md"
 				{...form.getInputProps('lost', { type: 'checkbox' })}
 			/>
 			<Space h="md" />
@@ -183,7 +229,12 @@ export default function EditLineForm() {
 			<Space h="md" />
 
 			<Group position="center">
-				<Button type="submit" color="green">Enregistrer les modifications</Button>
+				<Button type="submit" color="green">
+					{props.line
+						? "Enregistrer les modifications"
+						: "Ajouter la ligne de frais"
+					}
+				</Button>
 			</Group>
 		</form>
 	);
