@@ -33,6 +33,11 @@ type State = {
   month: number,
 }
 
+type LineToSave = {
+  line: ILigneDeFrais,
+  action: 'delete' | 'post' | 'put',
+}
+
 enum DataState {NONE, SENT_AND_WAITING, ERROR, VALID};
 type Data = {label: string; state: DataState, index: number}
 
@@ -58,6 +63,7 @@ export default function Home(props: Props) {
   const [note, setNote] = useState(null as INoteDeFrais | EmptyNote | null);
   const [opened, setOpened] = useState(false);
   const [lineToEdit, setLineToEdit] = useState(null as ILigneDeFrais | null);
+  const [linesToSave, setLineToSave] = useState([] as LineToSave[])
 
   const updateNoteState = async (month: number) => {
     console.log("update", month);
@@ -121,10 +127,15 @@ export default function Home(props: Props) {
               <ActionIcon size="xl" radius="lg" title="Modifier la ligne" color="blue" onClick={() => {setOpened(true), setLineToEdit(ligne)}}>
                 <HiOutlinePencil/>
               </ActionIcon>
-              {/* TODO : force update on DELETE confirmed */}
               <ActionIcon size="xl" radius="lg" title="Supprimer la ligne" color="red" onClick={() => {
-                fetch(`/api/ligne/${ligne.id}`, {method: "DELETE"})
-                  .then(async (response) => { const json = await response.json(); console.log(json); });
+                  setLineToSave([...linesToSave, {line: ligne, action: 'delete'}]);
+                  var updatedLines: ILigneDeFrais[] = note.lignes.filter(function(l) { 
+                      return l.id !== ligne.id
+                  });
+                  note.lignes = updatedLines;
+                  setNote(note);
+
+                  console.log(linesToSave); // why first one is missing ?
                 }}
               >
                 <HiX/>
@@ -192,7 +203,10 @@ export default function Home(props: Props) {
         closeOnClickOutside={false}  // to avoid miss-clicks
         closeButtonLabel="Fermer la boite modale"
       >
-        <EditLineForm line={lineToEdit} setOpened={setOpened} />
+        <EditLineForm line={lineToEdit} setOpened={setOpened}
+          linesToSave={linesToSave} setLineToSave={setLineToSave}
+          note={note} setNote={setNote}
+        />
       </Modal>
 
       {renderMissions()}
@@ -214,6 +228,8 @@ export default function Home(props: Props) {
         onChange={async (item: string) => {
           setMonth(0),
           setNote(null),
+          setLineToEdit(null),
+          setLineToSave([]),
           await router.push(`/home/${item}`);
           updateNoteState(0);
         }}
@@ -224,6 +240,8 @@ export default function Home(props: Props) {
       <SegmentedControl style={{flex: 1}} value={`${month}`} onChange={async (item: string) => {
         const month = parseInt(item);
         setMonth(month);
+        setLineToEdit(null);
+        setLineToSave([]);
         await updateNoteState(month);
       }} fullWidth data={getSegmentedData(props).map(el => {
         var icon = <></>;

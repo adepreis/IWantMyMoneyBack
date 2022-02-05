@@ -5,6 +5,7 @@ import { DatePicker } from '@mantine/dates';
 import { useForm } from '@mantine/hooks';
 import { LIGNE_TYPE } from '../entity/utils'
 import { ILigneDeFrais } from '../entity/lignedefrais.entity'
+import { INoteDeFrais } from '../entity/notedefrais.entity'
 import { useState } from 'react'
 import dayjs from 'dayjs'
 
@@ -34,26 +35,34 @@ function getIconColor(status: DropzoneStatus, theme: MantineTheme) {
 type LineFormProps = {
   line: ILigneDeFrais | null,
   setOpened: React.Dispatch<React.SetStateAction<any>>,
-  // formType: "edit" | "add" 	// not needed if line is null
+  linesToSave: {
+	  line: ILigneDeFrais,
+	  action: 'delete' | 'post' | 'put',
+	}[],
+  setLineToSave: React.Dispatch<React.SetStateAction<any>>,
+  note: INoteDeFrais,
+  setNote: React.Dispatch<React.SetStateAction<any>>
 }
 
 export default function EditLineForm(props: LineFormProps) {
   const [loading, setLoading] = useState(false);
   const theme = useMantineTheme();
 
+  const lineAlreadyExists = props.line !== null; 	// not needed if line is null
+
 	const form = useForm({
 		initialValues: {
-			repaymentMode:  props.line ? (props.line.avance ? "advance" : "expense") : "expense",
-			lineTitle: 			props.line ? props.line.titre : '',
-			date: 					props.line ? dayjs(props.line.date).toDate() : null,
-			expenseType:		props.line ? props.line.type : '',
-			mission: 				props.line ? props.line.mission : '',
-			ttc: 	props.line ? props.line.prixTTC : 0.000,
-			ht: 	props.line ? props.line.prixHT 	: 0.000,
-			tva: 	props.line ? props.line.prixTVA : 0.000,
-			lost: props.line ? props.line.perdu 	: false,
+			repaymentMode:  lineAlreadyExists ? (props.line.avance ? "advance" : "expense") : "expense",
+			lineTitle: 			lineAlreadyExists ? props.line.titre : '',
+			date: 					lineAlreadyExists ? dayjs(props.line.date).toDate() : null,
+			expenseType:		lineAlreadyExists ? props.line.type : '',
+			mission: 				lineAlreadyExists ? props.line.mission.titre : '',
+			ttc: 	lineAlreadyExists ? props.line.prixTTC : 0.000,
+			ht: 	lineAlreadyExists ? props.line.prixHT 	: 0.000,
+			tva: 	lineAlreadyExists ? props.line.prixTVA : 0.000,
+			lost: lineAlreadyExists ? props.line.perdu 	: false,
 			justification: '',		// TODO
-			comment: props.line ? props.line.commentaire : '',
+			comment: lineAlreadyExists ? props.line.commentaire : '',
 		},
 
 		validationRules: {
@@ -68,8 +77,8 @@ export default function EditLineForm(props: LineFormProps) {
 
 		errorMessages: {
 			lineTitle: 'Le titre doit comporter 5 caractères ou plus',
-		    date: 'Une date doit être spécifiée',
-		    expenseType: 'Ce champ est obligatoire',
+		  date: 'Une date doit être spécifiée',
+		  expenseType: 'Ce champ est obligatoire',
 		},
 	});
 
@@ -77,44 +86,39 @@ export default function EditLineForm(props: LineFormProps) {
     setLoading(true);
     console.log(values);
 
-    setTimeout(() => {
-      setLoading(false);
-    }, 1500);
+    var tempLine: ILigneDeFrais = {
+    	avance:	(values.repaymentMode ===  "advance" ? true : false),
+			titre:	values.lineTitle,
+			date:	dayjs(values.date).toDate(),
+			type:	LIGNE_TYPE[values.expenseType as keyof typeof LIGNE_TYPE],
+			// mission:	values.mission,	// ?
+			// id:	values.id,	// ?
+			// validee:	values.validee,	// ?
+			// commentaire_validateur:	values.commentaire_validateur,	// ?
+			prixTTC:	values.ttc,
+			prixHT :	values.ht,
+			prixTVA:	values.tva,
+			perdu:	values.lost,
+			justificatif:	values.justification,
+			commentaire:	values.comment
+    }
 		
-		{/*TODO : send PUT or POST query with smtg like :
+  	props.setLineToSave([...props.linesToSave, {line: tempLine, action: (lineAlreadyExists ? 'put' : 'post')}]);
 
+  	var updatedLines: ILigneDeFrais[] = props.note.lignes.map((l) => {
+      return l.id === tempLine.id ? tempLine : l
+    });
+    props.note.lignes = updatedLines;
+    props.setNote(props.note);
 
-			enctype="multipart/form-data" see https://stackoverflow.com/a/35206069
-			
-			const requestOptions = {
-			    method: 'PUT',		// or PUT
-			    headers: { 'Content-Type': 'application/json' },
-			    body: JSON.stringify({ id: '{props.ligne.id}', title: 'React PUT Request Example' })
-			};
-			const request = await fetch(`/api/ligne`, requestOptions)
-			    .then(response => response.json())
-			    .then(data => this.setState({ postId: data.id }));
-      
-
-      if (request.status === 200) {
-        const result = await request.json();
-        return result;
-      } 
-      // Error while fetching
-      else {
-        return null;
-      }
-		*/}
-
-    props.setOpened(false);form
+    props.setOpened(false);
   };
 
 	return (
 		<form onSubmit={form.onSubmit(handleSubmit)}>
 			<LoadingOverlay visible={loading} />
 			<RadioGroup
-				{...form.getInputProps('repaymentMode')} // onChange={setValue}
-				// label="Select your favorite framework/library"
+				{...form.getInputProps('repaymentMode')}
 				// description="This is anonymous"
 				required
 			>
@@ -138,14 +142,11 @@ export default function EditLineForm(props: LineFormProps) {
 					// minDate={dayjs(new Date()).startOf('month').add(5, 'days').toDate()}
 					// maxDate={dayjs(new Date()).endOf('month').subtract(5, 'days').toDate()}
 					{...form.getInputProps('date')}
+					// onChange={(event) => fillMissionData }
 				/>
 				<Select
 					label="Type de frais"
 					placeholder="Sélectionnez le type de frais"
-					// data={[
-					// 	{ value: 'rick', label: 'Rick', group: 'Used to be a pickle' },
-					// 	{ value: 'morty', label: 'Morty', group: 'Never was a pickle' },
-					// ]}
 					data={Object.values(LIGNE_TYPE)}
 					{...form.getInputProps('expenseType')}
 					required
@@ -159,7 +160,7 @@ export default function EditLineForm(props: LineFormProps) {
 				label="Mission associée"
 				placeholder="Sélectionnez la mission associée"
 				data={[
-					{ value: 'rick', label: 'Rick', group: 'Used to be a pickle' },
+					{ value: 'Schaden, Hintz and Konopelski', label: 'Rick', group: 'Used to be a pickle' },
 					{ value: 'morty', label: 'Morty', group: 'Never was a pickle' },
 					{ value: 'beth', label: 'Beth', group: 'Never was a pickle' },
 					// { value: 'Autre', label: 'Autre' },	// no group generates "unique key" error
@@ -230,7 +231,7 @@ export default function EditLineForm(props: LineFormProps) {
 
 			<Group position="center">
 				<Button type="submit" color="green">
-					{props.line
+					{lineAlreadyExists // TODO: disabled if no changes
 						? "Enregistrer les modifications"
 						: "Ajouter la ligne de frais"
 					}
