@@ -15,12 +15,12 @@ export default function App(props: AppProps) {
 
     const header = <Header height={75} padding="md">
       <div style={{display: "flex", alignItems: "center"}}>
-        <Burger
+        {/* <Burger
           opened={appMenuOpened}
           onClick={() => setAppMenuOpened((o) => !o)}
           title="Test"
           style={{marginRight: "0.8rem"}}
-        />
+        /> */}
         <Image src="/logo.svg" height={55} width={114} style={{
           filter: "invert(1)",
           marginTop: -5,
