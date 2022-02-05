@@ -33,8 +33,8 @@ function getSelectData(props: NavigationProps) {
 async function onYearChange(props: NavigationProps, item: string) {
     const {setMonth, setNote, updateNoteState} = props;
 
-    setNote(null);
     setMonth(0);
+    setNote(null);
     await router.push(`/home/${item}`);
     updateNoteState(0);
 }

@@ -6,7 +6,7 @@ import { NoteDeFrais } from '../../entity/notedefrais.entity';
 import { User } from '../../entity/user.entity';
 import { prepareConnection } from './database';
 
-type Data = {
+export type CreateNoteRequest = {
   idNote: string
 } | RequestError
 
@@ -37,7 +37,7 @@ export async function insertNote(data: NoteDeFrais, userId: User):Promise<string
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Data>
+  res: NextApiResponse<CreateNoteRequest>
 ) {
     if (req.method != "POST") {
         res.status(424).json({error : "methode non prise en charge" as string, code : 424})
