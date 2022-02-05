@@ -43,7 +43,6 @@ export default function Home(props: HomeProps) {
   const [opened, setOpened] = useState(false);
 
   const updateNoteState = async (month: number) => {
-    console.log("update", month);
     const currentNoteId = props?.notes?.find(note => note.mois === month)?.id;
 
     const emptyNote: EmptyNote = {
@@ -65,6 +64,12 @@ export default function Home(props: HomeProps) {
   useEffect(() => {
     updateNoteState(0);
   }, []);
+
+  useEffect(() => {
+    if (note && note.mois === -1) {
+      updateNoteState(month);
+    }
+  })
 
   const saveNote = async (notes: INoteDeFrais[], month: number) => {
     var note = notes.find(n => n.mois === month);
@@ -91,12 +96,50 @@ export default function Home(props: HomeProps) {
       }
     }
 
+    setMonth(month);
+    setNote(null);
+    await router.replace(router.asPath);
+    await updateNoteState(-1);
+
     // Procéder à la sauvegarde des lignes
 
     notifications.showNotification({
       title: 'Note sauvegardée !',
       message: `La note de ${dayjs.months()[note.mois]} ${note.annee} a été sauvegardée !`,
     })
+  }
+
+  const deleteNote = async (notes: INoteDeFrais[], month: number) => {
+    const note = notes.find(n => n.mois === month);
+
+    if (!note) {
+      notifications.showNotification({
+        title: 'Erreur !',
+        color: "red",
+        message: `Nous venons de rencontrer un problème 😔`,
+      });
+      return;
+    } else {
+      const temp = await Routes.NOTE.delete(note.id);
+      if (!temp) {
+        notifications.showNotification({
+          title: 'Erreur !',
+          color: "red",
+          message: `Nous venons de rencontrer un problème 😔`,
+        })
+        return;
+      }
+    }
+
+    setMonth(month);
+    setNote(null);
+    await router.replace(router.asPath);
+    await updateNoteState(-1);
+
+    notifications.showNotification({
+      title: 'Brouillon supprimé !',
+      message: `Le brouillon de la note de ${dayjs.months()[note.mois]} ${note.annee} a été supprimé !`,
+    });
   }
 
   const renderLines = (lines: ILigneDeFrais[]) => {
@@ -208,7 +251,11 @@ export default function Home(props: HomeProps) {
             onClick={() => saveNote(props.notes as INoteDeFrais[], month)}
           >Sauvegarder</Button>
         </PopoverButton>
-        <Button color="red">Supprimer</Button>
+        <PopoverButton disabled={!(note as INoteDeFrais)?.id || note.etat !== NOTEDEFRAIS_ETAT.BROUILLON} label="Vous ne pouvez pas supprimer une note dans cet état.">
+          <Button color="red"
+            onClick={() => deleteNote(props.notes as INoteDeFrais[], month)}
+          >Supprimer</Button>
+        </PopoverButton>
       </Group>
     </>
   }

@@ -30,6 +30,24 @@ export const Routes = {
                 // Error while fetching
                 return null;
             }
+        },
+        delete: async (id: string) => {
+            const request = await fetch(`/api/${id}`, {
+                method: "DELETE",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+            });
+    
+            if (request.status === 200) {
+                const result = await request.json();
+                return result;
+            } 
+            else {
+                // Error while fetching
+                return null;
+            }
         }
     } 
 }
