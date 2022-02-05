@@ -193,7 +193,7 @@ export default function Home(props: Props) {
         closeButtonLabel="Fermer la boite modale"
       >
         <EditLineForm line={lineToEdit} setOpened={setOpened} />
-      </Modal>;
+      </Modal>
 
       {renderMissions()}
       {note && note.etat !== NOTEDEFRAIS_ETAT.VALIDEE && note.etat !== NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION &&
