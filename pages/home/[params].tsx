@@ -1,4 +1,4 @@
-import { Group, SegmentedControl, Center, Select, Table, GroupedTransition, Container, Loader, Button, ActionIcon, Modal, Text } from '@mantine/core'
+import { Group, SegmentedControl, Center, Select, Table, GroupedTransition, Container, Loader, Accordion, Button, ActionIcon, Modal, Text } from '@mantine/core'
 import type { GetServerSideProps } from 'next'
 import { Session } from 'next-auth'
 import { getSession } from 'next-auth/react'
@@ -13,6 +13,8 @@ import { NOTEDEFRAIS_ETAT } from '../../entity/utils'
 import EditLineForm from '../../components/EditLineForm'
 import numbro from 'numbro'
 import { useRouter } from 'next/router'
+import { IMission, Mission } from '../../entity/mission.entity'
+import { ILigneDeFrais } from '../../entity/lignedefrais.entity'
 dayjs.extend(localeData);
 dayjs().format();
 dayjs.locale("fr");
@@ -57,13 +59,15 @@ export default function Home(props: Props) {
   const [opened, setOpened] = useState(false);
 
   const updateNoteState = async (month: number) => {
+    console.log("update", month);
     const currentNoteId = props?.notes?.find(note => note.mois === month)?.id;
 
     const emptyNote: EmptyNote = {
       annee: year,
       mois: month,
-      etat: NOTEDEFRAIS_ETAT.NON_VALIDEE,
-      ligne: []
+      etat: NOTEDEFRAIS_ETAT.BROUILLON,
+      lignes: [],
+      notifications: []
     }
 
     const fetchNote = async (id: string) => {
@@ -91,22 +95,8 @@ export default function Home(props: Props) {
     updateNoteState(0);
   }, []);
 
-  const renderNote = () => {
-    if (!note) {
-      return <Center style={{height: "100%"}}>
-        <Loader />
-      </Center>
-    }
-
-    const modal = <Modal centered opened={opened}
-        onClose={() => setOpened(false)}
-        title="Modifier une ligne de frais"
-        size="lg"
-      >
-        <EditLineForm />
-      </Modal>;
-
-    const rows = (note?.ligne ?? []).map((ligne, index) => (
+  const renderLines = (lines: ILigneDeFrais[]) => {
+    const rows = lines.map((ligne, index) => (
       <tr key={index}>
         <td>{ligne.titre}</td>
         <td>{dayjs(ligne.date).format("DD-MM-YYYY")}</td>
@@ -151,28 +141,67 @@ export default function Home(props: Props) {
       </tr>
     ));
 
-    return <Container padding="lg">
-      {modal}
-      <Table striped highlightOnHover>
-        <thead>
-          <tr>
-            <th>Titre</th>
-            <th>Date</th>
-            <th>Montant HT</th>
-            <th>Justificatif</th>
-          </tr>
-        </thead>
-        <tbody>{rows}</tbody>
-      </Table>
-      <Button title="Ajouter une ligne de frais" color="green" leftIcon={<HiPlus size={16}/>} onClick={() => setOpened(true)} fullWidth>
-        Ajouter une ligne
-      </Button>
-    </Container>
+    return <Table striped highlightOnHover>
+      <thead>
+        <tr>
+          <th>Titre</th>
+          <th>Date</th>
+          <th>Montant HT</th>
+          <th>Justificatif</th>
+        </tr>
+      </thead>
+      <tbody>{rows}</tbody>
+    </Table>
+  }
+
+  const renderMissions = () => {
+    if (!note) {
+      return <Center style={{height: "100%"}}>
+        <Loader />
+      </Center>
+    }
+
+    type MissionData = {
+      mission: IMission,
+      lignes: ILigneDeFrais[]
+    }
+    const missions = new Map<string, MissionData>();
+    
+    for (const ligne of note.lignes) {
+      if (missions.has(ligne.mission.id)) {
+        ((missions.get(ligne.mission.id) as MissionData).lignes as ILigneDeFrais[]).push(ligne);
+      } else {
+        missions.set(ligne.mission.id, {
+          mission: ligne.mission,
+          lignes: [ligne]
+        });
+      }
+    }
+
+    return <Accordion offsetIcon={false} style={{width: "100%"}}>
+      {
+        Array.from(missions).map((mission, key) => {
+          return <Accordion.Item label={mission[1].mission.titre} key={key}>
+            {renderLines(mission[1].lignes)}
+          </Accordion.Item>
+        })
+      }
+    </Accordion>
   }
 
   return <Group grow direction="column" style={{width: "100%"}} spacing={0}>
-    <Group style={{alignItems: "baseline"}} grow>
-      {renderNote()}
+    <Group style={{alignItems: "baseline"}} direction="column">
+      <Modal centered opened={opened}
+        onClose={() => setOpened(false)}
+        title="Modifier une ligne de frais"
+        size="lg"
+      >
+        <EditLineForm />
+      </Modal>
+      {renderMissions()}
+      <Button title="Ajouter une ligne de frais" color="green" leftIcon={<HiPlus size={16}/>} onClick={() => setOpened(true)} fullWidth>
+        Ajouter une ligne
+      </Button>
     </Group>
     <Group style={{flex: 0, width: "100%"}} spacing={0}>
       <Select

@@ -13,7 +13,7 @@ export interface IMission {
     description: string,
     //service: IService,
     avances : IAvance[],
-    lignes: ILigneDeFrais[]
+    // lignes: ILigneDeFrais[]
 }
 
 @Entity("mission")
@@ -52,6 +52,6 @@ export const missionToApi = (mission: Mission): IMission => {
         description: mission.description,
         //service:
         avances: (mission?.avances ?? []).map(avances => avanceToApi(avances)),
-        lignes: (mission?.lignes ?? []).map(lignes => lineToApi(lignes))
+        // lignes: (mission?.lignes ?? []).map(lignes => lineToApi(lignes))
     };
 }

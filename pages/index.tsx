@@ -11,7 +11,7 @@ type Props = {
 
 export default function Home(props: Props) {
   return (
-    <div className={styles.container}>
+    <div className={styles.container} style={{width: "100%"}}>
       <main className={styles.main}>
         <h1 className={styles.title}>
           I Want My Money Back

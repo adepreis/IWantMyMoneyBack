@@ -1,5 +1,5 @@
 import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { IMission, Mission } from "./mission.entity";
+import { IMission, Mission, missionToApi } from "./mission.entity";
 import { INoteDeFrais, NoteDeFrais } from "./notedefrais.entity";
 import { LIGNE_TYPE } from "./utils";
 //ajouter a database.ts la classe 
@@ -19,7 +19,7 @@ export interface ILigneDeFrais {
     commentaire_validateur: string;
     perdu: boolean;
     //note: INoteDeFrais;
-    //mission: IMission;
+    mission: IMission;
 }
 
 @Entity("lignedefrais")
@@ -66,7 +66,7 @@ export class LigneDeFrais implements ILigneDeFrais {
     @Column({type: "bool"})
     public perdu!: boolean;
 
-    @ManyToOne(() => NoteDeFrais)
+    @ManyToOne(() => NoteDeFrais, {onDelete: 'CASCADE'})
     note!: NoteDeFrais;
 
     @ManyToOne(() => Mission)
@@ -89,6 +89,6 @@ export const lineToApi = (ligne: LigneDeFrais): ILigneDeFrais => {
         commentaire_validateur: ligne.commentaire_validateur,
         perdu: ligne.perdu,
         //note:
-        //mission:
+        mission: missionToApi(ligne.mission)
     };
 }
