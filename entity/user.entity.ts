@@ -56,7 +56,7 @@ export class User {
     chef!: User;
 
 
-    @OneToMany(type => CollaborateurAnterieur, collaborateurAnterieurs => collaborateurAnterieurs.collaborateurAnterieur)
+    @OneToMany(type => CollaborateurAnterieur, collaborateurAnterieurs => collaborateurAnterieurs.collaborateur)
     collaborateurAnterieur!: CollaborateurAnterieur[];
 
     @OneToMany(type => ChefAnterieur, chefAnterieurs => chefAnterieurs.chefAnterieur)

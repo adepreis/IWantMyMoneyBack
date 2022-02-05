@@ -24,7 +24,7 @@ export class CollaborateurAnterieur {
 
 
     @ManyToOne(type => User, user => user.collaborateurAnterieur)
-    collaborateurAnterieur!: User;
+    collaborateur!: User;
 
     @ManyToOne(() => Service, service => service.collaborateurAnterieur)
     service!: Service;
