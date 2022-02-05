@@ -4,6 +4,7 @@ import { ChefAnterieur } from "./chefanterieur.entity";
 import { NoteDeFrais } from "./notedefrais.entity";
 import { Notification } from "./notification.entity";
 import { Service } from "./service.entity";
+import { CollaborateurAnterieur } from "./collaborateuranterieur.entity";
 //ajouter a database.ts la classe 
 export const USER_ROLES = {
     ADMIN: "ADMIN",
@@ -54,10 +55,9 @@ export class User {
     @ManyToOne(type => User, user => user.collaborateurs)
     chef!: User;
 
-    @ManyToMany(type => Service, servicesAnterieurs => servicesAnterieurs.collaborateursAnterieurs)
-    @JoinTable()
-    servicesAnterieurs!: Service[];
-    // (avec collaborateursAnterieurs de Service)
+
+    @OneToMany(type => CollaborateurAnterieur, collaborateurAnterieurs => collaborateurAnterieurs.collaborateurAnterieur)
+    collaborateurAnterieur!: CollaborateurAnterieur[];
 
     @OneToMany(type => ChefAnterieur, chefAnterieurs => chefAnterieurs.chefAnterieur)
     chefsAnterieurs!: ChefAnterieur[];
