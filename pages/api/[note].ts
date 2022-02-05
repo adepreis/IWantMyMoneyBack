@@ -11,16 +11,16 @@ import { LigneRequest } from "./ligne/[ligne]";
 export type NotesRequest = INoteDeFrais | RequestError
 
 export async function getNote(noteId: string, userId: string): Promise<NotesRequest | null>{
+
     await prepareConnection();
     const conn = getConnection();
     const note = await conn.getRepository(NoteDeFrais)
         .createQueryBuilder("notedefrais")
-        .leftJoinAndSelect("notedefrais.ligne", "lignedefrais")
+        .leftJoinAndSelect("notedefrais.lignes", "lignedefrais")
         .leftJoinAndSelect("lignedefrais.mission", "mission")
         .where("notedefrais.id = :id", {id: noteId})
         .andWhere("userId = :user", {user:userId})
         .getOne();
-    
     conn.close();
 
     if (!note) {

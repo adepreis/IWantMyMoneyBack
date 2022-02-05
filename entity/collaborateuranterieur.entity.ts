@@ -19,7 +19,7 @@ export class CollaborateurAnterieur {
     @Column({type: "date"})
     public dateDebut!: Date;
 
-    @Column({type: "date"})
+    @Column({type: "date", nullable:true})
     public dateFin!: Date;
 
 
