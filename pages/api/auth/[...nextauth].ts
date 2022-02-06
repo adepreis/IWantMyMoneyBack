@@ -32,7 +32,8 @@ export default NextAuth({
                   id: user.id,
                   email: user.email,
                   nom: user.nom,
-                  prenom: user.prenom
+                  prenom: user.prenom,
+                  role: user.role
                 } 
               }
             }
@@ -70,6 +71,7 @@ export default NextAuth({
       session.nom = (token as any).nom;
       session.prenom = (token as any).prenom;
       session.email = (token as any).email;
+      session.role = (token as any).role;
 
       return session
     },
@@ -79,6 +81,7 @@ export default NextAuth({
         token.nom = user.nom;
         token.prenom = user.prenom;
         token.email = user.email;
+        token.role = user.role;
       }
 
       return token

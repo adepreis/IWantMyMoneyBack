@@ -8,7 +8,8 @@ import { prepareConnection } from "./database";
 
 export type NotesRequest = INoteDeFrais | RequestError | {message: string};
 
-export async function getNote(noteId: string, userId: string): Promise<INoteDeFrais | null>{
+export async function getNote(noteId: string, userId: string): Promise<NotesRequest | null>{
+
     await prepareConnection();
     const conn = getConnection();
     const note = await conn.getRepository(NoteDeFrais)
@@ -18,7 +19,6 @@ export async function getNote(noteId: string, userId: string): Promise<INoteDeFr
         .where("notedefrais.id = :id", {id: noteId})
         .andWhere("userId = :user", {user:userId})
         .getOne();
-    
     conn.close();
 
     if (!note) {

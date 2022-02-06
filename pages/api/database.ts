@@ -2,6 +2,7 @@ import path from "path/posix";
 import {createConnection, getConnection, Connection} from "typeorm";
 import { Avance } from "../../entity/avance.entity";
 import { ChefAnterieur } from "../../entity/chefanterieur.entity";
+import { CollaborateurAnterieur } from "../../entity/collaborateuranterieur.entity";
 import { LigneDeFrais } from "../../entity/lignedefrais.entity";
 import { Mission } from "../../entity/mission.entity";
 import { NoteDeFrais } from "../../entity/notedefrais.entity";
@@ -28,7 +29,7 @@ export async function prepareConnection() {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
     //ajouter a entities tout les class typeORM
-    entities: [Avance, ChefAnterieur, LigneDeFrais, Mission, NoteDeFrais, Notification, Service, User],
+    entities: [Avance, ChefAnterieur, LigneDeFrais, Mission, NoteDeFrais, Notification, Service, User, CollaborateurAnterieur],
     synchronize: process.env.DB_SYNCHRONIZE === "true",
     logging: process.env.DB_LOGGING === "true",
   });

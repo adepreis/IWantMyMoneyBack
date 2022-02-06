@@ -29,9 +29,13 @@ export interface HomeProps {
   years?: number[],
 }
 
-type EmptyNote = Omit<INoteDeFrais, "id">;
+export type EmptyNote = Omit<INoteDeFrais, "id">;
 
 export type UINote = INoteDeFrais | EmptyNote | null;
+type LineToSave = {
+  line: ILigneDeFrais,
+  action: 'delete' | 'post' | 'put',
+}
 
 export default function Home(props: HomeProps) {
   const router = useRouter();
@@ -41,6 +45,8 @@ export default function Home(props: HomeProps) {
 
   const [note, setNote] = useState(null as UINote);
   const [opened, setOpened] = useState(false);
+  const [lineToEdit, setLineToEdit] = useState(null as ILigneDeFrais | null);
+  const [linesToSave, setLineToSave] = useState([] as LineToSave[])
 
   const updateNoteState = async (month: number) => {
     const currentNoteId = props?.notes?.find(note => note.mois === month)?.id;
@@ -160,31 +166,29 @@ export default function Home(props: HomeProps) {
             : <Button title="TODO: afficher ligne.justificatif" variant="subtle" rightIcon={<HiOutlinePaperClip size={16}/>}>Justificatif</Button>
           }
         </td>
-        <td>
-          <Group position="center" direction="row" spacing={0}>
-            {/*TODO : display form and send PUT query with smtg like :
-              const requestOptions = {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ title: 'React PUT Request Example' })
-              };
-              fetch(`/api/${note?.ligne}`, requestOptions)
-                  .then(response => response.json())
-                  .then(data => this.setState({ postId: data.id }));
-            */}
-            <ActionIcon size="xl" radius="lg" title="Modifier la ligne" color="blue" onClick={() => setOpened(true)}>
-              <HiOutlinePencil/>
-            </ActionIcon>
-            {/*TODO : send DELETE query with smtg like :
-              fetch(`/api/${note?.ligne}`, {method: "DELETE"})
-                .then(response => { console.log(response.status); }
-              );
-            */}
-            <ActionIcon size="xl" radius="lg" title="Supprimer la ligne" color="red">
-              <HiX/>
-            </ActionIcon>
-          </Group>
-        </td>
+        {/* Hide buttons when edit/delete is not allowed by note state */}
+        {note && note.etat !== NOTEDEFRAIS_ETAT.VALIDEE && note.etat !== NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION &&
+          <td>
+            <Group position="center" direction="row" spacing={0}>
+              <ActionIcon size="xl" radius="lg" title="Modifier la ligne" color="blue" onClick={() => {setOpened(true), setLineToEdit(ligne)}}>
+                <HiOutlinePencil/>
+              </ActionIcon>
+              <ActionIcon size="xl" radius="lg" title="Supprimer la ligne" color="red" onClick={() => {
+                  setLineToSave([...linesToSave, {line: ligne, action: 'delete'}]);
+                  var updatedLines: ILigneDeFrais[] = note.lignes.filter(function(l) { 
+                      return l.id !== ligne.id
+                  });
+                  note.lignes = updatedLines;
+                  setNote(note);
+
+                  console.log(linesToSave); // why first one is missing ?
+                }}
+              >
+                <HiX/>
+              </ActionIcon>
+            </Group>
+          </td>
+        }
       </tr>
     ));
 
@@ -227,11 +231,16 @@ export default function Home(props: HomeProps) {
 
     return <>
       <Modal centered opened={opened}
-          onClose={() => setOpened(false)}
-          title="Modifier une ligne de frais"
-          size="lg"
-        >
-        <EditLineForm />
+        onClose={() => setOpened(false)}
+        title={lineToEdit ? "Modifier une ligne de frais" : "Ajouter une ligne de frais"}
+        size="lg" padding="xl"
+        closeOnClickOutside={false}  // to avoid miss-clicks
+        closeButtonLabel="Fermer la boite modale"
+      >
+        <EditLineForm line={lineToEdit} setOpened={setOpened}
+          linesToSave={linesToSave} setLineToSave={setLineToSave}
+          note={note} setNote={setNote}
+        />
       </Modal>
       <Accordion offsetIcon={false} style={{width: "100%"}}>
         {
@@ -242,9 +251,11 @@ export default function Home(props: HomeProps) {
           })
         }
       </Accordion>
-      <Button title="Ajouter une ligne de frais" color="green" leftIcon={<HiPlus size={16}/>} onClick={() => setOpened(true)} fullWidth>
-        Ajouter une ligne
-      </Button>
+      {note && note.etat !== NOTEDEFRAIS_ETAT.VALIDEE && note.etat !== NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION &&
+        <Button title="Ajouter une ligne de frais" color="green" leftIcon={<HiPlus size={16}/>} onClick={() => {setOpened(true), setLineToEdit(null)}} fullWidth>
+          Ajouter une ligne
+        </Button>
+      }
       <Group style={{padding: "1rem"}}>
         <PopoverButton disabled={note.etat !== NOTEDEFRAIS_ETAT.BROUILLON} label="Vous ne pouvez pas sauvegarder une note dans cet état.">
           <Button 
