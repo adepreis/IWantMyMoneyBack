@@ -86,7 +86,6 @@ type LineFormProps = {
 	}[],
   	setLineToSave: React.Dispatch<React.SetStateAction<any>>,
   	note: INoteDeFrais | EmptyNote,
-  	setNote: React.Dispatch<React.SetStateAction<any>>
 }
 
 type MissionSelectState = {
