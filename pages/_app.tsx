@@ -1,6 +1,7 @@
 import { AppProps } from 'next/app';
 import Head from 'next/head';
-import { AppShell, Container, Header, MantineProvider, Navbar, Burger } from '@mantine/core';
+import { AppShell, Header, MantineProvider, Navbar, Burger } from '@mantine/core';
+import { NotificationsProvider } from '@mantine/notifications';
 import { SessionProvider } from "next-auth/react"
 import '../styles/globals.scss';
 import "reflect-metadata";
@@ -15,12 +16,12 @@ export default function App(props: AppProps) {
 
     const header = <Header height={75} padding="md">
       <div style={{display: "flex", alignItems: "center"}}>
-        <Burger
+        {/* <Burger
           opened={appMenuOpened}
           onClick={() => setAppMenuOpened((o) => !o)}
           title="Test"
           style={{marginRight: "0.8rem"}}
-        />
+        /> */}
         <Image src="/logo.svg" height={55} width={114} style={{
           filter: "invert(1)",
           marginTop: -5,
@@ -51,11 +52,13 @@ export default function App(props: AppProps) {
         }}
       >
         <SessionProvider session={pageProps.session}>
-          <AppShell header={header} fixed styles={(theme) => ({
-            main: {display: "flex", backgroundColor: theme.colors.dark[8], paddingLeft: 0},
-          })} navbar={navbar}>
-            <Component {...pageProps} />
-          </AppShell>
+          <NotificationsProvider>
+            <AppShell header={header} fixed styles={(theme) => ({
+              main: {display: "flex", backgroundColor: theme.colors.dark[8], paddingLeft: 0},
+            })} navbar={navbar}>
+              <Component {...pageProps} />
+            </AppShell>
+          </NotificationsProvider>
         </SessionProvider>
       </MantineProvider>
     </>
