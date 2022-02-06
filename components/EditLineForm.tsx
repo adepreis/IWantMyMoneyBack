@@ -81,7 +81,7 @@ type LineFormProps = {
   	line: ILigneDeFrais | null,
   	setOpened: React.Dispatch<React.SetStateAction<boolean>>,
   	linesToSave: {
-		line: ILigneDeFrais,
+		line: TempLigneDeFrais,
 	  	action: 'delete' | 'post' | 'put',
 	}[],
   	setLineToSave: React.Dispatch<React.SetStateAction<any>>,
@@ -99,6 +99,8 @@ type DropzoneState = {
 	error: boolean,
 	files: File[]
 }
+
+export type TempLigneDeFrais = Omit<ILigneDeFrais, "id" | "commentaire_validateur" | "etat"> & {files: File[]};
 
 export default function EditLineForm(props: LineFormProps) {
 	const notifications = useNotifications();
@@ -178,32 +180,23 @@ export default function EditLineForm(props: LineFormProps) {
 		setLoading(true);
 		console.log(values);
 
-		var tempLine: Partial<ILigneDeFrais> = {
-			avance:	(values.repaymentMode ===  "advance" ? true : false),
-			titre:	values.lineTitle,
-			date:	dayjs(values.date).toDate(),
-			type:	LIGNE_TYPE[values.expenseType as keyof typeof LIGNE_TYPE],
-			// mission:	values.mission,	// ?
-			// id:	values.id,	// ?
-			// validee:	values.validee,	// ?
-			// commentaire_validateur:	values.commentaire_validateur,	// ?
-			prixTTC:	values.ttc,
-			prixHT :	values.ht,
-			prixTVA:	values.tva,
-			perdu:	values.lost,
-			justificatif:	values.justification,
-			commentaire:	values.comment
+		// @TODO: handle put
+		var tempLine: TempLigneDeFrais = {
+			avance: (values.repaymentMode === "advance" ? true : false),
+			titre: values.lineTitle,
+			date: dayjs(values.date).toDate(),
+			type: LIGNE_TYPE[values.expenseType as keyof typeof LIGNE_TYPE],
+			mission: missionSelectState.missions.find(m => m.id === values.mission) as IMission,
+			prixTTC: values.ttc,
+			prixHT: values.ht,
+			prixTVA: values.tva,
+			perdu: values.lost,
+			justificatif: values.justification,
+			commentaire: values.comment,
+			files: dropzone.files
 		}
 			
 		props.setLineToSave([...props.linesToSave, {line: tempLine, action: (props?.line ? 'put' : 'post')}]);
-
-		var updatedLines: Partial<ILigneDeFrais>[] = props.note.lignes.map((l) => {
-			return l.id === tempLine.id ? tempLine : l
-		});
-		// @ts-ignore : @TODO lors de l'affichage des lignes
-		props.note.lignes = updatedLines;
-		props.setNote(props.note);
-
 		props.setOpened(false);
 	};
 

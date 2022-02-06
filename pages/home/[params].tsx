@@ -1,16 +1,16 @@
-import { Group, Center, Table, GroupedTransition, Container, Loader, Accordion, Button, ActionIcon, Modal, Text, Badge, Popover } from '@mantine/core'
+import { Group, Center, Table, GroupedTransition, Container, Loader, Accordion, Button, ActionIcon, Modal, Text, Badge, Popover, useMantineTheme } from '@mantine/core'
 import type { GetServerSideProps } from 'next'
 import { Session } from 'next-auth'
 import { getSession } from 'next-auth/react'
 import { getHomeNote, HomeNote } from '../api/home'
 import { useEffect, useState } from 'react'
-import { HiOutlinePencil, HiX, HiOutlinePaperClip, HiPlus } from "react-icons/hi";
+import { HiOutlinePencil, HiX, HiOutlinePaperClip, HiPlus, HiDocumentAdd } from "react-icons/hi";
 import dayjs from 'dayjs'
 import "dayjs/locale/fr";
 import localeData from "dayjs/plugin/localeData";
 import { INoteDeFrais } from '../../entity/notedefrais.entity'
 import { NOTEDEFRAIS_ETAT } from '../../entity/utils'
-import EditLineForm from '../../components/EditLineForm'
+import EditLineForm, { TempLigneDeFrais } from '../../components/EditLineForm'
 import numbro from 'numbro'
 import { useRouter } from 'next/router'
 import { IMission } from '../../entity/mission.entity'
@@ -32,13 +32,15 @@ export interface HomeProps {
 export type EmptyNote = Omit<INoteDeFrais, "id">;
 
 export type UINote = INoteDeFrais | EmptyNote | null;
+type UILigne = (ILigneDeFrais | TempLigneDeFrais) & { UI: "default" | "delete" | "post" | "put"}
 type LineToSave = {
-  line: ILigneDeFrais,
+  line: TempLigneDeFrais,
   action: 'delete' | 'post' | 'put',
 }
 
 export default function Home(props: HomeProps) {
   const router = useRouter();
+  const theme = useMantineTheme();
   const notifications = useNotifications();
   const year = parseInt(router.query.params as string);
   const [month, setMonth] = useState(0);
@@ -47,6 +49,8 @@ export default function Home(props: HomeProps) {
   const [opened, setOpened] = useState(false);
   const [lineToEdit, setLineToEdit] = useState(null as ILigneDeFrais | null);
   const [linesToSave, setLineToSave] = useState([] as LineToSave[])
+
+  const edited = linesToSave.length !== 0;
 
   const updateNoteState = async (month: number) => {
     const currentNoteId = props?.notes?.find(note => note.mois === month)?.id;
@@ -148,9 +152,19 @@ export default function Home(props: HomeProps) {
     });
   }
 
-  const renderLines = (lines: ILigneDeFrais[]) => {
-    const rows = lines.map((ligne, index) => (
-      <tr key={index}>
+  const renderLines = (lines: UILigne[]) => {
+    const rows = lines.map((ligne, index) => {
+      var icon = <></>;
+      switch (ligne.UI) {
+        case "post":
+          icon = <HiDocumentAdd color={theme.colors.green[6]} size="1.25rem"/>
+        break;
+      }
+
+      return <tr key={index} style={{
+        color: ligne.UI === "post" ? theme.colors.green[6] : ""
+      }}>
+        {edited ? <td style={{lineHeight: "0.25rem"}}>{icon}</td> : <></>}
         <td>{ligne.titre}</td>
         <td>{dayjs(ligne.date).format("DD-MM-YYYY")}</td>
         <td>{numbro(ligne.prixHT).formatCurrency({ mantissa: 2, 
@@ -170,18 +184,20 @@ export default function Home(props: HomeProps) {
         {note && note.etat !== NOTEDEFRAIS_ETAT.VALIDEE && note.etat !== NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION &&
           <td>
             <Group position="center" direction="row" spacing={0}>
-              <ActionIcon size="xl" radius="lg" title="Modifier la ligne" color="blue" onClick={() => {setOpened(true), setLineToEdit(ligne)}}>
+              <ActionIcon size="xl" radius="lg" title="Modifier la ligne" color="blue" onClick={() => {
+                //setOpened(true), setLineToEdit(ligne)
+              }}>
                 <HiOutlinePencil/>
               </ActionIcon>
               <ActionIcon size="xl" radius="lg" title="Supprimer la ligne" color="red" onClick={() => {
-                  setLineToSave([...linesToSave, {line: ligne, action: 'delete'}]);
-                  var updatedLines: ILigneDeFrais[] = note.lignes.filter(function(l) { 
-                      return l.id !== ligne.id
-                  });
-                  note.lignes = updatedLines;
-                  setNote(note);
+                  // setLineToSave([...linesToSave, {line: ligne, action: 'delete'}]);
+                  // var updatedLines: ILigneDeFrais[] = note.lignes.filter(function(l) { 
+                  //     return l.id !== ligne.id
+                  // });
+                  // note.lignes = updatedLines;
+                  // setNote(note);
 
-                  console.log(linesToSave); // why first one is missing ?
+                  // console.log(linesToSave); // why first one is missing ?
                 }}
               >
                 <HiX/>
@@ -190,11 +206,12 @@ export default function Home(props: HomeProps) {
           </td>
         }
       </tr>
-    ));
+    });
 
     return <Table striped highlightOnHover>
       <thead>
         <tr>
+          {edited ? <th>Etat</th> : <></>}
           <th>Titre</th>
           <th>Date</th>
           <th>Montant HT</th>
@@ -214,13 +231,27 @@ export default function Home(props: HomeProps) {
 
     type MissionData = {
       mission: IMission,
-      lignes: ILigneDeFrais[]
+      lignes: UILigne[]
     }
     const missions = new Map<string, MissionData>();
     
-    for (const ligne of note.lignes) {
+    const lignes: UILigne[] = note.lignes.map(l => {
+      return {
+        ...l,
+        UI: "default"
+      }
+    });
+
+    const tempLines: UILigne[] = linesToSave.map(l => {
+      return {
+        ...l.line,
+        UI: l.action
+      }
+    });
+
+    for (const ligne of lignes.concat(tempLines)) {
       if (missions.has(ligne.mission.id)) {
-        ((missions.get(ligne.mission.id) as MissionData).lignes as ILigneDeFrais[]).push(ligne);
+        ((missions.get(ligne.mission.id) as MissionData).lignes as UILigne[]).push(ligne);
       } else {
         missions.set(ligne.mission.id, {
           mission: ligne.mission,
