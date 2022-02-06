@@ -1,8 +1,9 @@
 import { Session } from 'next-auth'
-import { useSession } from "next-auth/react"
+import { useSession, signOut } from "next-auth/react"
 import { forwardRef } from 'react';
 import { HiChevronDown, HiOutlinePencil, HiOutlineLogout, HiAdjustments, HiUserGroup } from "react-icons/hi";
 import { Group, Avatar, Text, Menu, Divider, UnstyledButton, Button, UnstyledButtonProps } from '@mantine/core';
+import { USER_ROLES } from '../entity/user.entity'
 
 interface UserButtonProps extends UnstyledButtonProps {
   name: string;
@@ -71,17 +72,23 @@ export default function SwitchUserMenu() {
       >
 	      <Menu.Label>Mon profil</Menu.Label>
 	      <Menu.Item icon={<HiAdjustments />}>Modifier mes infos</Menu.Item>
-	      <Menu.Item
-	        icon={<HiUserGroup />}	// or HiOutlineClipboardCheck ???
-	        // rightSection={<HiBell/><Badge size="xs" color="dimmed">3</Badge>}
-	      >
-	        Passer en mode validateur
-	      </Menu.Item>
+	      
+	      { session.role === USER_ROLES.CHEF_DE_SERVICE &&
+	      	<Menu.Item
+	      	  icon={<HiUserGroup />}	// or HiOutlineClipboardCheck ???
+	      	  // rightSection={<HiBell/><Badge size="xs" color="dimmed">{notifications.user.length()}</Badge>}
+	      	>
+	      	  Passer en mode validateur
+	      	</Menu.Item>
+	      }
 
 	      <Divider />
-	      {/*<Menu.Label>Danger zone</Menu.Label>*/}
 
-	      <Menu.Item color="red" icon={<HiOutlineLogout />}>Deconnexion</Menu.Item>
+	      <Menu.Item onClick={() => signOut()}
+	      	color="red" icon={<HiOutlineLogout />}
+	      >
+	      	Deconnexion
+	      </Menu.Item>
       </Menu>
     </Group>
   );
