@@ -6,63 +6,73 @@ import { useForm } from '@mantine/hooks';
 import { LIGNE_TYPE } from '../entity/utils'
 import { ILigneDeFrais } from '../entity/lignedefrais.entity'
 import { INoteDeFrais } from '../entity/notedefrais.entity'
-import { useState } from 'react'
+import { CSSProperties, useState } from 'react'
 import dayjs from 'dayjs'
 
-function ImageUploadIcon({ status, ...props }) {
-  if (status.accepted) {
-    return <HiUpload {...props} />;
-  }
+function ImageUploadIcon({ status, ...props }: {status: DropzoneStatus, style: CSSProperties}) {
+	if (status.accepted) {
+    	return <HiUpload {...props} />;
+  	}
 
-  if (status.rejected) {
-    return <HiOutlineXCircle {...props} />;
-  }
+	if (status.rejected) {
+    	return <HiOutlineXCircle {...props} />;
+  	}
 
-  return <HiPhotograph {...props} />;
+	return <HiPhotograph {...props} />;
 }
 
 function getIconColor(status: DropzoneStatus, theme: MantineTheme) {
-  return status.accepted
-    ? theme.colors[theme.primaryColor][6]
-    : status.rejected
-    ? theme.colors.red[6]
-    : theme.colorScheme === 'dark'
-    ? theme.colors.dark[0]
-    : theme.black;
+  	return status.accepted
+		? theme.colors[theme.primaryColor][6]
+		: status.rejected
+		? theme.colors.red[6]
+		: theme.colorScheme === 'dark'
+		? theme.colors.dark[0]
+		: theme.black;
 }
 
 
 type LineFormProps = {
-  line: ILigneDeFrais | null,
-  setOpened: React.Dispatch<React.SetStateAction<any>>,
-  linesToSave: {
-	  line: ILigneDeFrais,
-	  action: 'delete' | 'post' | 'put',
+  	line: ILigneDeFrais | null,
+  	setOpened: React.Dispatch<React.SetStateAction<boolean>>,
+  	linesToSave: {
+		line: ILigneDeFrais,
+	  	action: 'delete' | 'post' | 'put',
 	}[],
-  setLineToSave: React.Dispatch<React.SetStateAction<any>>,
-  note: INoteDeFrais,
-  setNote: React.Dispatch<React.SetStateAction<any>>
+  	setLineToSave: React.Dispatch<React.SetStateAction<any>>,
+  	note: INoteDeFrais,
+  	setNote: React.Dispatch<React.SetStateAction<any>>
 }
 
 export default function EditLineForm(props: LineFormProps) {
-  const [loading, setLoading] = useState(false);
-  const theme = useMantineTheme();
-
-  const lineAlreadyExists = props.line !== null; 	// not needed if line is null
+  	const [loading, setLoading] = useState(false);
+  	const theme = useMantineTheme();
 
 	const form = useForm({
-		initialValues: {
-			repaymentMode:  lineAlreadyExists ? (props.line.avance ? "advance" : "expense") : "expense",
-			lineTitle: 			lineAlreadyExists ? props.line.titre : '',
-			date: 					lineAlreadyExists ? dayjs(props.line.date).toDate() : null,
-			expenseType:		lineAlreadyExists ? props.line.type : '',
-			mission: 				lineAlreadyExists ? props.line.mission.titre : '',
-			ttc: 	lineAlreadyExists ? props.line.prixTTC : 0.000,
-			ht: 	lineAlreadyExists ? props.line.prixHT 	: 0.000,
-			tva: 	lineAlreadyExists ? props.line.prixTVA : 0.000,
-			lost: lineAlreadyExists ? props.line.perdu 	: false,
-			justification: '',		// TODO
-			comment: lineAlreadyExists ? props.line.commentaire : '',
+		initialValues: props?.line ? {
+			repaymentMode: props.line.avance ? "advance" : "expense",
+			lineTitle: props.line.titre,
+			date: dayjs(props.line.date).toDate(),
+			expenseType: props.line.type,
+			mission: props.line.mission.titre,
+			ttc:  props.line.prixTTC,
+			ht: props.line.prixHT,
+			tva: props.line.prixTVA,
+			lost: props.line.perdu,
+			justification: "", // TODO
+			comment: props.line.commentaire,
+		} : {
+			repaymentMode: "expense",
+			lineTitle: "",
+			date: null,
+			expenseType: "",
+			mission: "",
+			ttc: 0.000,
+			ht: 0.000,
+			tva: 0.000,
+			lost: false,
+			justification: "", // TODO
+			comment: "",
 		},
 
 		validationRules: {
@@ -88,25 +98,25 @@ export default function EditLineForm(props: LineFormProps) {
 
     var tempLine: ILigneDeFrais = {
     	avance:	(values.repaymentMode ===  "advance" ? true : false),
-			titre:	values.lineTitle,
-			date:	dayjs(values.date).toDate(),
-			type:	LIGNE_TYPE[values.expenseType as keyof typeof LIGNE_TYPE],
-			// mission:	values.mission,	// ?
-			// id:	values.id,	// ?
-			// validee:	values.validee,	// ?
-			// commentaire_validateur:	values.commentaire_validateur,	// ?
-			prixTTC:	values.ttc,
-			prixHT :	values.ht,
-			prixTVA:	values.tva,
-			perdu:	values.lost,
-			justificatif:	values.justification,
-			commentaire:	values.comment
+		titre:	values.lineTitle,
+		date:	dayjs(values.date).toDate(),
+		type:	LIGNE_TYPE[values.expenseType as keyof typeof LIGNE_TYPE],
+		// mission:	values.mission,	// ?
+		// id:	values.id,	// ?
+		// validee:	values.validee,	// ?
+		// commentaire_validateur:	values.commentaire_validateur,	// ?
+		prixTTC:	values.ttc,
+		prixHT :	values.ht,
+		prixTVA:	values.tva,
+		perdu:	values.lost,
+		justificatif:	values.justification,
+		commentaire:	values.comment
     }
 		
-  	props.setLineToSave([...props.linesToSave, {line: tempLine, action: (lineAlreadyExists ? 'put' : 'post')}]);
+  	props.setLineToSave([...props.linesToSave, {line: tempLine, action: (props?.line ? 'put' : 'post')}]);
 
   	var updatedLines: ILigneDeFrais[] = props.note.lignes.map((l) => {
-      return l.id === tempLine.id ? tempLine : l
+    	return l.id === tempLine.id ? tempLine : l
     });
     props.note.lignes = updatedLines;
     props.setNote(props.note);
@@ -123,7 +133,7 @@ export default function EditLineForm(props: LineFormProps) {
 				required
 			>
 				<Radio value="expense">Frais déjà déboursé</Radio>
-				<Radio value="advance">Demande d'avance</Radio>
+				<Radio value="advance">{"Demande d'avance"}</Radio>
 			</RadioGroup>
 
 			<Space h="md" />
@@ -210,7 +220,7 @@ export default function EditLineForm(props: LineFormProps) {
 		             	Justificatif
 		            </Text>
 		            <Text size="xs" color="dimmed" inline mt={7}>
-		            	Faites glisser l'image ici ou cliquez pour sélectionner le fichier
+		            	{"Faites glisser l'image ici ou cliquez pour sélectionner le fichier"}
 		            </Text>
 		          </div>
 		        </Group>
@@ -231,7 +241,7 @@ export default function EditLineForm(props: LineFormProps) {
 
 			<Group position="center">
 				<Button type="submit" color="green">
-					{lineAlreadyExists // TODO: disabled if no changes
+					{props?.line // TODO: disabled if no changes
 						? "Enregistrer les modifications"
 						: "Ajouter la ligne de frais"
 					}
