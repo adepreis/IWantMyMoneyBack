@@ -1,10 +1,10 @@
-import { Group, Center, Table, GroupedTransition, Container, Loader, Accordion, Button, ActionIcon, Modal, Text, Badge, Popover, useMantineTheme } from '@mantine/core'
+import { Group, Center, Table, Space, Loader, Accordion, Button, ActionIcon, Modal, Text, Badge, Popover, useMantineTheme } from '@mantine/core'
 import type { GetServerSideProps } from 'next'
 import { Session } from 'next-auth'
 import { getSession } from 'next-auth/react'
 import { getHomeNote, HomeNote } from '../api/home'
 import { useEffect, useState } from 'react'
-import { HiOutlinePencil, HiX, HiOutlinePaperClip, HiPlus, HiDocumentAdd } from "react-icons/hi";
+import { HiOutlinePencil, HiX, HiOutlinePaperClip, HiPlus, HiDocumentAdd, HiTrash } from "react-icons/hi";
 import dayjs from 'dayjs'
 import "dayjs/locale/fr";
 import localeData from "dayjs/plugin/localeData";
@@ -19,6 +19,7 @@ import NavigationBar from '../../components/NavigationBar'
 import { Routes } from '../../utils/api'
 import { useNotifications } from '@mantine/notifications'
 import { PopoverButton } from '../../components/PopoverButton'
+import { useModals } from '@mantine/modals'
 dayjs.extend(localeData);
 dayjs().format();
 dayjs.locale("fr");
@@ -32,7 +33,7 @@ export interface HomeProps {
 export type EmptyNote = Omit<INoteDeFrais, "id">;
 
 export type UINote = INoteDeFrais | EmptyNote | null;
-type UILigne = (ILigneDeFrais | TempLigneDeFrais) & { UI: "default" | "delete" | "post" | "put"}
+export type UILigne = (ILigneDeFrais | TempLigneDeFrais) & { UI: "default" | "delete" | "post" | "put"}
 type LineToSave = {
   line: TempLigneDeFrais,
   action: 'delete' | 'post' | 'put',
@@ -41,13 +42,14 @@ type LineToSave = {
 export default function Home(props: HomeProps) {
   const router = useRouter();
   const theme = useMantineTheme();
+  const modals = useModals();
   const notifications = useNotifications();
   const year = parseInt(router.query.params as string);
   const [month, setMonth] = useState(0);
 
   const [note, setNote] = useState(null as UINote);
   const [opened, setOpened] = useState(false);
-  const [lineToEdit, setLineToEdit] = useState(null as ILigneDeFrais | null);
+  const [lineToEdit, setLineToEdit] = useState(null as UILigne | null);
   const [linesToSave, setLineToSave] = useState([] as LineToSave[])
 
   const edited = linesToSave.length !== 0;
@@ -153,16 +155,24 @@ export default function Home(props: HomeProps) {
   }
 
   const renderLines = (lines: UILigne[]) => {
-    const rows = lines.map((ligne, index) => {
+    const rows = lines.filter(line => !(line.UI === "default" && linesToSave.find(l => ["put", "delete"].includes(l.action) && l.line.id === line.id))).map((ligne, index) => {
       var icon = <></>;
       switch (ligne.UI) {
         case "post":
           icon = <HiDocumentAdd color={theme.colors.green[6]} size="1.25rem"/>
-        break;
+          break;
+        case "delete":
+          icon = <HiTrash color={theme.colors.red[6]} size="1.25rem" />
+          break;
+        case "put":
+          icon = <HiOutlinePencil color={theme.colors.yellow[6]} size="1.25rem" />
+          break;
       }
 
       return <tr key={index} style={{
-        color: ligne.UI === "post" ? theme.colors.green[6] : ""
+        color: ligne.UI === "post" ? theme.colors.green[6] : 
+          ligne.UI === "delete" ? theme.colors.red[6] : 
+          ligne.UI === "put" ? theme.colors.yellow[6] : ""
       }}>
         {edited ? <td style={{lineHeight: "0.25rem"}}>{icon}</td> : <></>}
         <td>{ligne.titre}</td>
@@ -183,24 +193,69 @@ export default function Home(props: HomeProps) {
         {/* Hide buttons when edit/delete is not allowed by note state */}
         {note && note.etat !== NOTEDEFRAIS_ETAT.VALIDEE && note.etat !== NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION &&
           <td>
-            <Group position="center" direction="row" spacing={0}>
-              <ActionIcon size="xl" radius="lg" title="Modifier la ligne" color="blue" onClick={() => {
-                //setOpened(true), setLineToEdit(ligne)
+            <Group direction="row" spacing={0}>
+              {ligne.UI !== "delete" ? <ActionIcon size="xl" radius="lg" title="Modifier la ligne" color="blue" onClick={() => {
+                setOpened(true);
+                setLineToEdit(ligne);
               }}>
                 <HiOutlinePencil/>
-              </ActionIcon>
-              <ActionIcon size="xl" radius="lg" title="Supprimer la ligne" color="red" onClick={() => {
-                  // setLineToSave([...linesToSave, {line: ligne, action: 'delete'}]);
-                  // var updatedLines: ILigneDeFrais[] = note.lignes.filter(function(l) { 
-                  //     return l.id !== ligne.id
-                  // });
-                  // note.lignes = updatedLines;
-                  // setNote(note);
+              </ActionIcon> : <></>}
+              <ActionIcon 
+                size="xl" radius="lg" 
+                title={ligne.UI !== "delete" ? "Supprimer la ligne" : "Restaurer la ligne"} 
+                color={ligne.UI !== "delete" ? "red" : "green"} 
+                onClick={() => {
+                const switchDelete = () => {
+                  if (ligne.id.includes("temp-")) {
+                    setLineToSave(linesToSave.map(l => {
+                      if (l.line.id === ligne.id) {
+                        return {
+                          line: l.line,
+                          action: l.action === "delete" ? "post" : "delete"
+                        }
+                      }
 
-                  // console.log(linesToSave); // why first one is missing ?
-                }}
-              >
-                <HiX/>
+                      return l;
+                    }))
+                  } else {
+                    if (ligne.UI === "delete") {
+                      setLineToSave(linesToSave.filter(l => l.line.id !== ligne.id));
+                    }
+                    else {
+                      setLineToSave(linesToSave.concat([{
+                        line: {
+                          ...ligne,
+                          files: [] // @TODO: handle files
+                        },
+                        action: "delete"
+                      }]))
+                    }
+                  }
+                }
+
+                if (ligne.UI !== "delete") {
+                  modals.openConfirmModal({
+                    title: 'Confirmation de suppression',
+                    children: (
+                      <>
+                        <Text size="sm">
+                          {"Vous êtes sur le point de supprimer une ligne."} 
+                        </Text>
+                        <Space h="md" />
+                        <Text size="sm">
+                          {"Notez toutefois que cette action ne sera appliqué qu'en cas de sauvegarde de la note."}
+                        </Text>
+                      </>
+                    ),
+                    labels: { confirm: 'Supprimer', cancel: "Annuler" },
+                    onCancel: () => {},
+                    onConfirm: () => switchDelete(),
+                  })
+                } else {
+                  switchDelete()
+                }
+              }}>
+                {ligne.UI !== "delete" ? <HiX/> : <HiDocumentAdd />}
               </ActionIcon>
             </Group>
           </td>
@@ -216,6 +271,7 @@ export default function Home(props: HomeProps) {
           <th>Date</th>
           <th>Montant HT</th>
           <th>Justificatif</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody>{rows}</tbody>

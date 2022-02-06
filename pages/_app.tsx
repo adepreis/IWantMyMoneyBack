@@ -8,6 +8,7 @@ import "reflect-metadata";
 import { useMediaQuery } from '@mantine/hooks';
 import { Image } from '@mantine/core';
 import { useState } from 'react';
+import { ModalsProvider } from '@mantine/modals';
 
 export default function App(props: AppProps) {
   const { Component, pageProps } = props;
@@ -53,11 +54,13 @@ export default function App(props: AppProps) {
       >
         <SessionProvider session={pageProps.session}>
           <NotificationsProvider>
-            <AppShell header={header} fixed styles={(theme) => ({
-              main: {display: "flex", backgroundColor: theme.colors.dark[8], paddingLeft: 0},
-            })} navbar={navbar}>
-              <Component {...pageProps} />
-            </AppShell>
+            <ModalsProvider>
+              <AppShell header={header} fixed styles={(theme) => ({
+                main: {display: "flex", backgroundColor: theme.colors.dark[8], paddingLeft: 0},
+              })} navbar={navbar}>
+                <Component {...pageProps} />
+              </AppShell>
+            </ModalsProvider>
           </NotificationsProvider>
         </SessionProvider>
       </MantineProvider>

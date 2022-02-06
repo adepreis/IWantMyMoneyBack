@@ -8,7 +8,7 @@ import { ILigneDeFrais } from '../entity/lignedefrais.entity'
 import { INoteDeFrais } from '../entity/notedefrais.entity'
 import { CSSProperties, Dispatch, SetStateAction, useState } from 'react'
 import dayjs from 'dayjs'
-import { EmptyNote } from '../pages/home/[params]';
+import { EmptyNote, UILigne } from '../pages/home/[params]';
 import { Routes } from '../utils/api';
 import { useNotifications } from '@mantine/notifications';
 import { NotificationsContextProps } from '@mantine/notifications/lib/types';
@@ -78,7 +78,7 @@ async function fillMissionData(date: Date | null,
 }
 
 type LineFormProps = {
-  	line: ILigneDeFrais | null,
+  	line: UILigne | null,
   	setOpened: React.Dispatch<React.SetStateAction<boolean>>,
   	linesToSave: {
 		line: TempLigneDeFrais,
@@ -100,15 +100,15 @@ type DropzoneState = {
 	files: File[]
 }
 
-export type TempLigneDeFrais = Omit<ILigneDeFrais, "id" | "commentaire_validateur" | "etat"> & {files: File[]};
+export type TempLigneDeFrais = Omit<ILigneDeFrais, "commentaire_validateur" | "etat"> & {files: File[]};
 
 export default function EditLineForm(props: LineFormProps) {
 	const notifications = useNotifications();
   	const [loading, setLoading] = useState(false);
 	const [missionSelectState, setMissionSelectState] = useState(({
 		loading: false,
-		data: [],
-		missions: []
+		data: props.line?.mission?.id ? [{value: props.line.mission.id, label: props.line.mission.titre}] : [],
+		missions: props.line?.mission?.id ? [props.line.mission] : []
 	}) as MissionSelectState);
 	const [dropzone, setDropzone] = useState(({
 		error: false,
@@ -123,7 +123,7 @@ export default function EditLineForm(props: LineFormProps) {
 			lineTitle: props.line.titre,
 			date: dayjs(props.line.date).toDate(),
 			expenseType: props.line.type,
-			mission: props.line.mission.titre,
+			mission: props.line.mission.id,
 			ttc:  props.line.prixTTC,
 			ht: props.line.prixHT,
 			tva: props.line.prixTVA,
@@ -193,10 +193,28 @@ export default function EditLineForm(props: LineFormProps) {
 			perdu: values.lost,
 			justificatif: values.justification,
 			commentaire: values.comment,
-			files: dropzone.files
+			files: dropzone.files,
+			id: props?.line?.id ? props.line.id : `temp-${props.linesToSave.length}`
 		}
-			
-		props.setLineToSave([...props.linesToSave, {line: tempLine, action: (props?.line ? 'put' : 'post')}]);
+
+		if (props?.line) {
+			if (props.line.id.includes("temp-")) {
+				const newLinesToSave = props.linesToSave.map(l => {
+					if (l.line.id === props?.line?.id) {
+						return {
+							line: tempLine,
+							action: "post"
+						}
+					}
+					return l;
+				}) 
+				props.setLineToSave(newLinesToSave);
+			} else {
+				props.setLineToSave([...props.linesToSave, {line: tempLine, action: "put"}]);
+			}
+		} else {
+			props.setLineToSave([...props.linesToSave, {line: tempLine, action: "post"}]);
+		}
 		props.setOpened(false);
 	};
 
