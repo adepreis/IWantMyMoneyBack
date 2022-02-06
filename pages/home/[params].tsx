@@ -2,7 +2,6 @@ import { Group, Center, Table, GroupedTransition, Container, Loader, Accordion, 
 import type { GetServerSideProps } from 'next'
 import { Session } from 'next-auth'
 import { getSession } from 'next-auth/react'
-import { useRouter } from 'next/router'
 import { getHomeNote, HomeNote } from '../api/home'
 import { useEffect, useState } from 'react'
 import { HiOutlinePencil, HiX, HiOutlinePaperClip, HiPlus } from "react-icons/hi";
@@ -30,7 +29,7 @@ export interface HomeProps {
   years?: number[],
 }
 
-type EmptyNote = Omit<INoteDeFrais, "id">;
+export type EmptyNote = Omit<INoteDeFrais, "id">;
 
 export type UINote = INoteDeFrais | EmptyNote | null;
 type LineToSave = {

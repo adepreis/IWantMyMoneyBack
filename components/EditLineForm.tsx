@@ -8,6 +8,7 @@ import { ILigneDeFrais } from '../entity/lignedefrais.entity'
 import { INoteDeFrais } from '../entity/notedefrais.entity'
 import { CSSProperties, useState } from 'react'
 import dayjs from 'dayjs'
+import { EmptyNote } from '../pages/home/[params]';
 
 function ImageUploadIcon({ status, ...props }: {status: DropzoneStatus, style: CSSProperties}) {
 	if (status.accepted) {
@@ -40,7 +41,7 @@ type LineFormProps = {
 	  	action: 'delete' | 'post' | 'put',
 	}[],
   	setLineToSave: React.Dispatch<React.SetStateAction<any>>,
-  	note: INoteDeFrais,
+  	note: INoteDeFrais | EmptyNote,
   	setNote: React.Dispatch<React.SetStateAction<any>>
 }
 
