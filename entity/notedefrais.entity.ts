@@ -1,4 +1,4 @@
-import { Column, Entity, Index, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique } from "typeorm";
 import { ILigneDeFrais, LigneDeFrais, lineToApi } from "./lignedefrais.entity";
 import { INotification, Notification, notificationToApi } from "./notification.entity";
 import { User } from "./user.entity";
@@ -16,6 +16,7 @@ export interface INoteDeFrais {
 }
 
 @Entity("notedefrais")
+@Unique(["user","mois","annee"]) //clé unique pour qu'il puisse pas y avoire plusieur note pour 1 mois
 export class NoteDeFrais implements INoteDeFrais {
     @PrimaryGeneratedColumn('uuid')
     id!: string;

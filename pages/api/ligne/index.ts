@@ -11,7 +11,7 @@ import { prepareConnection } from '../database';
 
 import nextConnect from 'next-connect';
 import multer from 'multer';
-import { NOTEDEFRAIS_ETAT } from '../../../entity/utils';
+import { LIGNEDEFRAIS_ETAT, NOTEDEFRAIS_ETAT } from '../../../entity/utils';
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -48,7 +48,6 @@ export async function insertLigne(data: LigneDeFrais, justificatif:string):Promi
         perdu: data.perdu, 
         note: data.note,
         mission: data.mission,
-        validee: false,
         commentaire_validateur: ""
       }
     ])
@@ -82,7 +81,8 @@ export async function updateLigne(data: LigneDeFrais, justificatif:string):Promi
       avance: data.avance,
       commentaire: data.commentaire,
       perdu: data.perdu, 
-      mission: data.mission
+      mission: data.mission,
+      etat: LIGNEDEFRAIS_ETAT.BROUILLON
     }
   )
   .where("id = :id", {id: data.id})
