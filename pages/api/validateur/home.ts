@@ -5,7 +5,7 @@ import { getConnection } from 'typeorm';
 import { RequestError } from '../../../entity/geneal_struct';
 import { INoteDeFrais, NoteDeFrais } from '../../../entity/notedefrais.entity';
 import { Service } from '../../../entity/service.entity';
-import { User } from '../../../entity/user.entity';
+import { User, USER_ROLES } from '../../../entity/user.entity';
 import { prepareConnection } from '../database';
 
 export type RequestNote = INoteDeFrais[] | RequestError;
@@ -51,11 +51,12 @@ export default async function handler(
 ) {
   //recupération de la session
   const session = await getSession({ req });
-  if (!session) {
+  if (!session || (session as any).role != USER_ROLES.CHEF_DE_SERVICE) {
     res.status(403).json({error: "acces interdit" as string, code: 403});
+    return;
   } 
-  const userId = (session as any)?.id;
 
+  const userId = (session as any)?.id;
   const notes = await getValidateur(userId);
 
   if (notes) {
