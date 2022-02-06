@@ -49,5 +49,19 @@ export const Routes = {
                 return null;
             }
         }
-    } 
+    },
+    MISSION: {
+        get: async (timestamp: number) => {
+            const request = await fetch(`/api/ligne/mission/${timestamp}`);
+    
+            if (request.status === 200) {
+                const result = await request.json();
+                return result;
+            } 
+            else {
+                // Error while fetching
+                return null;
+            }
+        }
+    }
 }

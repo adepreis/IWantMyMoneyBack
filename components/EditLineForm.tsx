@@ -1,4 +1,4 @@
-import { TextInput, Checkbox, Button, Group, Space, RadioGroup, Radio, Select, Textarea, Text, NumberInput, useMantineTheme, MantineTheme, LoadingOverlay } from '@mantine/core';
+import { TextInput, Checkbox, Button, Group, Space, RadioGroup, Radio, Select, Textarea, Text, NumberInput, useMantineTheme, MantineTheme, LoadingOverlay, Loader } from '@mantine/core';
 import { HiCalendar, HiUpload, HiOutlineXCircle, HiPhotograph } from "react-icons/hi";
 import { Dropzone, MIME_TYPES, DropzoneStatus } from '@mantine/dropzone';
 import { DatePicker } from '@mantine/dates';
@@ -6,9 +6,13 @@ import { useForm } from '@mantine/hooks';
 import { LIGNE_TYPE } from '../entity/utils'
 import { ILigneDeFrais } from '../entity/lignedefrais.entity'
 import { INoteDeFrais } from '../entity/notedefrais.entity'
-import { CSSProperties, useState } from 'react'
+import { CSSProperties, Dispatch, SetStateAction, useState } from 'react'
 import dayjs from 'dayjs'
 import { EmptyNote } from '../pages/home/[params]';
+import { Routes } from '../utils/api';
+import { useNotifications } from '@mantine/notifications';
+import { NotificationsContextProps } from '@mantine/notifications/lib/types';
+import { IMission } from '../entity/mission.entity';
 
 function ImageUploadIcon({ status, ...props }: {status: DropzoneStatus, style: CSSProperties}) {
 	if (status.accepted) {
@@ -32,6 +36,46 @@ function getIconColor(status: DropzoneStatus, theme: MantineTheme) {
 		: theme.black;
 }
 
+async function fillMissionData(date: Date | null, 
+	setMissionSelectState: Dispatch<SetStateAction<MissionSelectState>>,
+	notifications: NotificationsContextProps
+) {
+	if (!date) {
+		setMissionSelectState({
+			loading: false,
+			data: [],
+			missions: []
+		});
+		return;
+	}
+
+	setMissionSelectState({
+		loading: true,
+		data: [], 
+		missions: []
+	});
+
+	const request = await Routes.MISSION.get(date.getTime()) as IMission[] | null;
+	if (!request) {
+		notifications.showNotification({
+			title: 'Erreur !',
+			color: "red",
+			message: `Nous venons de rencontrer un problème 😔`,
+		});
+		return;
+	}
+
+	setMissionSelectState({
+		loading: false,
+		data: request.map(r => {
+			return { 
+				value: r.id, 
+				label: r.titre
+			}
+		}),
+		missions: request
+	});
+}
 
 type LineFormProps = {
   	line: ILigneDeFrais | null,
@@ -45,8 +89,30 @@ type LineFormProps = {
   	setNote: React.Dispatch<React.SetStateAction<any>>
 }
 
+type MissionSelectState = {
+	loading: boolean,
+	data: any[],
+	missions: IMission[]
+}
+
+type DropzoneState = {
+	error: boolean,
+	files: File[]
+}
+
 export default function EditLineForm(props: LineFormProps) {
+	const notifications = useNotifications();
   	const [loading, setLoading] = useState(false);
+	const [missionSelectState, setMissionSelectState] = useState(({
+		loading: false,
+		data: [],
+		missions: []
+	}) as MissionSelectState);
+	const [dropzone, setDropzone] = useState(({
+		error: false,
+		files: []
+	}) as DropzoneState)
+
   	const theme = useMantineTheme();
 
 	const form = useForm({
@@ -83,47 +149,65 @@ export default function EditLineForm(props: LineFormProps) {
 			mission: (value) => value !== '',
 			ttc: 	(value) => value > 0.0,	// TODO: assert tax computing
 			ht: 	(value) => value > 0.0,	// TODO: assert tax computing
-			tva: 	(value) => value > 0.0,	// TODO: assert tax computing
+			tva: 	(value) => value > 0.0,	// TODO: assert tax computing,
+			lost: 	(value) => {
+				if (value) {
+					return value;  
+				}
+
+				const res = dropzone.files.length > 0;
+
+				setDropzone({
+					...dropzone,
+					error: !res
+				})
+
+				return res;
+			}
 		},
 
 		errorMessages: {
 			lineTitle: 'Le titre doit comporter 5 caractères ou plus',
-		  date: 'Une date doit être spécifiée',
-		  expenseType: 'Ce champ est obligatoire',
+			date: 'Une date doit être spécifiée',
+			expenseType: 'Ce champ est obligatoire',
+			lost: "Vous devez joindre au moins un justificatif"
 		},
 	});
 
 	const handleSubmit = async (values: typeof form['values']) => {
-    setLoading(true);
-    console.log(values);
+		setLoading(true);
+		console.log(values);
 
-    var tempLine: ILigneDeFrais = {
-    	avance:	(values.repaymentMode ===  "advance" ? true : false),
-		titre:	values.lineTitle,
-		date:	dayjs(values.date).toDate(),
-		type:	LIGNE_TYPE[values.expenseType as keyof typeof LIGNE_TYPE],
-		// mission:	values.mission,	// ?
-		// id:	values.id,	// ?
-		// validee:	values.validee,	// ?
-		// commentaire_validateur:	values.commentaire_validateur,	// ?
-		prixTTC:	values.ttc,
-		prixHT :	values.ht,
-		prixTVA:	values.tva,
-		perdu:	values.lost,
-		justificatif:	values.justification,
-		commentaire:	values.comment
-    }
-		
-  	props.setLineToSave([...props.linesToSave, {line: tempLine, action: (props?.line ? 'put' : 'post')}]);
+		var tempLine: Partial<ILigneDeFrais> = {
+			avance:	(values.repaymentMode ===  "advance" ? true : false),
+			titre:	values.lineTitle,
+			date:	dayjs(values.date).toDate(),
+			type:	LIGNE_TYPE[values.expenseType as keyof typeof LIGNE_TYPE],
+			// mission:	values.mission,	// ?
+			// id:	values.id,	// ?
+			// validee:	values.validee,	// ?
+			// commentaire_validateur:	values.commentaire_validateur,	// ?
+			prixTTC:	values.ttc,
+			prixHT :	values.ht,
+			prixTVA:	values.tva,
+			perdu:	values.lost,
+			justificatif:	values.justification,
+			commentaire:	values.comment
+		}
+			
+		props.setLineToSave([...props.linesToSave, {line: tempLine, action: (props?.line ? 'put' : 'post')}]);
 
-  	var updatedLines: ILigneDeFrais[] = props.note.lignes.map((l) => {
-    	return l.id === tempLine.id ? tempLine : l
-    });
-    props.note.lignes = updatedLines;
-    props.setNote(props.note);
+		var updatedLines: Partial<ILigneDeFrais>[] = props.note.lignes.map((l) => {
+			return l.id === tempLine.id ? tempLine : l
+		});
+		// @ts-ignore : @TODO lors de l'affichage des lignes
+		props.note.lignes = updatedLines;
+		props.setNote(props.note);
 
-    props.setOpened(false);
-  };
+		props.setOpened(false);
+	};
+
+  	const missionSelectIcon = missionSelectState.loading ? {icon: <Loader size="sm"></Loader>} : {};
 
 	return (
 		<form onSubmit={form.onSubmit(handleSubmit)}>
@@ -143,6 +227,7 @@ export default function EditLineForm(props: LineFormProps) {
 				data-autofocus
 				label="Titre de la ligne"
 				placeholder="Donnez un titre à cette ligne de frais"
+				onBlur={() => form.validateField('lineTitle')}
 				{...form.getInputProps('lineTitle')}
 				required
 			/>
@@ -153,7 +238,11 @@ export default function EditLineForm(props: LineFormProps) {
 					// minDate={dayjs(new Date()).startOf('month').add(5, 'days').toDate()}
 					// maxDate={dayjs(new Date()).endOf('month').subtract(5, 'days').toDate()}
 					{...form.getInputProps('date')}
-					// onChange={(event) => fillMissionData }
+					onChange={(date: Date | null) => {
+						form.setFieldValue('date', date)
+						fillMissionData(date, setMissionSelectState, notifications);
+					}}
+					onBlur={() => form.validateField('date')}
 				/>
 				<Select
 					label="Type de frais"
@@ -166,16 +255,12 @@ export default function EditLineForm(props: LineFormProps) {
 
 			<Space h="md" />
 
-			{/* TODO: retrieve mission 		GET /api/mission/[timestamp] */}
 			<Select
+			 	{...missionSelectIcon}
+				disabled={missionSelectState.loading || missionSelectState.data.length === 0}
 				label="Mission associée"
 				placeholder="Sélectionnez la mission associée"
-				data={[
-					{ value: 'Schaden, Hintz and Konopelski', label: 'Rick', group: 'Used to be a pickle' },
-					{ value: 'morty', label: 'Morty', group: 'Never was a pickle' },
-					{ value: 'beth', label: 'Beth', group: 'Never was a pickle' },
-					// { value: 'Autre', label: 'Autre' },	// no group generates "unique key" error
-				]}
+				data={missionSelectState.data}
 				{...form.getInputProps('mission')}
 				required
 			/>
@@ -202,31 +287,66 @@ export default function EditLineForm(props: LineFormProps) {
 
 			<Space h="md" />
 
-			<Dropzone
-		      	onDrop={(files) => console.log('accepted files', files)}
-		      	onReject={(files) => console.log('rejected files', files)}
+			{!form.getInputProps("lost").value ? <Dropzone
+		      	onDrop={(files) => {
+					setDropzone({
+						files: dropzone.files.concat(files),
+						error: false
+					})
+				}}
+		      	onReject={(files) => {
+					const plural = files.length > 1;
+					const s = plural ? "s" : "";
+					const msg = `Le${s} fichier${s} : ${files.map(f => f.file.name).join(", ")} n'${plural ? "ont" : "a"} pas un format de fichier valide.`
+					notifications.showNotification({
+						title: 'Erreur !',
+						color: "red",
+						message: `${msg} 😔`,
+					});
+					setDropzone({
+						...dropzone,
+						error: dropzone.files.length === 0
+					})
+				}}
 		      	maxSize={3 * 1024 ** 2}
 		      	accept={[MIME_TYPES.png, MIME_TYPES.jpeg, MIME_TYPES.svg, MIME_TYPES.pdf]}
 						{...form.getInputProps('justification')}
+				sx={(theme) => ({
+					backgroundColor: "#2c2e33",
+					borderColor: dropzone.error ? theme.colors.red[6] : "",
+				})}
 		    >
-		      {(status) => (
-		        <Group position="center" spacing="sm" style={{ pointerEvents: 'none' }}>
-		          <ImageUploadIcon
-		            status={status}
-		            style={{ width: 50, height: 50, color: getIconColor(status, theme) }}
-		          />
+		      	{(status) => (
+					<Group position="center" spacing="sm" style={{ pointerEvents: 'none' }}>
+						<ImageUploadIcon
+							status={status}
+							style={{ 
+								width: 50, 
+								height: 50, 
+								color: dropzone.error ? theme.colors.red[6] : getIconColor(status, theme) 
+							}}
+						/>
+						<div>
+							<Text size="lg" inline sx={(theme) => ({
+								color: dropzone.error ? theme.colors.red[6] : "",
+							})}>
+								Justificatif
+							</Text>
+							<Text size="xs" color="dimmed" inline mt={7} sx={(theme) => ({
+								color: dropzone.error ? theme.colors.red[6] : "",
+							})}>
+								{"Faites glisser l'image ici ou cliquez pour sélectionner le fichier"}
+							</Text>
+						</div>
+					</Group>
+				)}
+		    </Dropzone> : <></>}
 
-		          <div>
-		            <Text size="lg" inline>
-		             	Justificatif
-		            </Text>
-		            <Text size="xs" color="dimmed" inline mt={7}>
-		            	{"Faites glisser l'image ici ou cliquez pour sélectionner le fichier"}
-		            </Text>
-		          </div>
-		        </Group>
-		      )}
-		    </Dropzone>
+			{!form.getInputProps("lost").value && dropzone.error ? 
+				<Text size="sm" sx={(theme) => ({
+					paddingTop: "0.25rem",
+					color: dropzone.error ? theme.colors.red[6] : "",
+				})}>{form.getInputProps("lost").error}</Text> : <></>}
 
 			<Checkbox label="J'ai perdu mon justificatif" mt="md"
 				{...form.getInputProps('lost', { type: 'checkbox' })}
