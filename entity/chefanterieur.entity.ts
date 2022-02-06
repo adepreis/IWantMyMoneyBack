@@ -37,6 +37,9 @@ export class ChefAnterieur {
 
     @ManyToOne(() => Service, service => service.chefsAnterieurs)
     service!: Service;
+
+    @ManyToOne(() => Service)
+    serviceValidateur!: Service;
 }
 
 export const chefanterieurToApi = (chefanterieur: ChefAnterieur): IChefAnterieur => {
