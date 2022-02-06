@@ -132,7 +132,7 @@ apiRoute.post(async (req:any, res:NextApiResponse) => {
     }
     
   if(await insertLigne(req.body,req.file.filename)){
-    res.status(200).send("ligne ajoutée");
+    res.status(200).json({resultat: "ligne ajoutée"});
   }else{
     res.status(400).json({error : "Les donnée envoyé ne sont pas valide ou complète", code : 400})
   }
@@ -163,7 +163,7 @@ apiRoute.put(async (req:any, res:NextApiResponse) => {
     }
 
   if(await updateLigne(req.body, req.file.filename)){
-    res.status(200).send("ligne mise à jours");
+    res.status(200).json({resultat: "ligne mise à jours"});
   }else{
     res.status(404).json({error: "Ligne non trouvée", code: 404});
   }
