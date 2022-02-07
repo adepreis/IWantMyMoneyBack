@@ -1,13 +1,13 @@
 import { Modal } from "@mantine/core";
 import { Dispatch, SetStateAction } from "react";
-import { LineToSave, UILigne, UINote } from "../../pages/home/[params]";
+import { UILigne, UINote } from "../../pages/home/[params]";
 import EditLineForm from "../EditLineForm";
 
 type EditModalProps = {
     note: NonNullable<UINote>,
     editedLine: UILigne | null,
-    localLines: LineToSave[],
-    setLocalLinse: Dispatch<SetStateAction<LineToSave[]>>,
+    localLines: UILigne[],
+    setLocalLinse: Dispatch<SetStateAction<UILigne[]>>,
     opened: boolean,
     setOpened: Dispatch<SetStateAction<boolean>>,
 }

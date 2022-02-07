@@ -1,7 +1,7 @@
 import { MantineTheme, Table, useMantineTheme, Text, Button } from "@mantine/core";
 import { CSSProperties, Dispatch, SetStateAction } from "react";
 import { HiDocumentAdd, HiTrash, HiOutlinePencil, HiOutlinePaperClip } from "react-icons/hi";
-import { LineToSave, UILigne, UINote } from "../../pages/home/[params]";
+import { UILigne, UINote } from "../../pages/home/[params]";
 import dayjs from 'dayjs'
 import "dayjs/locale/fr";
 import localeData from "dayjs/plugin/localeData";
@@ -15,8 +15,8 @@ dayjs.locale("fr");
 type LineProps = {
     note: NonNullable<UINote>;
     lines: UILigne[];
-    localLines: LineToSave[];
-    setLocalLines: Dispatch<SetStateAction<LineToSave[]>>;
+    localLines: UILigne[];
+    setLocalLines: Dispatch<SetStateAction<UILigne[]>>;
     setEditedLine: Dispatch<SetStateAction<UILigne | null>>;
     setOpenedModal: Dispatch<SetStateAction<boolean>>;
     viewedLine: UILigne | null;
@@ -56,7 +56,7 @@ export default function Line(props: LineProps) {
     
     const edited = localLines.length !== 0;
 
-    const rows = lines.filter(line => !(line.UI === "default" && localLines.find(l => ["put", "delete"].includes(l.action) && l.line.id === line.id))).map((line, index) => {
+    const rows = lines.filter(line => !(line.UI === "default" && localLines.find(l => ["put", "delete"].includes(l.UI) && l.id === line.id))).map((line, index) => {
         const [stateHead, rowStyle] = getUIStateTableElement(edited, line, theme);
 
         return <tr key={index} onClick={() => { props.setViewedLine(line) }} style={{

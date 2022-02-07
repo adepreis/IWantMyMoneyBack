@@ -1,15 +1,17 @@
 import { Group, Text, Image, useMantineTheme, MantineTheme, Title } from "@mantine/core";
 import { HiOutlineInformationCircle, HiOutlineXCircle } from "react-icons/hi";
 import { UILigne } from "../../pages/home/[params]";
+import { TempLigneDeFrais } from "../EditLineForm";
 
 type SidePanelProps = {
     viewedLine: UILigne | null;
 }
 
-const randomURL = "https://images.unsplash.com/photo-1511216335778-7cb8f49fa7a3?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=720&q=80";
-
-function renderViewedLineFile(line: NonNullable<UILigne>, theme: MantineTheme) {
+export function renderLineFile(line: NonNullable<UILigne>, theme: MantineTheme) {
     const {justificatif} = line;
+
+    const files = (line as TempLigneDeFrais)?.files ?? [];
+    const tempFile = files.find(f => f.name === justificatif);
 
     var content = <Group position="center" spacing={7}>
         <HiOutlineXCircle style={{fontSize: "1.2rem"}}/>
@@ -18,7 +20,7 @@ function renderViewedLineFile(line: NonNullable<UILigne>, theme: MantineTheme) {
 
     if ([".png", ".jpeg", ".jpg"].some(fileType => justificatif.includes(fileType))) {
         content = <Image
-            src={randomURL}
+            src={tempFile ? URL.createObjectURL(tempFile) : justificatif}
             width="100%"
             height="auto"
             style={{width: "100%"}}
@@ -27,7 +29,7 @@ function renderViewedLineFile(line: NonNullable<UILigne>, theme: MantineTheme) {
     }
     else if (justificatif.includes(".pdf")) {
         content = <iframe 
-            src="http://www.africau.edu/images/default/sample.pdf"
+            src={tempFile ? URL.createObjectURL(tempFile) : justificatif}
             style={{
                 width: "100%",
                 height: "30vh",
@@ -53,7 +55,7 @@ export function SidePanel(props: SidePanelProps) {
     const theme = useMantineTheme();
 
     const content = viewedLine ? <>
-        {renderViewedLineFile(viewedLine, theme)}
+        {renderLineFile(viewedLine, theme)}
     </> : <Group  position="center" spacing={7}>
         <HiOutlineInformationCircle style={{fontSize: "1.2rem"}}/>
         <Text>{"Aucune ligne n'a été selectionnée !"}</Text>

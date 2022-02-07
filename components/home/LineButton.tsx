@@ -1,6 +1,6 @@
 import { LIGNE_TYPE, NOTEDEFRAIS_ETAT } from "../../entity/utils"
 import { ActionIcon, Group, MantineTheme, Space, Text, useMantineTheme } from "@mantine/core";
-import { LineToSave, UILigne } from "../../pages/home/[params]";
+import { UILigne } from "../../pages/home/[params]";
 import { HiDocumentAdd, HiOutlinePencil, HiX } from "react-icons/hi";
 import { Dispatch, SetStateAction } from "react";
 import { useModals } from "@mantine/modals";
@@ -15,8 +15,8 @@ type LineButtonsProps = {
     line: UILigne,
     setEditedLine: Dispatch<SetStateAction<UILigne | null>>,
     setOpenedModal: Dispatch<SetStateAction<boolean>>;
-    localLines: LineToSave[];
-    setLocalLines: Dispatch<SetStateAction<LineToSave[]>>;
+    localLines: UILigne[];
+    setLocalLines: Dispatch<SetStateAction<UILigne[]>>;
 }
 
 function editButton(props: LineButtonsProps, theme: MantineTheme) {
@@ -40,17 +40,18 @@ function removeRestoreButton(props: LineButtonsProps, modals: ModalsContext) {
             const switchDelete = () => {
                 if (line.id.includes("temp-")) {
                     setLocalLines(localLines.map(l => {
-                        if (l.line.id === line.id) {
-                            return {
-                                line: l.line,
-                                action: l.action === "delete" ? "post" : "delete"
+                        if (l.id === line.id) {
+                            const temp: UILigne = {
+                                ...l,
+                                UI: l.UI === "delete" ? "post" : "delete"
                             }
+                            return temp;
                         }
                         return l;
                     }))
                 } else {
-                    const editedLine = localLines.find(l => l.line.id === line.id);
-                    const filtered = localLines.filter(l => l.line.id !== line.id);
+                    const editedLine = localLines.find(l => l.id === line.id);
+                    const filtered = localLines.filter(l => l.id !== line.id);
                     if (editedLine) {
                         // Removing edit
                         setLocalLines(filtered);
@@ -62,7 +63,7 @@ function removeRestoreButton(props: LineButtonsProps, modals: ModalsContext) {
                         (tempLine as TempLigneDeFrais).files = []; // @TODO: Handle files
 
                         // Adding delete
-				        setLocalLines([...filtered, {line: (tempLine as TempLigneDeFrais), action: "delete"}]);
+				        setLocalLines([...filtered, {...(tempLine as TempLigneDeFrais), UI: "delete"}]);
                     }
                 }
             }

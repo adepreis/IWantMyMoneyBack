@@ -29,10 +29,6 @@ export type EmptyNote = Omit<INoteDeFrais, "id">;
 
 export type UINote = INoteDeFrais | EmptyNote | null;
 export type UILigne = (ILigneDeFrais | TempLigneDeFrais) & { UI: "default" | "delete" | "post" | "put"}
-export type LineToSave = {
-  line: TempLigneDeFrais,
-  action: 'delete' | 'post' | 'put',
-}
 
 const emptyNote = (year: number, month: number): EmptyNote => {
   return {

@@ -80,11 +80,8 @@ async function fillMissionData(date: Date | null,
 type LineFormProps = {
   	line: UILigne | null,
   	setOpened: React.Dispatch<React.SetStateAction<boolean>>,
-  	linesToSave: {
-		line: TempLigneDeFrais,
-	  	action: 'delete' | 'post' | 'put',
-	}[],
-  	setLineToSave: React.Dispatch<React.SetStateAction<any>>,
+  	linesToSave: UILigne[],
+  	setLineToSave: React.Dispatch<React.SetStateAction<UILigne[]>>,
   	note: INoteDeFrais | EmptyNote,
 }
 
@@ -101,6 +98,85 @@ type DropzoneState = {
 
 export type TempLigneDeFrais = Omit<ILigneDeFrais, "commentaire_validateur" | "etat"> & {files: File[]};
 
+function renderFile(props: LineFormProps, 
+	form: any,
+	lost: boolean, 
+	dropzone: DropzoneState,
+	setDropzone: Dispatch<SetStateAction<DropzoneState>>,
+	notifications: NotificationsContextProps, 
+	theme: MantineTheme
+) {
+	if (lost) return <></>;
+
+	return <Dropzone
+		multiple={false}
+		onDrop={(files) => {
+			setDropzone({
+				files: files,
+				error: false
+			})
+		}}
+		onReject={(files) => {
+			const plural = files.length > 1;
+			const s = plural ? "s" : "";
+			const msg = `Le${s} fichier${s} : ${files.map(f => f.file.name).join(", ")} n'${plural ? "ont" : "a"} pas un format de fichier valide.`
+			notifications.showNotification({
+				title: 'Erreur !',
+				color: "red",
+				message: `${msg} 😔`,
+			});
+			setDropzone({
+				...dropzone,
+				error: dropzone.files.length === 0
+			})
+		}}
+		maxSize={3 * 1024 ** 2}
+		accept={[MIME_TYPES.png, MIME_TYPES.jpeg, MIME_TYPES.pdf]}
+		{...form.getInputProps('justification')}
+		sx={(theme) => ({
+			backgroundColor: "#2c2e33",
+			borderColor: dropzone.error ? theme.colors.red[6] : "",
+		})}
+	>
+		{(status) => {
+			const fileName = dropzone.files?.[0]?.name ?? props.line?.justificatif ?? "";
+
+			var content = <>
+				<ImageUploadIcon
+					status={status}
+					style={{ 
+						width: 50, 
+						height: 50, 
+						color: dropzone.error ? theme.colors.red[6] : getIconColor(status, theme) 
+					}}
+				/>
+				<div>
+					<Text size="lg" inline sx={(theme) => ({
+						color: dropzone.error ? theme.colors.red[6] : "",
+					})}>
+						Justificatif
+					</Text>
+					<Text size="xs" color="dimmed" inline mt={7} sx={(theme) => ({
+						color: dropzone.error ? theme.colors.red[6] : "",
+					})}>
+						{"Faites glisser l'image ici ou cliquez pour sélectionner le fichier"}
+					</Text>
+				</div>
+			</>
+
+			if (fileName !== "") {
+				content = <>
+					<Text>{fileName}</Text>
+				</>
+			}
+
+			return <Group position="center" spacing="sm" style={{ pointerEvents: 'none' }}>
+				{content}
+			</Group>
+		}}
+	</Dropzone>
+}
+
 export default function EditLineForm(props: LineFormProps) {
 	const notifications = useNotifications();
   	const [loading, setLoading] = useState(false);
@@ -111,7 +187,7 @@ export default function EditLineForm(props: LineFormProps) {
 	}) as MissionSelectState);
 	const [dropzone, setDropzone] = useState(({
 		error: false,
-		files: []
+		files: (props?.line as TempLigneDeFrais)?.files ?? []
 	}) as DropzoneState)
 
   	const theme = useMantineTheme();
@@ -127,7 +203,7 @@ export default function EditLineForm(props: LineFormProps) {
 			ht: props.line.prixHT,
 			tva: props.line.prixTVA,
 			lost: props.line.perdu,
-			justification: "", // TODO
+			justification: props.line.justificatif, // TODO
 			comment: props.line.commentaire,
 		} : {
 			repaymentMode: "expense",
@@ -161,7 +237,7 @@ export default function EditLineForm(props: LineFormProps) {
 					return value;  
 				}
 
-				const res = dropzone.files.length > 0;
+				const res = (!(props?.line as TempLigneDeFrais)?.files && dropzone.files.length === 0) || dropzone.files.length > 0;
 
 				setDropzone({
 					...dropzone,
@@ -194,7 +270,7 @@ export default function EditLineForm(props: LineFormProps) {
 			prixHT: values.ht,
 			prixTVA: values.tva,
 			perdu: values.lost,
-			justificatif: values.justification,
+			justificatif: dropzone.files?.[0]?.name ?? props?.line?.justificatif ?? "",
 			commentaire: values.comment,
 			files: dropzone.files,
 			id: props?.line?.id ? props.line.id : `temp-${props.linesToSave.length}`
@@ -205,21 +281,22 @@ export default function EditLineForm(props: LineFormProps) {
 			// Line was created and is edited
 			if (props.line.id.includes("temp-")) {
 				const newLinesToSave = props.linesToSave.map(l => {
-					if (l.line.id === props?.line?.id) {
-						return {
-							line: tempLine,
-							action: "post" // Keeps "post" action since the line is not stored in DB
+					if (l.id === props?.line?.id) {
+						const temp: UILigne =  {
+							...tempLine,
+							UI: "post" // Keeps "post" action since the line is not stored in DB
 						}
+						return temp;
 					}
 					return l;
 				}) 
 				props.setLineToSave(newLinesToSave);
 			} else { // Line is stored in database an is edited
-				const filtered = props.linesToSave.filter(l => l.line.id !== props?.line?.id);
-				props.setLineToSave([...filtered, {line: tempLine, action: "put"}]);
+				const filtered = props.linesToSave.filter(l => l.id !== props?.line?.id);
+				props.setLineToSave([...filtered, {...tempLine, UI: "put"}]);
 			}
 		} else { // Line does not exists
-			props.setLineToSave([...props.linesToSave, {line: tempLine, action: "post"}]);
+			props.setLineToSave([...props.linesToSave, {...tempLine, UI: "post"}]);
 		}
 		props.setOpened(false);
 	};
@@ -319,60 +396,7 @@ export default function EditLineForm(props: LineFormProps) {
 
 			<Space h="md" />
 
-			{!form.getInputProps("lost").value ? <Dropzone
-		      	onDrop={(files) => {
-					setDropzone({
-						files: dropzone.files.concat(files),
-						error: false
-					})
-				}}
-		      	onReject={(files) => {
-					const plural = files.length > 1;
-					const s = plural ? "s" : "";
-					const msg = `Le${s} fichier${s} : ${files.map(f => f.file.name).join(", ")} n'${plural ? "ont" : "a"} pas un format de fichier valide.`
-					notifications.showNotification({
-						title: 'Erreur !',
-						color: "red",
-						message: `${msg} 😔`,
-					});
-					setDropzone({
-						...dropzone,
-						error: dropzone.files.length === 0
-					})
-				}}
-		      	maxSize={3 * 1024 ** 2}
-		      	accept={[MIME_TYPES.png, MIME_TYPES.jpeg, MIME_TYPES.pdf]}
-						{...form.getInputProps('justification')}
-				sx={(theme) => ({
-					backgroundColor: "#2c2e33",
-					borderColor: dropzone.error ? theme.colors.red[6] : "",
-				})}
-		    >
-		      	{(status) => (
-					<Group position="center" spacing="sm" style={{ pointerEvents: 'none' }}>
-						<ImageUploadIcon
-							status={status}
-							style={{ 
-								width: 50, 
-								height: 50, 
-								color: dropzone.error ? theme.colors.red[6] : getIconColor(status, theme) 
-							}}
-						/>
-						<div>
-							<Text size="lg" inline sx={(theme) => ({
-								color: dropzone.error ? theme.colors.red[6] : "",
-							})}>
-								Justificatif
-							</Text>
-							<Text size="xs" color="dimmed" inline mt={7} sx={(theme) => ({
-								color: dropzone.error ? theme.colors.red[6] : "",
-							})}>
-								{"Faites glisser l'image ici ou cliquez pour sélectionner le fichier"}
-							</Text>
-						</div>
-					</Group>
-				)}
-		    </Dropzone> : <></>}
+			{renderFile(props, form, form.getInputProps("lost").value, dropzone, setDropzone, notifications, theme)}
 
 			{!form.getInputProps("lost").value && dropzone.error ? 
 				<Text size="sm" sx={(theme) => ({

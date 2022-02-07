@@ -2,7 +2,8 @@ import { Accordion, Center, Grid, Loader, Group } from "@mantine/core";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { IMission } from "../../entity/mission.entity";
 import { INoteDeFrais } from "../../entity/notedefrais.entity";
-import { LineToSave, UILigne, UINote } from "../../pages/home/[params]";
+import { UILigne, UINote } from "../../pages/home/[params]";
+import { TempLigneDeFrais } from "../EditLineForm";
 import EditModal from "./EditModal";
 import Line from "./Line";
 import NoteButtons from "./NoteButton";
@@ -27,7 +28,7 @@ type MissionData = {
     lignes: UILigne[]
 }
 
-function getLinesPerMission(note: NonNullable<UINote>, localLines: LineToSave[]) {
+function getLinesPerMission(note: NonNullable<UINote>, localLines: UILigne[]) {
     const missions = new Map<string, MissionData>();
 
     const lignes: UILigne[] = note.lignes.map(l => {
@@ -37,14 +38,7 @@ function getLinesPerMission(note: NonNullable<UINote>, localLines: LineToSave[])
         }
     });
 
-    const tempLines: UILigne[] = localLines.map(l => {
-        return {
-          ...l.line,
-          UI: l.action
-        }
-    });
-
-    for (const ligne of lignes.concat(tempLines)) {
+    for (const ligne of lignes.concat(localLines)) {
         if (missions.has(ligne.mission.id)) {
           ((missions.get(ligne.mission.id) as MissionData).lignes as UILigne[]).push(ligne);
         } else {
@@ -63,7 +57,7 @@ export default function Note(props: NoteProps) {
     const [openedModal, setOpenedModal] = useState(false);
     const [viewedLine, setViewedLine] = useState(null as UILigne | null);
     const [editedLine, setEditedLine] = useState(null as UILigne | null);
-    const [localLines, setLocalLines] = useState([] as LineToSave[])
+    const [localLines, setLocalLines] = useState([] as UILigne[])
 
     useEffect(() => {
         if (clearLocalState) {
@@ -78,8 +72,12 @@ export default function Note(props: NoteProps) {
 
         if (viewedLine && !((
             (note && note.lignes.find(l => l.id === viewedLine.id)) ||
-            (localLines.find(l => l.line.id === viewedLine.id))
+            (localLines.find(l => l.id === viewedLine.id))
         ))) {
+            setViewedLine(null);
+        } else if (viewedLine && edited && localLines.find(l => l.id === viewedLine.id && l.justificatif !== viewedLine.justificatif)) {
+            setViewedLine(localLines.find(l => l.id === viewedLine.id) ?? null);
+        } else if (viewedLine && !edited && note?.lignes?.find(l => l.id === viewedLine.id && l.justificatif !== viewedLine.justificatif)) {
             setViewedLine(null);
         }
     });

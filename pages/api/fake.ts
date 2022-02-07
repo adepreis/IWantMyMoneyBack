@@ -11,7 +11,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 
 const USER_ID = "0";
 const MISSION_NUMBER = 3;
-const LIGNE_NUMBER = 3;
+const LIGNE_NUMBER = 5;
 const BEGIN_YEAR = 2018;
 const END_YEAR = 2021;
 
@@ -83,8 +83,14 @@ export default async function handler(
     
         for (const mission of missions) {
             if (Math.random() < 0.7) continue;
-
+            
             for (let i = 0; i < LIGNE_NUMBER; i++) {
+                const realFiles = ["https://picsum.photos/seed/picsum/800/300.jpg", "http://www.africau.edu/images/default/sample.pdf"];
+                const wrongFiles = ["", "toto.gif"];
+
+                const ht = faker.datatype.number({ min: 100, max: 1500, precision: 0.01 });
+                const tva = faker.datatype.number({ min: 10, max: 150, precision: 0.01 });
+
                 await conn.createQueryBuilder()
                     .insert()
                     .into(LigneDeFrais)
@@ -94,10 +100,10 @@ export default async function handler(
                             titre: faker.commerce.product(),
                             date: faker.date.soon(),
                             validee: 0,
-                            prixHT: faker.datatype.number(),
-                            prixTTC: faker.datatype.number(),
-                            prixTVA: faker.datatype.number(),
-                            justificatif: "toto.png",
+                            prixHT: ht,
+                            prixTTC: ht + tva,
+                            prixTVA: tva,
+                            justificatif: Math.random() > 0.5 ? realFiles[Math.floor(Math.random()*realFiles.length)] : realFiles.concat(wrongFiles)[Math.floor(Math.random()*(realFiles.length + wrongFiles.length))],
                             perdu: false,
                             raison_avance: "",
                             type: Math.random() > 0.5 ? LIGNE_TYPE.LOGEMENT :
