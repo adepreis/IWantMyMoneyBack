@@ -74,7 +74,7 @@ export default function Home(props: HomeProps) {
   })
 
   return <Group grow direction="column" style={{width: "100%"}} spacing={0}>
-    <Group style={{alignItems: "baseline"}} direction="column">
+    <Group grow style={{alignItems: "baseline"}} direction="row">
       <Note 
         notes={props.notes as INoteDeFrais[]}
         setMonth={setMonth}

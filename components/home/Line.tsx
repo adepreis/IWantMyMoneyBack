@@ -19,6 +19,8 @@ type LineProps = {
     setLocalLines: Dispatch<SetStateAction<LineToSave[]>>;
     setEditedLine: Dispatch<SetStateAction<UILigne | null>>;
     setOpenedModal: Dispatch<SetStateAction<boolean>>;
+    viewedLine: UILigne | null;
+    setViewedLine: Dispatch<SetStateAction<UILigne | null>>;
 }
 
 function getUIStateIcon(line: UILigne, theme: MantineTheme) {
@@ -49,7 +51,7 @@ function getUIStateTableElement(edited: boolean, line: UILigne, theme: MantineTh
 }
 
 export default function Line(props: LineProps) {
-    const {note, lines, localLines} = props;
+    const {note, lines, localLines, viewedLine} = props;
     const theme = useMantineTheme();
     
     const edited = localLines.length !== 0;
@@ -57,7 +59,11 @@ export default function Line(props: LineProps) {
     const rows = lines.filter(line => !(line.UI === "default" && localLines.find(l => ["put", "delete"].includes(l.action) && l.line.id === line.id))).map((line, index) => {
         const [stateHead, rowStyle] = getUIStateTableElement(edited, line, theme);
 
-        return <tr key={index} style={rowStyle}>
+        return <tr key={index} onClick={() => { props.setViewedLine(line) }} style={{
+            ...rowStyle,
+            cursor: "pointer",
+            outline: viewedLine && viewedLine.id === line.id ? "solid 2px" : ""
+        }}>
             {stateHead}
             <td>{line.titre}</td>
             <td>{dayjs(line.date).format("DD-MM-YYYY")}</td>

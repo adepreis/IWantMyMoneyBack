@@ -341,7 +341,7 @@ export default function EditLineForm(props: LineFormProps) {
 					})
 				}}
 		      	maxSize={3 * 1024 ** 2}
-		      	accept={[MIME_TYPES.png, MIME_TYPES.jpeg, MIME_TYPES.svg, MIME_TYPES.pdf]}
+		      	accept={[MIME_TYPES.png, MIME_TYPES.jpeg, MIME_TYPES.pdf]}
 						{...form.getInputProps('justification')}
 				sx={(theme) => ({
 					backgroundColor: "#2c2e33",

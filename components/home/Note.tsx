@@ -1,4 +1,4 @@
-import { Accordion, Center, Loader } from "@mantine/core";
+import { Accordion, Center, Grid, Loader, Group } from "@mantine/core";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { IMission } from "../../entity/mission.entity";
 import { INoteDeFrais } from "../../entity/notedefrais.entity";
@@ -6,6 +6,7 @@ import { LineToSave, UILigne, UINote } from "../../pages/home/[params]";
 import EditModal from "./EditModal";
 import Line from "./Line";
 import NoteButtons from "./NoteButton";
+import { SidePanel } from "./SidePanel";
 
 type NoteProps = {
     notes: INoteDeFrais[],
@@ -60,6 +61,7 @@ function getLinesPerMission(note: NonNullable<UINote>, localLines: LineToSave[])
 export default function Note(props: NoteProps) {
     const {note, notes, month, year, refreshProps, setMonth, setNote, setEdited, clearLocalState, setClearLocalState} = props;
     const [openedModal, setOpenedModal] = useState(false);
+    const [viewedLine, setViewedLine] = useState(null as UILigne | null);
     const [editedLine, setEditedLine] = useState(null as UILigne | null);
     const [localLines, setLocalLines] = useState([] as LineToSave[])
 
@@ -72,6 +74,13 @@ export default function Note(props: NoteProps) {
         const edited = localLines.length > 0;
         if (edited !== props.edited) {
             setEdited(edited);
+        }
+
+        if (viewedLine && !((
+            (note && note.lignes.find(l => l.id === viewedLine.id)) ||
+            (localLines.find(l => l.line.id === viewedLine.id))
+        ))) {
+            setViewedLine(null);
         }
     });
 
@@ -90,26 +99,33 @@ export default function Note(props: NoteProps) {
             opened={openedModal} setOpened={setOpenedModal}
             localLines={localLines} setLocalLinse={setLocalLines}
         />
-        <NoteButtons
-            notes={notes} 
-            note={note} 
-            setOpenedModal={setOpenedModal} 
-            setEditedLine={setEditedLine}
-            month={month}
-            setMonth={setMonth}
-            year={year}
-            refreshProps={refreshProps}
-            setNote={setNote}
-        />
-        <Accordion offsetIcon={false} style={{width: "100%"}}>
-        {
-            Array.from(missionsLines).map((mission, key) => {
-                return <Accordion.Item label={mission[1].mission.titre} key={key}>
-                    <Line note={note} lines={mission[1].lignes} setOpenedModal={setOpenedModal}
-                        localLines={localLines} setLocalLines={setLocalLines} setEditedLine={setEditedLine}/>
-                </Accordion.Item>
-            })
-        }
-        </Accordion>
+        <Grid grow style={{width: "100%", height: "100%"}}>
+            <Grid.Col span={8}>
+                <NoteButtons
+                    notes={notes} 
+                    note={note} 
+                    setOpenedModal={setOpenedModal} 
+                    setEditedLine={setEditedLine}
+                    month={month}
+                    setMonth={setMonth}
+                    year={year}
+                    refreshProps={refreshProps}
+                    setNote={setNote}
+                />
+                <Accordion offsetIcon={false} style={{width: "100%"}}>
+                {
+                    Array.from(missionsLines).map((mission, key) => {
+                        return <Accordion.Item label={mission[1].mission.titre} key={key}>
+                            <Line note={note} lines={mission[1].lignes} setOpenedModal={setOpenedModal} setViewedLine={setViewedLine}
+                                localLines={localLines} setLocalLines={setLocalLines} setEditedLine={setEditedLine} viewedLine={viewedLine}/>
+                        </Accordion.Item>
+                    })
+                }
+                </Accordion>
+            </Grid.Col>
+            <Grid.Col span={4}>
+                <SidePanel viewedLine={viewedLine} />
+            </Grid.Col>
+        </Grid>
     </>
 }
