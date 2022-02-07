@@ -49,6 +49,8 @@ export default function Home(props: HomeProps) {
   const year = parseInt(router.query.params as string);
   const [month, setMonth] = useState(0);
   const [note, setNote] = useState(null as UINote);
+  const [edited, setEdited] = useState(false);
+  const [clearLocalState, setClearLocalState] = useState(false);
 
   const updateNoteState = async (month: number) => {
     const currentNoteId = props?.notes?.find(note => note.mois === month)?.id;
@@ -81,6 +83,10 @@ export default function Home(props: HomeProps) {
         month={month} 
         year={year}
         refreshProps={async () => {await updateNoteState(-1)}}
+        edited={edited}
+        setEdited={setEdited}
+        clearLocalState={clearLocalState}
+        setClearLocalState={setClearLocalState}
       />
     </Group>
     <NavigationBar 
@@ -89,6 +95,8 @@ export default function Home(props: HomeProps) {
       month={month} setMonth={setMonth} 
       year={year}
       updateNoteState={updateNoteState}
+      edited={edited}
+      setClearLocalState={setClearLocalState}
     />
   </Group>
 }

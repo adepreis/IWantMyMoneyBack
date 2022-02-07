@@ -1,5 +1,5 @@
 import { Accordion, Center, Loader } from "@mantine/core";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { IMission } from "../../entity/mission.entity";
 import { INoteDeFrais } from "../../entity/notedefrais.entity";
 import { LineToSave, UILigne, UINote } from "../../pages/home/[params]";
@@ -15,6 +15,10 @@ type NoteProps = {
     setMonth: Dispatch<SetStateAction<number>>,
     year: number,
     refreshProps: () => Promise<void>;
+    edited: boolean;
+    setEdited: Dispatch<SetStateAction<boolean>>;
+    clearLocalState: boolean;
+    setClearLocalState: Dispatch<SetStateAction<boolean>>;
 }
 
 type MissionData = {
@@ -54,10 +58,22 @@ function getLinesPerMission(note: NonNullable<UINote>, localLines: LineToSave[])
 }
 
 export default function Note(props: NoteProps) {
-    const {note, notes, month, year, refreshProps, setMonth, setNote} = props;
+    const {note, notes, month, year, refreshProps, setMonth, setNote, setEdited, clearLocalState, setClearLocalState} = props;
     const [openedModal, setOpenedModal] = useState(false);
     const [editedLine, setEditedLine] = useState(null as UILigne | null);
     const [localLines, setLocalLines] = useState([] as LineToSave[])
+
+    useEffect(() => {
+        if (clearLocalState) {
+            setLocalLines([]);
+            setClearLocalState(false);
+        }
+
+        const edited = localLines.length > 0;
+        if (edited !== props.edited) {
+            setEdited(edited);
+        }
+    });
 
     if (!note) {
         return <Center style={{width: "100%", height: "100%"}}>
