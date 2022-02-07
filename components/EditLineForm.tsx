@@ -148,9 +148,14 @@ export default function EditLineForm(props: LineFormProps) {
 			date: (value) => value !== null,
 			expenseType: (value) => Object.values(LIGNE_TYPE).includes(value as LIGNE_TYPE),
 			mission: (value) => value !== '',
-			ttc: 	(value) => value > 0.0,	// TODO: assert tax computing
-			ht: 	(value) => value > 0.0,	// TODO: assert tax computing
-			tva: 	(value) => value > 0.0,	// TODO: assert tax computing,
+			ttc: 	(value) => {
+				const ht = form.values.ht as number;
+				const tva = form.values.tva as number;
+
+				return value > 0 && value === ht + tva;
+			},
+			ht: 	(value) => value > 0.0,
+			tva: 	(value) => value > 0.0,	
 			lost: 	(value) => {
 				if (value) {
 					return value;  
@@ -184,7 +189,7 @@ export default function EditLineForm(props: LineFormProps) {
 			avance: (values.repaymentMode === "advance" ? true : false),
 			titre: values.lineTitle,
 			date: dayjs(values.date).toDate(),
-			type: LIGNE_TYPE[values.expenseType as keyof typeof LIGNE_TYPE],
+			type: values.expenseType as LIGNE_TYPE,
 			mission: missionSelectState.missions.find(m => m.id === values.mission) as IMission,
 			prixTTC: values.ttc,
 			prixHT: values.ht,
@@ -196,22 +201,25 @@ export default function EditLineForm(props: LineFormProps) {
 			id: props?.line?.id ? props.line.id : `temp-${props.linesToSave.length}`
 		}
 
+		// Line Exist
 		if (props?.line) {
+			// Line was created and is edited
 			if (props.line.id.includes("temp-")) {
 				const newLinesToSave = props.linesToSave.map(l => {
 					if (l.line.id === props?.line?.id) {
 						return {
 							line: tempLine,
-							action: "post"
+							action: "post" // Keeps "post" action since the line is not stored in DB
 						}
 					}
 					return l;
 				}) 
 				props.setLineToSave(newLinesToSave);
-			} else {
-				props.setLineToSave([...props.linesToSave, {line: tempLine, action: "put"}]);
+			} else { // Line is stored in database an is edited
+				const filtered = props.linesToSave.filter(l => l.line.id !== props?.line?.id);
+				props.setLineToSave([...filtered, {line: tempLine, action: "put"}]);
 			}
-		} else {
+		} else { // Line does not exists
 			props.setLineToSave([...props.linesToSave, {line: tempLine, action: "post"}]);
 		}
 		props.setOpened(false);
@@ -278,20 +286,35 @@ export default function EditLineForm(props: LineFormProps) {
 			<Space h="md" />
 
 			<Group direction="row">
-				<NumberInput label="Montant TTC" size="xs"
-					{...form.getInputProps('ttc')}
-					precision={3} step={0.001}
-					required min={0} // max={10000}
-				/>
 				<NumberInput label="Montant HT" size="xs"
 					{...form.getInputProps('ht')}
-					precision={3} step={0.001}
+					precision={2} step={0.01}
 					required min={0} // max={10000}
+					onChange={(value) => {
+						form.setFieldValue('ht', value ?? 0);
+						form.setFieldValue("ttc", (value ?? 0) + form.values.tva);
+						["ttc", "ht", "tva"].forEach(field => form.validateField(field as any));
+					}}
 				/>
 				<NumberInput label="Montant TVA" size="xs"
 					{...form.getInputProps('tva')}
-					precision={3} step={0.001}
+					precision={2} step={0.01}
 					required min={0} // max={10000}
+					onChange={(value) => {
+						form.setFieldValue('tva', value ?? 0);
+						form.setFieldValue("ttc", (value ?? 0) + form.values.ht);
+						["ttc", "ht", "tva"].forEach(field => form.validateField(field as any));
+					}}
+				/>
+				<NumberInput label="Montant TTC" size="xs"
+					{...form.getInputProps('ttc')}
+					precision={2} step={0.01}
+					required min={0} // max={10000}
+					disabled={true}
+					onChange={(value) => {
+						form.setFieldValue('ttc', value ?? 0);
+						["ttc", "ht", "tva"].forEach(field => form.validateField(field as any));
+					}}
 				/>
 			</Group>
 

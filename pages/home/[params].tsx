@@ -13,7 +13,7 @@ import { TempLigneDeFrais } from '../../components/EditLineForm'
 import { useRouter } from 'next/router'
 import NavigationBar from '../../components/NavigationBar'
 import { Routes } from '../../utils/api'
-import Note from '../../components/home/note'
+import Note from '../../components/home/Note'
 import { ILigneDeFrais } from '../../entity/lignedefrais.entity'
 dayjs.extend(localeData);
 dayjs().format();

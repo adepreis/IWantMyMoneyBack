@@ -36,7 +36,7 @@ async function onYearChange(props: NavigationProps, item: string) {
     setMonth(0);
     setNote(null);
     await router.push(`/home/${item}`);
-    updateNoteState(0);
+    updateNoteState(-1);
 }
 
 async function onMonthChange(props: NavigationProps, item: string) {

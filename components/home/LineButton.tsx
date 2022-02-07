@@ -45,18 +45,7 @@ function removeRestoreButton(props: LineButtonsProps, modals: ModalsContext) {
                         return l;
                     }))
                 } else {
-                    if (line.UI === "delete") {
-                        setLocalLines(localLines.filter(l => l.line.id !== line.id));
-                    }
-                    else {
-                        setLocalLines(localLines.concat([{
-                            line: {
-                            ...line,
-                            files: [] // @TODO: handle files
-                            },
-                            action: "delete"
-                        }]))
-                    }
+                    setLocalLines(localLines.filter(l => l.line.id !== line.id));
                 }
             }
 
