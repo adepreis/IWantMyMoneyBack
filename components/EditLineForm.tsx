@@ -184,7 +184,6 @@ export default function EditLineForm(props: LineFormProps) {
 		setLoading(true);
 		console.log(values);
 
-		// @TODO: handle put
 		var tempLine: TempLigneDeFrais = {
 			avance: (values.repaymentMode === "advance" ? true : false),
 			titre: values.lineTitle,

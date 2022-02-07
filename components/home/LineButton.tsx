@@ -1,10 +1,14 @@
-import { NOTEDEFRAIS_ETAT } from "../../entity/utils"
+import { LIGNE_TYPE, NOTEDEFRAIS_ETAT } from "../../entity/utils"
 import { ActionIcon, Group, MantineTheme, Space, Text, useMantineTheme } from "@mantine/core";
 import { LineToSave, UILigne } from "../../pages/home/[params]";
 import { HiDocumentAdd, HiOutlinePencil, HiX } from "react-icons/hi";
 import { Dispatch, SetStateAction } from "react";
 import { useModals } from "@mantine/modals";
 import { ModalsContext } from "@mantine/modals/lib/context";
+import dayjs from "dayjs";
+import { IMission } from "../../entity/mission.entity";
+import { TempLigneDeFrais } from "../EditLineForm";
+import { ILigneDeFrais } from "../../entity/lignedefrais.entity";
 
 type LineButtonsProps = {
     noteState: NOTEDEFRAIS_ETAT,
@@ -45,7 +49,21 @@ function removeRestoreButton(props: LineButtonsProps, modals: ModalsContext) {
                         return l;
                     }))
                 } else {
-                    setLocalLines(localLines.filter(l => l.line.id !== line.id));
+                    const editedLine = localLines.find(l => l.line.id === line.id);
+                    const filtered = localLines.filter(l => l.line.id !== line.id);
+                    if (editedLine) {
+                        // Removing edit
+                        setLocalLines(filtered);
+                    } else {
+                        const tempLine = line;
+                        delete (tempLine as any).commentaire_validateur;
+                        delete (tempLine as any).etat;
+                        delete (tempLine as any).UI;
+                        (tempLine as TempLigneDeFrais).files = []; // @TODO: Handle files
+
+                        // Adding delete
+				        setLocalLines([...filtered, {line: (tempLine as TempLigneDeFrais), action: "delete"}]);
+                    }
                 }
             }
 
