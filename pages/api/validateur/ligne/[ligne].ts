@@ -12,22 +12,22 @@ import { getService } from "../home";
 export type LigneRequest = ILigneDeFrais | RequestError;
 
 export async function getLigneValidateur(validateurId:string, ligneId:string):Promise<ILigneDeFrais | undefined> {
-
+  const serviceId = await getService(validateurId);
+  if (!serviceId) {
+    return;
+  }
   await prepareConnection();
   const conn = getConnection();
   const ligne = await conn.getRepository(LigneDeFrais)
     .createQueryBuilder("lignedefrais")
     .where("lignedefrais.id = :ligneId",{ligneId: ligneId})
-    .leftJoinAndSelect("lignedefrais.note","notedefrais")
-    .leftJoinAndSelect("notedefrais.user","user", "user.id != :validateurId", {validateurId:validateurId})
-    .leftJoinAndSelect("user.collaborateurAnterieur","collaborateuranterieur")
-    .leftJoinAndSelect("collaborateuranterieur.service","service")
-    .andWhere("collaborateuranterieur.dateFin >= CONCAT(notedefrais.annee, '-', notedefrais.mois, '-', '01') ")
-    .andWhere("collaborateuranterieur.dateDebut <= CONCAT(notedefrais.annee, '-', notedefrais.mois, '-', '01') ")
-    .leftJoinAndSelect("service.chefsAnterieurs", "chefanterieur", "chefanterieur.chefAnterieurId = :validateurId",{validateurId: validateurId})
-    .andWhere("chefanterieur.dateFin >= CONCAT(notedefrais.annee, '-', notedefrais.mois, '-', '01') OR chefanterieur.dateFin is null")
-    .andWhere("chefanterieur.dateDebut <= CONCAT(notedefrais.annee, '-', notedefrais.mois, '-', '01')")
-    .andWhere("chefanterieur.chefAnterieurId = :validateurId",{validateurId: validateurId})
+    .leftJoin("lignedefrais.note","notedefrais")
+    .leftJoin("notedefrais.user","user", "user.id != :validateurId", {validateurId:validateurId})
+    .leftJoin("user.collaborateurAnterieur","collaborateuranterieur")
+    .leftJoin("user.chefsAnterieurs", "chefsanterieurs")
+    .andWhere("collaborateuranterieur.serviceId = :serviceId OR chefsanterieurs.serviceValidateurId = :serviceId", {serviceId: serviceId})
+    .andWhere("collaborateuranterieur.dateFin >= CONCAT(notedefrais.annee, '-', notedefrais.mois, '-', '01') OR collaborateuranterieur.dateFin is null OR chefsanterieurs.dateFin >= CONCAT(notedefrais.annee, '-', notedefrais.mois, '-', '01') OR chefsanterieurs.dateFin is null")
+    .andWhere("collaborateuranterieur.dateDebut <= CONCAT(notedefrais.annee, '-', notedefrais.mois, '-', '01') OR chefsanterieurs.dateDebut <= CONCAT(notedefrais.annee, '-', notedefrais.mois, '-', '01')")
     .getOne();
 
   conn.close();

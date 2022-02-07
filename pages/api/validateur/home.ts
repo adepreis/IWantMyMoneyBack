@@ -18,6 +18,7 @@ export async function getService(userId:string):Promise<string | null> {
         .select("service.id")
         .leftJoin("service.chefsAnterieurs","chefanterieur")
         .where("chefanterieur.chefAnterieurId = :userId", {userId:userId})
+        .andWhere("chefanterieur.datefin is null")
         .getOne();
     conn.close();
 
