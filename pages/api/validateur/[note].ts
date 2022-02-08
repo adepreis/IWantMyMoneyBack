@@ -10,7 +10,7 @@ import { getService } from "./home";
 
 export type NotesRequest = INoteDeFrais | RequestError | {message: string};
 
-export async function getNote(noteId: string, validateurId: string): Promise<NotesRequest | null>{
+export async function getNoteValidateur(noteId: string, validateurId: string): Promise<NotesRequest | null>{
 
     const serviceId = await getService(validateurId);
   if (!serviceId) {
@@ -30,7 +30,6 @@ export async function getNote(noteId: string, validateurId: string): Promise<Not
         .andWhere("(collaborateuranterieur.dateFin >= CONCAT(notedefrais.annee, '-', notedefrais.mois, '-', '01') OR collaborateuranterieur.dateFin is null OR chefsanterieurs.dateFin >= CONCAT(notedefrais.annee, '-', notedefrais.mois, '-', '01') OR chefsanterieurs.dateFin is null)")
         .andWhere("(collaborateuranterieur.dateDebut <= CONCAT(notedefrais.annee, '-', notedefrais.mois, '-', '01') OR chefsanterieurs.dateDebut <= CONCAT(notedefrais.annee, '-', notedefrais.mois, '-', '01'))")
         .getOne();
-        console.log(note)
     conn.close();
 
     if (!note) {
@@ -58,7 +57,7 @@ export default async function handler(
         const userId = (session as any)?.id;
         switch (req.method) {
             case "GET":
-                const note = await getNote(req.query?.note as string, userId as string)
+                const note = await getNoteValidateur(req.query?.note as string, userId as string)
 
                 if (!note) {
                 throw Error;
