@@ -1,14 +1,14 @@
-import { AppProps } from 'next/app';
-import Head from 'next/head';
-import { AppShell, Header, MantineProvider, Navbar, Burger, Group } from '@mantine/core';
+import { AppShell, Header, MantineProvider, Navbar, Burger, Group, Image } from '@mantine/core';
 import { NotificationsProvider } from '@mantine/notifications';
-import { SessionProvider } from "next-auth/react"
-import '../styles/globals.scss';
-import "reflect-metadata";
+import { ModalsProvider } from '@mantine/modals';
 import { useMediaQuery } from '@mantine/hooks';
-import { Image } from '@mantine/core';
 import { useState } from 'react';
+import Head from 'next/head';
+import { AppProps } from 'next/app';
+import { SessionProvider } from "next-auth/react"
+import "reflect-metadata";
 import SwitchUserMenu from '../components/SwitchUserMenu';
+import '../styles/globals.scss';
 
 export default function App(props: AppProps) {
   const { Component, pageProps } = props;
@@ -57,11 +57,13 @@ export default function App(props: AppProps) {
       >
         <SessionProvider session={pageProps.session}>
           <NotificationsProvider>
-            <AppShell header={header} fixed styles={(theme) => ({
-              main: {display: "flex", backgroundColor: theme.colors.dark[8], paddingLeft: 0},
-            })} navbar={navbar}>
-              <Component {...pageProps} />
-            </AppShell>
+            <ModalsProvider>
+              <AppShell header={header} fixed styles={(theme) => ({
+                main: {display: "flex", backgroundColor: theme.colors.dark[8], paddingLeft: 0},
+              })} navbar={navbar}>
+                <Component {...pageProps} />
+              </AppShell>
+            </ModalsProvider>
           </NotificationsProvider>
         </SessionProvider>
       </MantineProvider>
