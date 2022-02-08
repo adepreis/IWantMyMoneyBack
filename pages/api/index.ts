@@ -10,7 +10,7 @@ import { getNote } from './[note]';
 
 export type CreateNoteRequest = {
   idNote: string
-} | RequestError | string
+} | RequestError | {resultat: string}
 
 export async function insertNote(data: NoteDeFrais, userId: User):Promise<string | undefined> {
     await prepareConnection();
@@ -86,7 +86,7 @@ export default async function handler(
             return;
           }else{
               if (await soumettreNote(req.body.id)) {
-                res.status(200).send("notes soumise");
+                res.status(200).json({resultat : "notes soumise"});
               }else{
                 res.status(400).json({error : "Les donnée envoyé ne sont pas valide ou complète", code : 400})
               }

@@ -19,7 +19,7 @@ export interface ILigneDeFrais {
     commentaire_validateur: string;
     perdu: boolean;
     etat: LIGNEDEFRAIS_ETAT;
-    //note: INoteDeFrais;
+    note: INoteDeFrais;
     mission: IMission;
 }
 
@@ -97,7 +97,7 @@ export const lineToApi = (ligne: LigneDeFrais): ILigneDeFrais => {
         commentaire_validateur: ligne.commentaire_validateur,
         perdu: ligne.perdu,
         etat:ligne.etat,
-        //note:
+        note:ligne.note,
         mission: missionToApi(ligne.mission)
     };
 }
