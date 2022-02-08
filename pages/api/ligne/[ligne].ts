@@ -6,7 +6,7 @@ import { ILigneDeFrais, LigneDeFrais, lineToApi } from "../../../entity/lignedef
 import { NOTEDEFRAIS_ETAT } from "../../../entity/utils";
 import { prepareConnection } from "../database";
 
-export type LigneRequest = ILigneDeFrais | RequestError | string;
+export type LigneRequest = ILigneDeFrais | RequestError | {resultat: string};
 
 
 //récupère une ligne dans la bd
@@ -24,9 +24,9 @@ export async function getLigne(ligneId: string, userId: string): Promise<LigneRe
 
   conn.close();
   
-  if(!ligne){
+  if (!ligne) {
     return null;
-  }else{
+  } else {
     return lineToApi(ligne);
   }
   
@@ -64,6 +64,7 @@ export async function rmLigne(ligneId: string, userId: string): Promise<boolean>
     
   return true;
 }
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<LigneRequest>
@@ -75,7 +76,7 @@ export default async function handler(
       if (session) {
         userId = (session as any)?.id;
       } else {
-        res.status(403).json({error: "acces interdit" as string, code: 403});
+        res.status(403).json({error: "Accès interdit" as string, code: 403});
       }
 
 
@@ -90,20 +91,18 @@ export default async function handler(
           break;
 
         case "DELETE":
-          if(await rmLigne(req.query?.ligne as string, userId as string)){
-            res.status(200).send("ligne supprimé");
-          }else{
+          if (await rmLigne(req.query?.ligne as string, userId as string)) {
+            res.status(200).json({resultat: "La ligne a bien été supprimée"});
+          } else {
             res.status(423).json({error: "Vous ne pouvez pas supprimer cette ligne" as string, code: 423});
           }
           break;
           
         default:
-          res.status(424).json({error : "methode non prise en charge" as string, code : 424})
+          res.status(424).json({error : "Méthode non prise en charge" as string, code : 424})
           break;
       }
 
-      
-      
   } catch(e) {
       res.status(404).json({error: e as string, code: 404});
   }

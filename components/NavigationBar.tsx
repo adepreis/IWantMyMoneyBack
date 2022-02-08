@@ -1,4 +1,4 @@
-import { Group, SegmentedControl, Center, Select } from '@mantine/core';
+import { Group, SegmentedControl, Center, Select, Text } from '@mantine/core';
 import router from 'next/router';
 import { Dispatch, SetStateAction, Props } from 'react';
 import { HiClock, HiXCircle, HiCheck } from 'react-icons/hi';
@@ -9,6 +9,8 @@ import dayjs from 'dayjs'
 import localeData from "dayjs/plugin/localeData";
 import "dayjs/locale/fr";
 import { INoteDeFrais } from '../entity/notedefrais.entity';
+import { useModals } from '@mantine/modals';
+import { ModalsContext } from '@mantine/modals/lib/context';
 dayjs.extend(localeData);
 dayjs().format();
 dayjs.locale("fr");
@@ -18,7 +20,9 @@ interface NavigationProps extends HomeProps {
     month: number,
     setMonth: Dispatch<SetStateAction<number>>,
     setNote: Dispatch<SetStateAction<UINote>>,
-    updateNoteState: (month: number) => Promise<void>
+    updateNoteState: (month: number) => Promise<void>,
+    edited: boolean
+    setClearLocalState: Dispatch<SetStateAction<boolean>>,
 }
 
 function getSelectData(props: NavigationProps) {
@@ -30,22 +34,60 @@ function getSelectData(props: NavigationProps) {
     })
 }
 
-async function onYearChange(props: NavigationProps, item: string) {
-    const {setMonth, setNote, updateNoteState} = props;
+function preventPageChangeWithEditedNote(props: NavigationProps, modals: ModalsContext, action: () => Promise<void>): boolean {
+    const {edited, setClearLocalState} = props;
 
-    setMonth(0);
-    setNote(null);
-    await router.push(`/home/${item}`);
-    updateNoteState(0);
+    if (!edited) return false;
+
+    modals.openConfirmModal({
+        title: "Perte des modifications",
+        centered: true,
+        children: (
+            <Text size="sm">
+                {"Vos modifications n'ont pas été sauvegardée. Êtes-vous sûr de vouloir changer de page ?"}
+            </Text>
+        ),
+        labels: { confirm: 'Suppression des modifications', cancel: "Annuler" },
+        confirmProps: { color: 'red' },
+        onCancel: () => {},
+        onConfirm: () => {
+            action();
+            setClearLocalState(true);
+        }
+    });
+    return true;  
 }
 
-async function onMonthChange(props: NavigationProps, item: string) {
-    const {setMonth, setNote, updateNoteState} = props;
+async function onYearChange(props: NavigationProps, item: string, modals: ModalsContext) {
+    const {setMonth, setNote, updateNoteState, edited} = props;
 
-    setNote(null);
-    const month = parseInt(item);
-    setMonth(month);
-    await updateNoteState(month);
+    const action = async () => {
+        setMonth(0);
+        setNote(null);
+        await router.push(`/home/${item}`);
+        updateNoteState(-1);
+    }
+
+    if (preventPageChangeWithEditedNote(props, modals, action)) return;
+
+    // If not edited
+    action();
+}
+
+async function onMonthChange(props: NavigationProps, item: string, modals: ModalsContext) {
+    const {setMonth, setNote, updateNoteState, edited} = props;
+
+    const action = async () => {
+        setNote(null);
+        const month = parseInt(item);
+        setMonth(month);
+        await updateNoteState(month);
+    }
+
+    if (preventPageChangeWithEditedNote(props, modals, action)) return;
+
+    // If not edited
+    action();
 }
 
 function getSegmentedData(props: NavigationProps) {
@@ -88,19 +130,21 @@ function getSegmentedData(props: NavigationProps) {
 }
 
 export default function NavigationBar(props: NavigationProps) {
-    const { month, year, setMonth } = props;
+    const { month, year } = props;
+    const modals = useModals();
+
     return <Group style={{flex: 0, width: "100%"}} spacing={0}>
         <Select
             placeholder="Année"
             data={getSelectData(props)}
             value={props.year ? `${year}` : null}
-            onChange={(item: string) => onYearChange(props, item)}
+            onChange={(item: string) => onYearChange(props, item, modals)}
             style={{ flex: "unset" }}
         />
         <SegmentedControl 
             style={{flex: 1}}
             value={`${month}`}
-            onChange={(item: string) => onMonthChange(props, item)} 
+            onChange={(item: string) => onMonthChange(props, item, modals)} 
             fullWidth 
             data={getSegmentedData(props)}
         />

@@ -8,7 +8,6 @@ import { NoteDeFrais } from '../../../entity/notedefrais.entity';
 import { prepareConnection } from '../database';
 
 
-
 import nextConnect from 'next-connect';
 import multer from 'multer';
 import { LIGNEDEFRAIS_ETAT, NOTEDEFRAIS_ETAT } from '../../../entity/utils';
@@ -89,7 +88,7 @@ export async function updateLigne(data: LigneDeFrais, justificatif:string):Promi
   .execute();
   conn.close();
 
-  return ligne.affected==0 ? false : true;
+  return ligne.affected == 0 ? false : true;
 }
 
 
@@ -112,7 +111,7 @@ apiRoute.post(async (req:any, res:NextApiResponse) => {
     if (session) {
       userId = (session as any)?.id;
     } else {
-      res.status(403).json({error: "acces interdit" as string, code: 403});
+      res.status(403).json({error: "Accès interdit" as string, code: 403});
       return;
     }
 
@@ -124,17 +123,17 @@ apiRoute.post(async (req:any, res:NextApiResponse) => {
       .andWhere("userId = :user", {user:userId})
       .getOne();   
 
-    if(!notes){
-      res.status(404).json({error: "Notes non trouvée", code: 404});
+    if (!notes) {
+      res.status(404).json({error: "Notes non trouvées", code: 404});
       return;
     }else if (!(notes.etat === NOTEDEFRAIS_ETAT.BROUILLON || notes.etat === NOTEDEFRAIS_ETAT.REFUSEE)) {
-      res.status(423).json({error: "Vous ne pouvez pas ajouté de ligne à cette notes" as string, code: 423});
+      res.status(423).json({error: "Vous ne pouvez pas ajouter de ligne à cette note" as string, code: 423});
     }
     
-  if(await insertLigne(req.body,req.file.filename)){
-    res.status(200).send("ligne ajoutée");
-  }else{
-    res.status(400).json({error : "Les donnée envoyé ne sont pas valide ou complète", code : 400})
+  if (await insertLigne(req.body,req.file.filename)) {
+    res.status(200).json({resultat: "La ligne a bien été ajoutée"});
+  } else {
+    res.status(400).json({error : "Les donnéed envoyées ne sont pas valides ou complètes", code : 400})
   }
 });
 
@@ -145,7 +144,7 @@ apiRoute.put(async (req:any, res:NextApiResponse) => {
     if (session) {
       userId = (session as any)?.id;
     } else {
-      res.status(403).json({error: "acces interdit" as string, code: 403});
+      res.status(403).json({error: "Accès interdit" as string, code: 403});
     }
 
     await prepareConnection();
@@ -156,15 +155,15 @@ apiRoute.put(async (req:any, res:NextApiResponse) => {
       .andWhere("userId = :user", {user:userId})
       .getOne();   
 
-    if(!notes){
-      res.status(404).json({error: "Notes non trouvée", code: 404});
+    if (!notes) {
+      res.status(404).json({error: "Notes non trouvées", code: 404});
     }else if (!(notes.etat === NOTEDEFRAIS_ETAT.BROUILLON || notes.etat === NOTEDEFRAIS_ETAT.REFUSEE)) {
-      res.status(423).json({error: "Vous ne pouvez pas mettre à jours cette ligne" as string, code: 423});
+      res.status(423).json({error: "Vous ne pouvez pas mettre à jour cette ligne" as string, code: 423});
     }
 
-  if(await updateLigne(req.body, req.file.filename)){
-    res.status(200).send("ligne mise à jours");
-  }else{
+  if (await updateLigne(req.body, req.file.filename)) {
+    res.status(200).json({resultat: "La ligne a bien été mise à jour"});
+  } else {
     res.status(404).json({error: "Ligne non trouvée", code: 404});
   }
 });

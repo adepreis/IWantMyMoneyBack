@@ -14,7 +14,7 @@ export type CreateNoteRequest = {
   idNote: string
 } | RequestError | {resultat: string}
 
-export async function validerLigne(ligneId:string, etat:LIGNEDEFRAIS_ETAT,commentaire:string):Promise<boolean> {
+export async function validerLigne(ligneId: string, etat:LIGNEDEFRAIS_ETAT,commentaire: string): Promise<boolean> {
   await prepareConnection();
   const conn = await getConnection();
   const ligne = await conn.createQueryBuilder()
@@ -30,10 +30,10 @@ export async function validerLigne(ligneId:string, etat:LIGNEDEFRAIS_ETAT,commen
   conn.close();
 
 
-  return ligne.affected==0 ? false : true;
+  return ligne.affected == 0 ? false : true;
 }
 
-export async function ligneValidable(validateurId:string, ligneId:string):Promise<ILigneDeFrais | undefined> {
+export async function ligneValidable(validateurId: string, ligneId: string): Promise<ILigneDeFrais | undefined> {
   const serviceId = await getService(validateurId);
   if (!serviceId) {
     return;
@@ -54,6 +54,7 @@ export async function ligneValidable(validateurId:string, ligneId:string):Promis
   conn.close();
   return ligne;
 }
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<CreateNoteRequest>
@@ -62,35 +63,35 @@ export default async function handler(
     //recupération de la session
     const session = await getSession({ req })
     if (!session || (session as any).role != USER_ROLES.CHEF_DE_SERVICE) {
-      res.status(403).json({error: "acces interdit" as string, code: 403});
+      res.status(403).json({error: "Accès interdit" as string, code: 403});
       return;
     } else {
       switch (req.method) {
         case "PUT":
           const ligne = await ligneValidable(session.id as string, req.body.id);
           if (!ligne) {
-            res.status(404).json({error: "note inexistante", code: 404});
+            res.status(404).json({error: "La note est inexistante", code: 404});
             return;
           }
           if (!(ligne.note.etat === NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION )) {
-            res.status(423).json({error: "Vous ne pouvez pas traiter cette notes", code: 423});
+            res.status(423).json({error: "Vous ne pouvez pas traiter cette note", code: 423});
             return;
-          }else{
+          } else {
             try {
               if (await validerLigne(req.body.id, req.body.etat, req.body.commentaire_validateur)) {
                 res.status(200).json({resultat : "ligne traité "});
-              }else{
-                res.status(400).json({error : "Les donnée envoyé ne sont pas valide ou complète", code : 400});
+              } else {
+                res.status(400).json({error : "Les données envoyées ne sont pas valides ou complètes", code : 400});
               }
             } catch (error) {
-              res.status(400).json({error : "Les donnée envoyé ne sont pas valide ou complète", code : 400});
+              res.status(400).json({error : "Les données envoyées ne sont pas valides ou complètes", code : 400});
             }
               
           }
           break;
           
         default:
-          res.status(424).json({error : "methode non prise en charge" as string, code : 424})
+          res.status(424).json({error : "Méthode non prise en charge" as string, code : 424})
           break;
       }
         

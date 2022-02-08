@@ -42,8 +42,8 @@ export async function rmNote(noteId: string, userId: string): Promise<boolean>{
     conn.close();
   
     if (!note) {
-      throw new Error("note inexistante");
-    }else if (!(note.etat === NOTEDEFRAIS_ETAT.BROUILLON || note.etat === NOTEDEFRAIS_ETAT.REFUSEE)) {
+      throw new Error("Note inexistante");
+    } else if (!(note.etat === NOTEDEFRAIS_ETAT.BROUILLON || note.etat === NOTEDEFRAIS_ETAT.REFUSEE)) {
       return false;
     }
     await prepareConnection();
@@ -69,7 +69,7 @@ export default async function handler(
         if (session) {
             userId = (session as any)?.id;
         } else {
-            res.status(403).json({error: "acces interdit" as string, code: 403});
+            res.status(403).json({error: "Accès interdit" as string, code: 403});
         }
 
         switch (req.method) {
@@ -77,21 +77,21 @@ export default async function handler(
                 const note = await getNote(req.query?.note as string, userId as string)
 
                 if (!note) {
-                throw Error;
+                    throw Error;
                 }
                 res.status(200).json(note);
                 break;
             case "DELETE":
                 const rm = await rmNote(req.query?.note as string, userId as string);
-                if(rm){
-                    res.status(200).json({message: "note supprimé"});
-                }else{
+                if(rm) {
+                    res.status(200).json({message: "Note supprimée"});
+                } else {
                     res.status(423).json({error: "Vous ne pouvez pas supprimer cette note" as string, code: 423});
                 }
                 break;
                     
             default:
-                res.status(424).json({error : "methode non prise en charge" as string, code : 424})
+                res.status(424).json({error : "Méthode non prise en charge" as string, code : 424})
                 break;
         }
 

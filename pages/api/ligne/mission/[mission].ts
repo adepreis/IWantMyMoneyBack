@@ -44,7 +44,7 @@ export default async function handler(
 
         const mission = await getMission(req.query.mission as string, userId);
 
-        if(!mission){
+        if (!mission) {
           throw Error;
           
         }

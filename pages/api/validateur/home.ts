@@ -10,7 +10,7 @@ import { prepareConnection } from '../database';
 
 export type RequestNote = INoteDeFrais[] | RequestError;
 
-export async function getService(userId:string):Promise<string | null> {
+export async function getService(userId: string): Promise<string | null> {
   await prepareConnection();
     const conn = getConnection();
     const service = await conn.getRepository(Service)
@@ -22,11 +22,11 @@ export async function getService(userId:string):Promise<string | null> {
         .getOne();
     conn.close();
 
-  return service? service.id : null;
+  return service ? service.id : null;
 }
 
 
-export async function getValidateur(validateurId:string):Promise<INoteDeFrais[] | null> {
+export async function getValidateur(validateurId: string): Promise<INoteDeFrais[] | null> {
   const serviceId = await getService(validateurId);
   if (!serviceId) {
     return null;
@@ -53,7 +53,7 @@ export default async function handler(
   //recupération de la session
   const session = await getSession({ req });
   if (!session || (session as any).role != USER_ROLES.CHEF_DE_SERVICE) {
-    res.status(403).json({error: "acces interdit" as string, code: 403});
+    res.status(403).json({error: "Accès interdit" as string, code: 403});
     return;
   } 
 
@@ -62,8 +62,8 @@ export default async function handler(
 
   if (notes) {
     res.status(200).json(notes)
-  }else{
-    res.status(404).json({error: "aucune notes trouvé", code: 404});
+  } else {
+    res.status(404).json({error: "Aucune note trouvée", code: 404});
   }
   
 }

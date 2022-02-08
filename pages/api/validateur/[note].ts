@@ -50,7 +50,7 @@ export default async function handler(
         //recupération de la session
         const session = await getSession({ req });
         if (!session || (session as any).role != USER_ROLES.CHEF_DE_SERVICE) {
-            res.status(403).json({error: "acces interdit" as string, code: 403});
+            res.status(403).json({error: "Accès interdit" as string, code: 403});
             return;
         } 
         
@@ -66,7 +66,7 @@ export default async function handler(
                 break;
             
             default:
-                res.status(424).json({error : "methode non prise en charge" as string, code : 424})
+                res.status(424).json({error : "Méthode non prise en charge" as string, code : 424})
                 break;
         }
 
