@@ -26,7 +26,7 @@ const upload = multer({
   }),
 });
 
-export async function montantAvance(user:User, mission:Mission, montantAvance:number) {
+export async function montantAvance(user:User, mission:Mission, montantAvance:number, montantRembourcement:number) {
   await prepareConnection();
   const conn = await getConnection();
   const avance = await conn.getRepository(Avance)
@@ -40,13 +40,14 @@ export async function montantAvance(user:User, mission:Mission, montantAvance:nu
     .update(Avance)
     .set(
       { 
-        montant: avance.montant + montantAvance
+        montant: avance.montant + montantAvance,
+        rembourse: avance.rembourse + montantRembourcement
       }
     )
     .where("id = :id", {id: avance.id})
     .execute();
 
-  }else{
+  }else if(montantAvance != 0.){
     await conn.createQueryBuilder()
     .insert()
     .into(Avance)
@@ -69,6 +70,7 @@ export async function montantAvance(user:User, mission:Mission, montantAvance:nu
 export async function insertLigne(data: LigneDeFrais, justificatif:string, user:User):Promise<boolean> {
   await prepareConnection();
   const conn = await getConnection();
+
   const file = data.justificatif;
   try {
     await conn.createQueryBuilder()
@@ -94,7 +96,9 @@ export async function insertLigne(data: LigneDeFrais, justificatif:string, user:
     .execute();
     conn.close();
     if (data.avance) {
-      montantAvance(user, data.mission, data.prixTTC)
+      montantAvance(user, data.mission, data.prixTTC, 0.)
+    }else{
+      montantAvance(user, data.mission, 0., data.prixTTC)
     }
     return true;
     
@@ -108,6 +112,7 @@ export async function insertLigne(data: LigneDeFrais, justificatif:string, user:
 //met à jours une ligne 
 export async function updateLigne(data: LigneDeFrais, justificatif:string, user:User):Promise<boolean> {
   var montantPrec = 0.;
+  var montantRemb = 0.
   await prepareConnection();
   const conn = await getConnection();
 
@@ -116,8 +121,12 @@ export async function updateLigne(data: LigneDeFrais, justificatif:string, user:
   .where("lignedefrais.id = :ligneId", {ligneId: data.id})
   .getOne()
 
-  if(avanceLigne && avanceLigne.avance){
-    montantPrec = avanceLigne.prixTTC;
+  if(avanceLigne){
+    if (avanceLigne.avance) {
+      montantPrec = avanceLigne.prixTTC;
+    } else {
+      montantRemb = avanceLigne.prixTTC;
+    }
   }
 
   const ligne = await conn.createQueryBuilder()
@@ -143,9 +152,11 @@ export async function updateLigne(data: LigneDeFrais, justificatif:string, user:
   conn.close();
 
   if (data.avance) {
-    montantAvance(user, data.mission, data.prixTTC-montantPrec)
+    montantAvance(user, data.mission, data.prixTTC-montantPrec, -montantRemb)
   }else if(montantPrec != 0.){
-    montantAvance(user, data.mission, -montantPrec)
+    montantAvance(user, data.mission, -montantPrec, montantRemb)
+  }else{
+    montantAvance(user, data.mission, 0., data.prixTTC-montantRemb)
   }
 
   return ligne.affected==0 ? false : true;
