@@ -8,7 +8,8 @@ import { CollaborateurAnterieur } from "./collaborateuranterieur.entity";
 //ajouter a database.ts la classe 
 export const USER_ROLES = {
     ADMIN: "ADMIN",
-    USER: "USER"
+    USER: "USER",
+    CHEF_DE_SERVICE: "CHEF_DE_SERVICE"
 }
 
 @Entity("user")

@@ -8,29 +8,30 @@ import { prepareConnection } from '../../database';
 
 export type MissionRequest = IMission[] | RequestError;
 
-export async function getMission(date:string, userId:string): Promise<MissionRequest | null>{
+export async function getMission(date:string, userId:string): Promise<IMission[] | null>{
   await prepareConnection();
         const conn = getConnection();
       
         const mission = await conn.getRepository(Mission)
           .createQueryBuilder("mission")
-          .leftJoinAndSelect("mission.service", "service")
-          .leftJoinAndSelect("service.collaborateurAnterieur", "collaborateuranterieur")
-          .leftJoinAndSelect("collaborateuranterieur.collaborateur", "user")
-          .select(["mission.id","mission.titre", "mission.description", "mission.dateDebut", "mission.dateFin"])
-          .where("mission.dateFin >= :date", {date: date})
-          .orWhere("mission.dateFin is null")
+          .leftJoinAndSelect("mission.avances","avance", "avance.userId = :user", {user:userId})
+          .leftJoin("mission.service", "service")
+          .leftJoin("service.collaborateurAnterieur", "collaborateuranterieur")
+          .leftJoin("collaborateuranterieur.collaborateur", "user")
+          .where("(mission.dateFin >= :date OR mission.dateFin is null)", {date: date})
           .andWhere("mission.dateDebut <= :date", {date: date})
           .andWhere("user.Id = :user", {user:userId})
+          .andWhere("collaborateuranterieur.dateDebut <= :date",{date:date})
+          .andWhere("(collaborateuranterieur.dateFin >= :date OR collaborateuranterieur.dateFin is null)", {date:date})
           .getMany();
-      
+      console.log(userId)
         conn.close();
         return mission;
 }
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Mission[] | RequestError>
+  res: NextApiResponse<MissionRequest>
 ) {
     var userId;
     try {
@@ -43,32 +44,13 @@ export default async function handler(
         }
 
         const mission = await getMission(req.query.mission as string, userId);
-
-        if(!mission){
-          throw Error;
-          
-        }
-        
-        await prepareConnection();
-        const conn = getConnection();
-      
-        const ligne = await conn.getRepository(Mission)
-          .createQueryBuilder("mission")
-          .leftJoinAndSelect("mission.service", "service")
-          .leftJoinAndSelect("service.collaborateursAnterieurs", "user")
-          .where("user.Id = :user", {user:userId})
-          .andWhere("mission.dateDebut <= :date", {date: req.query.mission})
-          .andWhere("mission.dateFin >= :date", {date: req.query.mission})
-          .getMany();
-      console.log(ligne);
-        conn.close();
-        if(ligne){
-          res.status(200).json(ligne);
+        if(mission && mission.length > 0){
+          res.status(200).json(mission);
         }else{
           throw new Error("aucune mission correspondant");
-          
         }
-        
+          
+
       
     } catch(e) {
         res.status(404).json({error: e as string, code: 404});
