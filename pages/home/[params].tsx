@@ -1,89 +1,61 @@
-import { Group, SegmentedControl, Center, Select, Table, GroupedTransition, Container, Loader, Button, ActionIcon, Modal, Text } from '@mantine/core'
+import { Group } from '@mantine/core'
 import type { GetServerSideProps } from 'next'
 import { Session } from 'next-auth'
 import { getSession } from 'next-auth/react'
 import { getHomeNote, HomeNote } from '../api/home'
 import { useEffect, useState } from 'react'
-import { HiClock, HiXCircle, HiCheck, HiOutlinePencil, HiX, HiOutlinePaperClip, HiPlus } from "react-icons/hi";
 import dayjs from 'dayjs'
 import "dayjs/locale/fr";
 import localeData from "dayjs/plugin/localeData";
-import { INoteDeFrais, noteToApi } from '../../entity/notedefrais.entity'
+import { INoteDeFrais } from '../../entity/notedefrais.entity'
 import { NOTEDEFRAIS_ETAT } from '../../entity/utils'
-import EditLineForm from '../../components/EditLineForm'
-import numbro from 'numbro'
+import { TempLigneDeFrais } from '../../components/EditLineForm'
 import { useRouter } from 'next/router'
+import NavigationBar from '../../components/NavigationBar'
+import { Routes } from '../../utils/api'
+import Note from '../../components/home/Note'
+import { ILigneDeFrais } from '../../entity/lignedefrais.entity'
 dayjs.extend(localeData);
 dayjs().format();
 dayjs.locale("fr");
 
-
-type Props = {
+export interface HomeProps {
   session: Session | null,
   notes?: INoteDeFrais[],
   years?: number[],
-  currentYear?: number;
 }
 
-type EmptyNote = Omit<INoteDeFrais, "id">;
-type State = {
-  note: INoteDeFrais | EmptyNote | null,
-  month: number,
+export type EmptyNote = Omit<INoteDeFrais, "id">;
+
+export type UINote = INoteDeFrais | EmptyNote | null;
+export type UILigne = (ILigneDeFrais | TempLigneDeFrais) & { UI: "default" | "delete" | "post" | "put"}
+
+const emptyNote = (year: number, month: number): EmptyNote => {
+  return {
+    annee: year,
+    mois: month,
+    etat: NOTEDEFRAIS_ETAT.BROUILLON,
+    lignes: [],
+    notifications: []
+  }
 }
 
-enum DataState {NONE, SENT_AND_WAITING, ERROR, VALID};
-type Data = {label: string; state: DataState, index: number}
-
-function getSegmentedData(props: Props): Data[] {
-  return dayjs.months().map((month, monthIndex) => {
-    const monthNote: INoteDeFrais | null = props.notes ? (props.notes.find(note => note.mois === monthIndex) ?? null) : null;
-
-    return {
-      label: `${month}`,
-      state: !monthNote ? DataState.NONE : 
-        monthNote.etat === NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION ? DataState.SENT_AND_WAITING : 
-        monthNote.etat === NOTEDEFRAIS_ETAT.REFUSEE ? DataState.ERROR :
-        monthNote.etat === NOTEDEFRAIS_ETAT.VALIDEE ? DataState.VALID : DataState.NONE,
-      index: monthIndex
-    }
-  })
-}
-
-export default function Home(props: Props) {
+export default function Home(props: HomeProps) {
   const router = useRouter();
   const year = parseInt(router.query.params as string);
   const [month, setMonth] = useState(0);
-  const [note, setNote] = useState(null as INoteDeFrais | EmptyNote | null);
-  const [opened, setOpened] = useState(false);
+  const [note, setNote] = useState(null as UINote);
+  const [edited, setEdited] = useState(false);
+  const [clearLocalState, setClearLocalState] = useState(false);
 
   const updateNoteState = async (month: number) => {
     const currentNoteId = props?.notes?.find(note => note.mois === month)?.id;
 
-    const emptyNote: EmptyNote = {
-      annee: year,
-      mois: month,
-      etat: NOTEDEFRAIS_ETAT.NON_VALIDEE,
-      ligne: []
-    }
-
-    const fetchNote = async (id: string) => {
-      const request = await fetch(`/api/${id}`);
-
-      if (request.status === 200) {
-        const result = await request.json();
-        return result;
-      } 
-      // Error while fetching
-      else {
-        return null;
-      }
-    }
-
     if (currentNoteId) {
-      const res = await fetchNote(currentNoteId);
+      const res = await Routes.NOTE.get(currentNoteId);
       setNote(res);
     } else {
-      setNote(emptyNote)
+      setNote(emptyNote(month, year))
     }
   }
 
@@ -91,142 +63,41 @@ export default function Home(props: Props) {
     updateNoteState(0);
   }, []);
 
-  const renderNote = () => {
-    if (!note) {
-      return <Center style={{height: "100%"}}>
-        <Loader />
-      </Center>
+  useEffect(() => {
+    if (note && note.mois === -1) {
+      updateNoteState(month);
     }
-
-    const modal = <Modal centered opened={opened}
-        onClose={() => setOpened(false)}
-        title="Modifier une ligne de frais"
-        size="lg"
-      >
-        <EditLineForm />
-      </Modal>;
-
-    const rows = (note?.ligne ?? []).map((ligne, index) => (
-      <tr key={index}>
-        <td>{ligne.titre}</td>
-        <td>{dayjs(ligne.date).format("DD-MM-YYYY")}</td>
-        <td>{numbro(ligne.prixHT).formatCurrency({ mantissa: 2, 
-          currencySymbol: "€", 
-          currencyPosition: "postfix",
-          spaceSeparated: true,
-          spaceSeparatedCurrency: true,
-          thousandSeparated: true,
-        }).replace(",", " ")}</td>
-        <td>
-          { ligne.perdu
-            ? <Text color="red">Pas de justificatif</Text>
-            : <Button title="TODO: afficher ligne.justificatif" variant="subtle" rightIcon={<HiOutlinePaperClip size={16}/>}>Justificatif</Button>
-          }
-        </td>
-        <td>
-          <Group position="center" direction="row" spacing={0}>
-            {/*TODO : display form and send PUT query with smtg like :
-              const requestOptions = {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ title: 'React PUT Request Example' })
-              };
-              fetch(`/api/${note?.ligne}`, requestOptions)
-                  .then(response => response.json())
-                  .then(data => this.setState({ postId: data.id }));
-            */}
-            <ActionIcon size="xl" radius="lg" title="Modifier la ligne" color="blue" onClick={() => setOpened(true)}>
-              <HiOutlinePencil/>
-            </ActionIcon>
-            {/*TODO : send DELETE query with smtg like :
-              fetch(`/api/${note?.ligne}`, {method: "DELETE"})
-                .then(response => { console.log(response.status); }
-              );
-            */}
-            <ActionIcon size="xl" radius="lg" title="Supprimer la ligne" color="red">
-              <HiX/>
-            </ActionIcon>
-          </Group>
-        </td>
-      </tr>
-    ));
-
-    return <Container padding="lg">
-      {modal}
-      <Table striped highlightOnHover>
-        <thead>
-          <tr>
-            <th>Titre</th>
-            <th>Date</th>
-            <th>Montant HT</th>
-            <th>Justificatif</th>
-          </tr>
-        </thead>
-        <tbody>{rows}</tbody>
-      </Table>
-      <Button title="Ajouter une ligne de frais" color="green" leftIcon={<HiPlus size={16}/>} onClick={() => setOpened(true)} fullWidth>
-        Ajouter une ligne
-      </Button>
-    </Container>
-  }
+  })
 
   return <Group grow direction="column" style={{width: "100%"}} spacing={0}>
-    <Group style={{alignItems: "baseline"}} grow>
-      {renderNote()}
-    </Group>
-    <Group style={{flex: 0, width: "100%"}} spacing={0}>
-      <Select
-        placeholder="Année"
-        data={(props?.years ?? []).map(year => { return {
-            value: `${year}`,
-            label: `${year}`
-          }
-        })}
-        value={year ? `${year}` : null}
-        onChange={async (item: string) => {
-          setMonth(0),
-          setNote(null),
-          await router.push(`/home/${item}`);
-          updateNoteState(0);
-        }}
-        style={{
-          flex: "unset"
-        }}
+    <Group grow style={{alignItems: "baseline"}} direction="row">
+      <Note 
+        notes={props.notes as INoteDeFrais[]}
+        setMonth={setMonth}
+        note={note}
+        setNote={setNote}
+        month={month} 
+        year={year}
+        refreshProps={async () => {await updateNoteState(-1)}}
+        edited={edited}
+        setEdited={setEdited}
+        clearLocalState={clearLocalState}
+        setClearLocalState={setClearLocalState}
       />
-      <SegmentedControl style={{flex: 1}} value={`${month}`} onChange={async (item: string) => {
-        const month = parseInt(item);
-        setMonth(month);
-        await updateNoteState(month);
-      }} fullWidth data={getSegmentedData(props).map(el => {
-        var icon = <></>;
-        switch (el.state) {
-          case DataState.NONE:
-            break;
-          case DataState.SENT_AND_WAITING:
-            icon = <HiClock />
-            break;
-          case DataState.ERROR:
-            icon = <HiXCircle />
-            break;
-          case DataState.VALID:
-            icon = <HiCheck />
-            break;
-        }
-        return {
-          value: `${el.index}`,
-          label: (
-            <Center>
-              <div style={{ marginRight: 10, textTransform: "capitalize" }}>{el.label}</div>
-              {icon}
-            </Center>
-          ),
-        }
-      })} />
-    </Group> 
+    </Group>
+    <NavigationBar 
+      {...props} 
+      setNote={setNote} 
+      month={month} setMonth={setMonth} 
+      year={year}
+      updateNoteState={updateNoteState}
+      edited={edited}
+      setClearLocalState={setClearLocalState}
+    />
   </Group>
 }
 
-export const getServerSideProps: GetServerSideProps<Props> = async (context) => {
+export const getServerSideProps: GetServerSideProps<HomeProps> = async (context) => {
   const session = await getSession(context);
   if (!session) {
     return {
@@ -246,8 +117,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
     props: {
       session,
       notes: (notes.find(note => note.annee === currentYear))?.notes,
-      years,
-      currentYear
+      years
     },
   }
 }

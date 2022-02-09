@@ -11,7 +11,10 @@ import { prepareConnection } from '../database';
 
 import nextConnect from 'next-connect';
 import multer from 'multer';
-import { NOTEDEFRAIS_ETAT } from '../../../entity/utils';
+import { LIGNEDEFRAIS_ETAT, NOTEDEFRAIS_ETAT } from '../../../entity/utils';
+import { Avance } from '../../../entity/avance.entity';
+import { Mission } from '../../../entity/mission.entity';
+import { User } from '../../../entity/user.entity';
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -23,14 +26,53 @@ const upload = multer({
   }),
 });
 
-
-//ajoute une ligne a la bd
-export async function insertLigne(data: LigneDeFrais, justificatif:string):Promise<boolean> {
+export async function montantAvance(user:User, mission:Mission, montantAvance:number, montantRembourcement:number) {
   await prepareConnection();
   const conn = await getConnection();
+  const avance = await conn.getRepository(Avance)
+  .createQueryBuilder("avance")
+  .where("avance.missionId = :missionId", {missionId: mission.id})
+  .andWhere("avance.userId = :userId", {userId:user.id})
+  .getOne();
+
+  if(avance){
+    await conn.createQueryBuilder()
+    .update(Avance)
+    .set(
+      { 
+        montant: avance.montant + montantAvance,
+        rembourse: avance.rembourse + montantRembourcement
+      }
+    )
+    .where("id = :id", {id: avance.id})
+    .execute();
+
+  }else if(montantAvance != 0.){
+    await conn.createQueryBuilder()
+    .insert()
+    .into(Avance)
+    .values([
+      { 
+        mission: mission,
+        user: user,
+        montant: montantAvance,
+        rembourse: 0
+      }
+    ])
+    .execute();
+  }
+
+  conn.close();
+}
+
+
+//ajoute une ligne a la bd
+export async function insertLigne(data: LigneDeFrais, justificatif:string, user:User):Promise<boolean> {
+  await prepareConnection();
+  const conn = await getConnection();
+
   const file = data.justificatif;
   try {
-
     await conn.createQueryBuilder()
     .insert()
     .into(LigneDeFrais)
@@ -48,13 +90,16 @@ export async function insertLigne(data: LigneDeFrais, justificatif:string):Promi
         perdu: data.perdu, 
         note: data.note,
         mission: data.mission,
-        validee: false,
         commentaire_validateur: ""
       }
     ])
     .execute();
     conn.close();
-
+    if (data.avance) {
+      montantAvance(user, data.mission, data.prixTTC, 0.)
+    }else{
+      montantAvance(user, data.mission, 0., data.prixTTC)
+    }
     return true;
     
   } catch (error) {
@@ -65,9 +110,25 @@ export async function insertLigne(data: LigneDeFrais, justificatif:string):Promi
 
 
 //met à jours une ligne 
-export async function updateLigne(data: LigneDeFrais, justificatif:string):Promise<boolean> {
+export async function updateLigne(data: LigneDeFrais, justificatif:string, user:User):Promise<boolean> {
+  var montantPrec = 0.;
+  var montantRemb = 0.
   await prepareConnection();
   const conn = await getConnection();
+
+  const avanceLigne = await conn.getRepository(LigneDeFrais)
+  .createQueryBuilder("lignedefrais")
+  .where("lignedefrais.id = :ligneId", {ligneId: data.id})
+  .getOne()
+
+  if(avanceLigne){
+    if (avanceLigne.avance) {
+      montantPrec = avanceLigne.prixTTC;
+    } else {
+      montantRemb = avanceLigne.prixTTC;
+    }
+  }
+
   const ligne = await conn.createQueryBuilder()
   .update(LigneDeFrais)
   .set(
@@ -82,12 +143,21 @@ export async function updateLigne(data: LigneDeFrais, justificatif:string):Promi
       avance: data.avance,
       commentaire: data.commentaire,
       perdu: data.perdu, 
-      mission: data.mission
+      mission: data.mission,
+      etat: LIGNEDEFRAIS_ETAT.BROUILLON
     }
   )
   .where("id = :id", {id: data.id})
   .execute();
   conn.close();
+
+  if (data.avance) {
+    montantAvance(user, data.mission, data.prixTTC-montantPrec, -montantRemb)
+  }else if(montantPrec != 0.){
+    montantAvance(user, data.mission, -montantPrec, montantRemb)
+  }else{
+    montantAvance(user, data.mission, 0., data.prixTTC-montantRemb)
+  }
 
   return ligne.affected==0 ? false : true;
 }
@@ -131,8 +201,8 @@ apiRoute.post(async (req:any, res:NextApiResponse) => {
       res.status(423).json({error: "Vous ne pouvez pas ajouté de ligne à cette notes" as string, code: 423});
     }
     
-  if(await insertLigne(req.body,req.file.filename)){
-    res.status(200).send("ligne ajoutée");
+  if(await insertLigne(req.body,req.file.filename, session as any)){
+    res.status(200).json({resultat: "ligne ajoutée"});
   }else{
     res.status(400).json({error : "Les donnée envoyé ne sont pas valide ou complète", code : 400})
   }
@@ -162,8 +232,8 @@ apiRoute.put(async (req:any, res:NextApiResponse) => {
       res.status(423).json({error: "Vous ne pouvez pas mettre à jours cette ligne" as string, code: 423});
     }
 
-  if(await updateLigne(req.body, req.file.filename)){
-    res.status(200).send("ligne mise à jours");
+  if(await updateLigne(req.body, req.file.filename, session as any)){
+    res.status(200).json({resultat: "ligne mise à jours"});
   }else{
     res.status(404).json({error: "Ligne non trouvée", code: 404});
   }

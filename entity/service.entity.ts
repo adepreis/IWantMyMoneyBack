@@ -1,6 +1,7 @@
 import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { ChefAnterieur, chefanterieurToApi, IChefAnterieur } from "./chefanterieur.entity";
 import { IMission, Mission, missionToApi } from "./mission.entity";
+import { CollaborateurAnterieur} from "./collaborateuranterieur.entity";
 import { User } from "./user.entity";
 //ajouter a database.ts la classe 
 
@@ -26,9 +27,8 @@ export class Service {
     @OneToMany(type => ChefAnterieur, chefAnterieur => chefAnterieur.service)
     chefsAnterieurs!: ChefAnterieur[];
 
-    @ManyToMany(type => User, collaborateursAnterieurs => collaborateursAnterieurs.servicesAnterieurs)
-    @JoinTable()
-    collaborateursAnterieurs!: User[];
+    @OneToMany(type => CollaborateurAnterieur, collaborateurAnterieur => collaborateurAnterieur.service)
+    collaborateurAnterieur!: CollaborateurAnterieur[];
     // (avec servicesAnterieurs de User)
 }
 

@@ -1,14 +1,14 @@
 import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { IMission, Mission } from "./mission.entity";
+import { IMission, Mission, missionToApi } from "./mission.entity";
 import { INoteDeFrais, NoteDeFrais } from "./notedefrais.entity";
-import { LIGNE_TYPE } from "./utils";
+import { LIGNEDEFRAIS_ETAT, LIGNE_TYPE } from "./utils";
 //ajouter a database.ts la classe 
 
 export interface ILigneDeFrais {
     id: string;
     titre: string;
     date: Date;
-    validee: boolean;
+    //validee: boolean;
     prixHT: number;
     prixTTC: number;
     prixTVA: number;
@@ -18,8 +18,9 @@ export interface ILigneDeFrais {
     commentaire: string;
     commentaire_validateur: string;
     perdu: boolean;
+    etat: LIGNEDEFRAIS_ETAT;
     //note: INoteDeFrais;
-    //mission: IMission;
+    mission: IMission;
 }
 
 @Entity("lignedefrais")
@@ -33,8 +34,8 @@ export class LigneDeFrais implements ILigneDeFrais {
     @Column({type: "date"})
     public date!: Date;
 
-    @Column({type: "bool"})
-    public validee!: boolean;
+    //@Column({type: "bool"})
+    //public validee!: boolean;
 
     @Column({type: "float"})
     public prixHT!: number;
@@ -66,7 +67,14 @@ export class LigneDeFrais implements ILigneDeFrais {
     @Column({type: "bool"})
     public perdu!: boolean;
 
-    @ManyToOne(() => NoteDeFrais)
+    @Column({
+        type: "enum",
+        enum: Object.values(LIGNEDEFRAIS_ETAT),
+        default: LIGNEDEFRAIS_ETAT.BROUILLON
+    })
+    public etat!: LIGNEDEFRAIS_ETAT;
+
+    @ManyToOne(() => NoteDeFrais, {onDelete: 'CASCADE'})
     note!: NoteDeFrais;
 
     @ManyToOne(() => Mission)
@@ -78,7 +86,7 @@ export const lineToApi = (ligne: LigneDeFrais): ILigneDeFrais => {
         id: ligne.id,
         titre: ligne.titre,
         date: ligne.date,
-        validee: ligne.validee,
+        //validee: ligne.validee,
         prixHT: ligne.prixHT,
         prixTTC: ligne.prixTTC,
         prixTVA: ligne.prixTVA,
@@ -88,7 +96,8 @@ export const lineToApi = (ligne: LigneDeFrais): ILigneDeFrais => {
         commentaire: ligne.commentaire,
         commentaire_validateur: ligne.commentaire_validateur,
         perdu: ligne.perdu,
+        etat:ligne.etat,
         //note:
-        //mission:
+        mission: missionToApi(ligne.mission)
     };
 }

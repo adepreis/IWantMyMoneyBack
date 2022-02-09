@@ -6,7 +6,7 @@ import { ILigneDeFrais, LigneDeFrais, lineToApi } from "../../../entity/lignedef
 import { NOTEDEFRAIS_ETAT } from "../../../entity/utils";
 import { prepareConnection } from "../database";
 
-export type LigneRequest = ILigneDeFrais | RequestError | string;
+export type LigneRequest = ILigneDeFrais | RequestError | {resultat: string};
 
 
 //récupère une ligne dans la bd
@@ -91,7 +91,7 @@ export default async function handler(
 
         case "DELETE":
           if(await rmLigne(req.query?.ligne as string, userId as string)){
-            res.status(200).send("ligne supprimé");
+            res.status(200).json({resultat: "ligne supprimé"});
           }else{
             res.status(423).json({error: "Vous ne pouvez pas supprimer cette ligne" as string, code: 423});
           }

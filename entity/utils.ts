@@ -12,3 +12,9 @@ export enum NOTEDEFRAIS_ETAT {
     VALIDEE = "VALIDEE",
     REFUSEE = "REFUSEE"
 }
+
+export enum LIGNEDEFRAIS_ETAT {
+    BROUILLON = "BROUILLON",
+    VALIDEE = "VALIDEE",
+    REFUSEE = "REFUSEE"
+}

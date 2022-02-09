@@ -5,18 +5,14 @@ import { User } from "./user.entity";
 //import { User } from "./user.entity";
 //ajouter a database.ts la classe 
 
-export interface IChefAnterieur {
+export interface ICollaborateurAnterieur {
     id: string,
     dateDebut: Date,
     dateFin: Date,
-    //nom: string,
-    //prenom: string,
-    //chefAnterieur: User (ManyToOne)
-    //service: IService (ManyToOne)
 }
 
-@Entity("chefanterieur")
-export class ChefAnterieur {
+@Entity("collaborateuranterieur")
+export class CollaborateurAnterieur {
     @PrimaryGeneratedColumn('uuid')
     id!: string;
 
@@ -26,27 +22,18 @@ export class ChefAnterieur {
     @Column({type: "date", nullable:true})
     public dateFin!: Date;
 
-    //@Column({type: "varchar"})
-    //public nom!: string;
 
-    //@Column({type: "varchar"})
-    //public prenom!: string;
+    @ManyToOne(type => User, user => user.collaborateurAnterieur)
+    collaborateur!: User;
 
-    @ManyToOne(type => User, user => user.chefsAnterieurs)
-    chefAnterieur!: User;
-
-    @ManyToOne(() => Service, service => service.chefsAnterieurs)
+    @ManyToOne(() => Service, service => service.collaborateurAnterieur)
     service!: Service;
 }
 
-export const chefanterieurToApi = (chefanterieur: ChefAnterieur): IChefAnterieur => {
+export const chefanterieurToApi = (chefanterieur: CollaborateurAnterieur): ICollaborateurAnterieur => {
     return {
         id: chefanterieur.id,
         dateDebut: chefanterieur.dateDebut,
         dateFin: chefanterieur.dateFin,
-        //nom: chefanterieur.nom,
-        //prenom: chefanterieur.prenom,
-        //chefAnterieur: (ManyToOne)
-        //service: (ManyToOne)
     };
 }
