@@ -67,7 +67,7 @@ export async function montantAvance(user:User, mission:Mission, montantAvance:nu
 
 
 //ajoute une ligne a la bd
-export async function insertLigne(data: LigneDeFrais, justificatif:string, user:User):Promise<boolean> {
+export async function insertLigne(data: LigneDeFrais, justificatif:string, user:User, note:NoteDeFrais):Promise<boolean> {
   await prepareConnection();
   const conn = await getConnection();
 
@@ -88,7 +88,7 @@ export async function insertLigne(data: LigneDeFrais, justificatif:string, user:
         avance: data.avance,
         commentaire: data.commentaire,
         perdu: data.perdu, 
-        note: data.note,
+        note: note,
         mission: data.mission,
         commentaire_validateur: ""
       }
@@ -110,7 +110,7 @@ export async function insertLigne(data: LigneDeFrais, justificatif:string, user:
 
 
 //met à jours une ligne 
-export async function updateLigne(data: LigneDeFrais, justificatif:string, user:User):Promise<boolean> {
+export async function updateLigne(data: LigneDeFrais, justificatif:string, user:Use):Promise<boolean> {
   var montantPrec = 0.;
   var montantRemb = 0.
   await prepareConnection();
@@ -201,7 +201,7 @@ apiRoute.post(async (req:any, res:NextApiResponse) => {
       res.status(423).json({error: "Vous ne pouvez pas ajouté de ligne à cette notes" as string, code: 423});
     }
     
-  if(await insertLigne(req.body,req.file.filename, session as any)){
+  if(await insertLigne(req.body,req.file.filename, session as any, notes)){
     res.status(200).json({resultat: "ligne ajoutée"});
   }else{
     res.status(400).json({error : "Les donnée envoyé ne sont pas valide ou complète", code : 400})
