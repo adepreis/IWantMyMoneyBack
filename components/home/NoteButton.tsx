@@ -21,12 +21,15 @@ type NoteButtonsProps = {
     setMonth: Dispatch<SetStateAction<number>>;
     year: number;
     refreshProps: () => Promise<void>;
+    localLines: UILigne[];
+    setLocalLines: Dispatch<SetStateAction<UILigne[]>>;
 }
 
 const saveNote = async (props: NoteButtonsProps, notifications: NotificationsContextProps) => {
-    const {notes, month, setMonth, year, refreshProps, setNote} = props;
+    const {notes, month, setMonth, year, refreshProps, setNote, localLines, setLocalLines} = props;
 
-    var note = notes.find(n => n.mois === month);
+    // Forcing type INoteDeFrais since note is created bellow if undefined
+    var note = notes.find(n => n.mois === month) as INoteDeFrais;
     if (!note) {
         const temp = await Routes.NOTE.create({mois: month, annee: year});
 
@@ -52,10 +55,49 @@ const saveNote = async (props: NoteButtonsProps, notifications: NotificationsCon
 
     setMonth(month);
     setNote(null);
+    setLocalLines([]);
     await router.replace(router.asPath);
     await refreshProps();
 
     // Procéder à la sauvegarde des lignes
+    for (const localLine of localLines) {
+        const isNewLine = localLine.id.includes("temp-");
+        var req: any = null;
+        switch (localLine.UI) {
+            case "default":
+                // Default saved line state, should not be part of localLine
+                break;
+            case "delete": {
+                if (isNewLine) {
+                    // Doing nothing since local new line was deleted
+                } else {
+                    req = await Routes.LINE.delete(localLine.id);
+                }
+                break;
+            }
+            case "post": {
+                if (isNewLine) {
+                    req = await Routes.LINE.create(localLine, note);
+                } else {
+                    // Doing nothing since only new line can be posted
+                }
+                break;
+            }
+            case "put": {
+                // @TODO: Put case
+                break;
+            }
+        }
+
+        if (!req) {
+            notifications.showNotification({
+                title: 'Erreur !',
+                color: "red",
+                message: `Nous venons de rencontrer un problème 😔`,
+            });
+            continue;
+        }
+    }
 
     notifications.showNotification({
         title: 'Note sauvegardée !',
@@ -98,11 +140,13 @@ const deleteNote = async (props: NoteButtonsProps, notifications: NotificationsC
   }
 
 export default function NoteButtons(props: NoteButtonsProps) {
-    const {note, setOpenedModal, setEditedLine} = props;
+    const {note, setOpenedModal, setEditedLine, localLines} = props;
     const notifications = useNotifications();
 
+    const editable = ![NOTEDEFRAIS_ETAT.VALIDEE, NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION].includes(note.etat);
+
     return <Group direction="row" spacing={0} style={{paddingLeft: "1rem"}}>
-        {note.etat !== NOTEDEFRAIS_ETAT.VALIDEE && note.etat !== NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION &&
+        {editable &&
             <>
                 <Button variant="outline" title="Ajouter une ligne de frais" color="green" leftIcon={<HiPlus size={16}/>} onClick={() => {
                     setOpenedModal(true);
@@ -114,12 +158,12 @@ export default function NoteButtons(props: NoteButtonsProps) {
             </>
         }
         <Group style={{paddingLeft: "1rem"}}>
-            <PopoverButton disabled={note.etat !== NOTEDEFRAIS_ETAT.BROUILLON} label="Vous ne pouvez pas sauvegarder une note dans cet état.">
+            <PopoverButton disabled={!editable || localLines.length === 0} label="Vous ne pouvez pas sauvegarder une note dans cet état.">
                 <Button variant="outline"
                     onClick={() => saveNote(props, notifications)}
                 >Sauvegarder</Button>
             </PopoverButton>
-            <PopoverButton disabled={!(note as INoteDeFrais)?.id || note.etat !== NOTEDEFRAIS_ETAT.BROUILLON} label="Vous ne pouvez pas supprimer une note dans cet état.">
+            <PopoverButton disabled={!editable} label="Vous ne pouvez pas supprimer une note dans cet état.">
                 <Button variant="outline" color="red"
                     onClick={() => deleteNote(props, notifications)}
                 >Supprimer</Button>
