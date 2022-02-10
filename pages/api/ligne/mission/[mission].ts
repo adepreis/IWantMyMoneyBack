@@ -11,7 +11,7 @@ export type MissionRequest = IMission[] | RequestError;
 export async function getMission(date: string, userId: string): Promise<IMission[] | null> {
   await prepareConnection();
   const conn = getConnection();
-
+console.log(date);
   const mission = await conn.getRepository(Mission)
     .createQueryBuilder("mission")
     .leftJoinAndSelect("mission.avances", "avance", "avance.userId = :user", { user: userId })
@@ -41,8 +41,9 @@ export default async function handler(
     } else {
       res.status(403).json({ error: "acces interdit" as string, code: 403 });
     }
-
-    const mission = await getMission(req.query.mission as string, userId);
+    var date = new Date();
+    date.setTime(parseInt(req.query.mission as string))
+    const mission = await getMission(date.toISOString(), userId);
     if (mission && mission.length > 0) {
       res.status(200).json(mission);
     } else {
