@@ -1,6 +1,6 @@
 import type { GetServerSideProps } from 'next'
 import { Session } from 'next-auth'
-import { useSession, getSession } from 'next-auth/react'
+import { getSession } from 'next-auth/react'
 import { USER_ROLES } from '../entity/user.entity'
 
 import dayjs from 'dayjs'

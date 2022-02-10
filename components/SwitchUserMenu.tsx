@@ -3,7 +3,7 @@ import { Session } from 'next-auth'
 import { useRouter } from 'next/router'
 import { useSession, signOut } from "next-auth/react"
 import { forwardRef } from 'react';
-import { HiChevronDown, HiOutlinePencil, HiOutlineLogout, HiAdjustments, HiUserGroup, HiClipboardList } from "react-icons/hi";
+import { HiChevronDown, HiOutlinePencil, HiOutlineLogout, HiAdjustments, HiUserGroup, HiClipboardList, HiOutlinePresentationChartLine } from "react-icons/hi";
 import { Group, Avatar, Text, Menu, Divider, UnstyledButton, Button, UnstyledButtonProps } from '@mantine/core';
 import { USER_ROLES } from '../entity/user.entity'
 
@@ -102,7 +102,13 @@ export default function SwitchUserMenu() {
         transition="scale-y"
       >
 	      <Menu.Label>Mon profil</Menu.Label>
-	      <Menu.Item icon={<HiAdjustments />}>Modifier mes infos</Menu.Item>
+	      <Menu.Item disabled icon={<HiAdjustments />}>
+          Modifier mes infos
+        </Menu.Item>
+
+        <Menu.Item disabled icon={<HiOutlinePresentationChartLine/>}>
+          Statistiques
+        </Menu.Item>
 
         {/* TODO: Switch back to /home if already on /validateur */}
 	      { toogleModeItem }
