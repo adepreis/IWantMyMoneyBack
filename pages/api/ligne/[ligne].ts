@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
 import { getConnection } from "typeorm";
+import { deleteFile } from ".";
 import { RequestError } from "../../../entity/geneal_struct";
 import { ILigneDeFrais, LigneDeFrais, lineToApi } from "../../../entity/lignedefrais.entity";
 import { NOTEDEFRAIS_ETAT } from "../../../entity/utils";
@@ -52,7 +53,7 @@ export async function rmLigne(ligneId: string, userId: string): Promise<boolean>
   }else if (!(ligne.note.etat === NOTEDEFRAIS_ETAT.BROUILLON || ligne.note.etat === NOTEDEFRAIS_ETAT.REFUSEE)) {
     return false;
   }
-
+  deleteFile(ligne.justificatif)
   await prepareConnection();
   conn = getConnection();
   
