@@ -1,11 +1,14 @@
 // /// <reference types="cypress" />
 
 describe('Affichage des notes de frais', () => {
-  // beforeEach(() => {
-  //   cy.visit('http://localhost:3000')
-  // })
+  beforeEach(() => {
+    Cypress.Cookies.preserveOnce('next-auth.session-token', 'next-auth.callback-url', 'next-auth.csrf-token');
+  })
 
   it('Connexion', () => {
+    cy.clearCookie('next-auth.session-token');
+    cy.clearCookie('next-auth.callback-url');
+    cy.clearCookie('next-auth.csrf-token');
     cy.visit('http://localhost:3000')
     cy.contains('Se connecter').click()
     cy.wait(3000)
