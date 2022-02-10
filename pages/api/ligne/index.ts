@@ -249,12 +249,14 @@ apiRoute.put(async (req: any, res: NextApiResponse) => {
   }
   //cas ou il n'y a pas de fichier 
   var filename = "";
-  if (req.file) {
-    filename = req.file.filename;
-  }
+
   //pour avoir les valeur sous forme de boolean 
   req.body.perdu = req.body.perdu === 'true';
   req.body.avance = req.body.avance === 'true';
+
+  if (req.file && !req.body.perdu) {
+    filename = req.file.filename;
+  }
   if (await updateLigne(req.body, filename, session as any)) {
     res.status(200).json({ resultat: "ligne mise à jours" });
   } else {
