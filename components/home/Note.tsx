@@ -102,13 +102,15 @@ export default function Note(props: NoteProps) {
                 <NoteButtons
                     notes={notes} 
                     note={note} 
-                    setOpenedModal={setOpenedModal} 
+                    setOpenedModal={setOpenedModal}
+                    localLines={localLines}
                     setEditedLine={setEditedLine}
                     month={month}
                     setMonth={setMonth}
                     year={year}
                     refreshProps={refreshProps}
                     setNote={setNote}
+                    setLocalLines={setLocalLines}
                 />
                 <Accordion offsetIcon={false} style={{width: "100%"}}>
                 {
