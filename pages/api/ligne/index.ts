@@ -135,13 +135,15 @@ export async function updateLigne(data: LigneDeFrais, justificatif: string, user
       montantRemb = avanceLigne.prixTTC;
     }
   }
+  var dateUTC = new Date(data.date as any as string);
+  const date = dateUTC.toISOString();
 
   const ligne = await conn.createQueryBuilder()
     .update(LigneDeFrais)
     .set(
       {
         titre: data.titre,
-        date: data.date,
+        date: date.substring(0, 10),
         prixHT: data.prixTTC,
         prixTTC: data.prixTTC,
         prixTVA: data.prixTVA,
