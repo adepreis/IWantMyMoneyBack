@@ -11,7 +11,6 @@ export type MissionRequest = IMission[] | RequestError;
 export async function getMission(date: string, userId: string): Promise<IMission[] | null> {
   await prepareConnection();
   const conn = getConnection();
-console.log(date);
   const mission = await conn.getRepository(Mission)
     .createQueryBuilder("mission")
     .leftJoinAndSelect("mission.avances", "avance", "avance.userId = :user", { user: userId })

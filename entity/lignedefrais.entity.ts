@@ -55,7 +55,7 @@ export class LigneDeFrais implements ILigneDeFrais {
     @Column({type: "varchar"})
     public justificatif!: string;
     
-    @Column({type: "bool"})
+    @Column({type: "boolean"})
     public avance!: boolean;
 
     @Column({type: "varchar"})
@@ -64,7 +64,7 @@ export class LigneDeFrais implements ILigneDeFrais {
     @Column({type: "varchar"})
     public commentaire_validateur!: string;
 
-    @Column({type: "bool"})
+    @Column({type: "boolean"})
     public perdu!: boolean;
 
     @Column({
