@@ -1,7 +1,9 @@
+// import Link from 'next/link'
 import { Session } from 'next-auth'
+import { useRouter } from 'next/router'
 import { useSession, signOut } from "next-auth/react"
 import { forwardRef } from 'react';
-import { HiChevronDown, HiOutlinePencil, HiOutlineLogout, HiAdjustments, HiUserGroup } from "react-icons/hi";
+import { HiChevronDown, HiOutlinePencil, HiOutlineLogout, HiAdjustments, HiUserGroup, HiClipboardList } from "react-icons/hi";
 import { Group, Avatar, Text, Menu, Divider, UnstyledButton, Button, UnstyledButtonProps } from '@mantine/core';
 import { USER_ROLES } from '../entity/user.entity'
 
@@ -53,9 +55,38 @@ const UserButton = forwardRef<HTMLButtonElement, UserButtonProps>(
 
 export default function SwitchUserMenu() {
   const { data: session } = useSession()
+  const router = useRouter();
+  const year = parseInt(router.query.params as string);
 
+  // TODO: extract home/validateur like this ? Or store it in session ?
+  var re = /validateur/g;
+  var str = router.route;
+  var isOnValidatorRoute = str.match(re) !== null;
+  console.log(isOnValidatorRoute);
+
+  // Menu only available when the user is logged in
   if(!session)
   	return <></>;
+
+  let toogleModeItem = <></>;
+  if(session.role === USER_ROLES.CHEF_DE_SERVICE) {
+    if(isOnValidatorRoute) {
+      toogleModeItem = <Menu.Item
+            icon={<HiClipboardList />}  // or HiTemplate or HiClipboard ???
+            component="a" href="/home" // component={Link} to="/home"
+          >
+            Gérer mes notes de frais
+          </Menu.Item>;
+    } else {
+      toogleModeItem = <Menu.Item
+            icon={<HiUserGroup />}  // or HiOutlineClipboardCheck ???
+            // rightSection={<HiBell/><Badge size="xs" color="dimmed">{notifications.user.length()}</Badge>}
+            component="a" href="/validateur" // component={Link} to="/validateur"
+          >
+            Passer en mode validateur
+          </Menu.Item>;
+    }
+  }
 
   return (
     <Group position="center">
@@ -72,15 +103,9 @@ export default function SwitchUserMenu() {
       >
 	      <Menu.Label>Mon profil</Menu.Label>
 	      <Menu.Item icon={<HiAdjustments />}>Modifier mes infos</Menu.Item>
-	      
-	      { session.role === USER_ROLES.CHEF_DE_SERVICE &&
-	      	<Menu.Item
-	      	  icon={<HiUserGroup />}	// or HiOutlineClipboardCheck ???
-	      	  // rightSection={<HiBell/><Badge size="xs" color="dimmed">{notifications.user.length()}</Badge>}
-	      	>
-	      	  Passer en mode validateur
-	      	</Menu.Item>
-	      }
+
+        {/* TODO: Switch back to /home if already on /validateur */}
+	      { toogleModeItem }
 
 	      <Divider />
 

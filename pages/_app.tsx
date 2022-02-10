@@ -15,6 +15,8 @@ export default function App(props: AppProps) {
   const [appMenuOpened, setAppMenuOpened] = useState(false);
   const mobile = useMediaQuery('(max-width: 768px)');
 
+  console.log(pageProps);
+
   const header = <Header height={75} padding="sm">
     <Group position="apart">
       <Group position="center" spacing="sm">
