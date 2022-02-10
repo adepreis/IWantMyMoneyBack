@@ -84,7 +84,11 @@ const saveNote = async (props: NoteButtonsProps, notifications: NotificationsCon
                 break;
             }
             case "put": {
-                // @TODO: Put case
+                if (isNewLine) {
+                    // Doing nothing since we can't modify a new line
+                } else {
+                    req = await Routes.LINE.edit(localLine, note);
+                }
                 break;
             }
         }

@@ -61,18 +61,18 @@ export const Routes = {
     
             if (request.status === 200) {
                 const result = await request.json();
+                console.log(result);
                 return result;
             } 
             else {
                 // Error while fetching
+                console.log(await request.json()); 
                 return null;
             }
         }
     },
     LINE: {
         create: async (line: UILigne, note: INoteDeFrais) => {
-            // export type TempLigneDeFrais = Omit<ILigneDeFrais, "commentaire_validateur" | "etat"> & {files: File[]};
-
             if (line.UI !== "post") {
                 throw new Error(`Attempted to create a ${line.id} line, but current line need to be ${line.UI}`);
             }
@@ -107,6 +107,64 @@ export const Routes = {
 
             const request = await fetch(`/api/ligne`, {
                 method: 'POST',
+                body: formData
+            });
+
+            if (request.status === 200) {
+                const result = await request.json();
+                return result;
+            } 
+            else {
+                // Error while fetching
+                return null;
+            }
+        },
+        edit: async (line: UILigne, note: INoteDeFrais) => {
+            if (line.UI !== "put") {
+                throw new Error(`Attempted to edit a ${line.id} line, but current line need to be ${line.UI}`);
+            }
+
+            var file: File | null = null;
+            if (!(line as TempLigneDeFrais)?.files) {
+                const {justificatif} = line;
+                if (justificatif !== "") {
+                    // We need to fetch current file
+                    const fileReq = await fetch(justificatif.includes("http") ? justificatif : `/justificatif/${justificatif}`);
+                    if (fileReq.status === 200) {
+                        const blob = await fileReq.blob();
+                        file = new File([blob], justificatif);
+                    }
+                }
+            } else {
+                file = (line as TempLigneDeFrais)?.files?.[0];
+            }
+
+            delete (line as Partial<UILigne>).UI;
+            const tempLine: TempLigneDeFrais = line as TempLigneDeFrais; 
+
+            const body = {
+                id: tempLine.id,
+                titre: tempLine.titre,
+                date: tempLine.date,
+                prixHT: tempLine.prixHT,
+                prixTTC: tempLine.prixTTC,
+                prixTVA: tempLine.prixTVA,
+                type: tempLine.type,
+                justificatif: file,
+                avance: tempLine.avance,
+                commentaire: tempLine.commentaire,
+                perdu: tempLine.perdu, 
+                note: note.id,
+                mission: tempLine.mission.id
+            }
+
+            const formData  = new FormData();
+            for(const name in body) {
+                formData.append(name, (body as any)?.[name]);
+            }
+
+            const request = await fetch(`/api/ligne`, {
+                method: 'PUT',
                 body: formData
             });
 

@@ -333,7 +333,8 @@ export default function EditLineForm(props: LineFormProps) {
 					// maxDate={dayjs(new Date()).endOf('month').subtract(5, 'days').toDate()}
 					{...form.getInputProps('date')}
 					onChange={(date: Date | null) => {
-						form.setFieldValue('date', date)
+						form.setFieldValue('date', date);
+						form.setFieldValue("mission", "")
 						fillMissionData(date, setMissionSelectState, notifications);
 					}}
 					onBlur={() => form.validateField('date')}

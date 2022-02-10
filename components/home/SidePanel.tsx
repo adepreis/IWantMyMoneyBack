@@ -13,23 +13,26 @@ export function renderLineFile(line: NonNullable<UILigne>, theme: MantineTheme) 
     const files = (line as TempLigneDeFrais)?.files ?? [];
     const tempFile = files.find(f => f.name === justificatif);
 
+    const fileURL = justificatif !== "" ? justificatif.includes("http") ? 
+        justificatif : `/justificatif/${justificatif}` : ""
+
     var content = <Group position="center" spacing={7}>
         <HiOutlineXCircle style={{fontSize: "1.2rem"}}/>
         <Text>{"Le type de fichier n'est pas supporté !"}</Text>
     </Group>;
 
-    if ([".png", ".jpeg", ".jpg"].some(fileType => justificatif.includes(fileType))) {
+    if ([".png", ".jpeg", ".jpg"].some(fileType => fileURL.includes(fileType))) {
         content = <Image
-            src={tempFile ? URL.createObjectURL(tempFile) : justificatif}
+            src={tempFile ? URL.createObjectURL(tempFile) : fileURL}
             width="100%"
             height="auto"
             style={{width: "100%"}}
             alt="Justificatif"
         />
     }
-    else if (justificatif.includes(".pdf")) {
+    else if (fileURL.includes(".pdf")) {
         content = <iframe 
-            src={tempFile ? URL.createObjectURL(tempFile) : justificatif}
+            src={tempFile ? URL.createObjectURL(tempFile) : fileURL}
             style={{
                 width: "100%",
                 height: "30vh",
@@ -37,7 +40,7 @@ export function renderLineFile(line: NonNullable<UILigne>, theme: MantineTheme) 
             }}
         ></iframe>
     }
-    else if (justificatif === "") {
+    else if (fileURL === "") {
         content = <Group position="center" spacing={7}>
             <HiOutlineXCircle style={{fontSize: "1.2rem", color: theme.colors.red[6]}}/>
             <Text color={theme.colors.red[6]}>{"Aucun justificatif n'a été fournis."}</Text>
