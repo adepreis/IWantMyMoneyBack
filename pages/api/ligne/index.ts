@@ -26,6 +26,17 @@ const upload = multer({
   }),
 });
 
+export async function deleteFile(filename: string) {
+  var fs = require('fs');
+  if (filename != "") {
+
+    // delete file named filename
+    fs.unlink("./public/justificatif/" + filename, function (err: Error) {
+    });
+  }
+
+}
+
 export async function montantAvance(user: User, mission: Mission, montantAvance: number, montantRembourcement: number) {
   await prepareConnection();
   const conn = await getConnection();
@@ -134,7 +145,9 @@ export async function updateLigne(data: LigneDeFrais, justificatif: string, user
     } else {
       montantRemb = avanceLigne.prixTTC;
     }
+    deleteFile(avanceLigne?.justificatif as string);
   }
+
   var dateUTC = new Date(data.date as any as string);
   const date = dateUTC.toISOString();
 
@@ -225,15 +238,25 @@ apiRoute.post(async (req: any, res: NextApiResponse) => {
 });
 
 apiRoute.put(async (req: any, res: NextApiResponse) => {
+  //cas ou il n'y a pas de fichier 
+  var filename = "";
+
+  //pour avoir les valeur sous forme de boolean 
+  req.body.perdu = req.body.perdu === 'true';
+  req.body.avance = req.body.avance === 'true';
+
+  if (req.file && !req.body.perdu) {
+    filename = req.file.filename;
+  }
 
   var userId: string | null = null;
   const session = await getSession({ req })
   if (session) {
     userId = (session as any)?.id;
   } else {
+    deleteFile(filename);
     res.status(403).json({ error: "acces interdit" as string, code: 403 });
   }
-
   await prepareConnection();
   const conn = getConnection();
   const notes = await conn.getRepository(NoteDeFrais)
@@ -243,18 +266,13 @@ apiRoute.put(async (req: any, res: NextApiResponse) => {
     .getOne();
 
   if (!notes) {
+    deleteFile(filename);
     res.status(404).json({ error: "Notes non trouvée", code: 404 });
   } else if (!(notes.etat === NOTEDEFRAIS_ETAT.BROUILLON || notes.etat === NOTEDEFRAIS_ETAT.REFUSEE)) {
+
     res.status(423).json({ error: "Vous ne pouvez pas mettre à jours cette ligne" as string, code: 423 });
   }
-  //cas ou il n'y a pas de fichier 
-  var filename = "";
-  if (req.file) {
-    filename = req.file.filename;
-  }
-  //pour avoir les valeur sous forme de boolean 
-  req.body.perdu = req.body.perdu === 'true';
-  req.body.avance = req.body.avance === 'true';
+
   if (await updateLigne(req.body, filename, session as any)) {
     res.status(200).json({ resultat: "ligne mise à jours" });
   } else {
