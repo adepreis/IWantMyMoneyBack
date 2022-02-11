@@ -115,7 +115,7 @@ export default function SwitchUserMenu() {
 
 	      <Divider />
 
-	      <Menu.Item onClick={() => signOut()}
+	      <Menu.Item onClick={() => /*preventPageChangeWithEditedNote(),*/ signOut()}
 	      	color="red" icon={<HiOutlineLogout />}
 	      >
 	      	Deconnexion

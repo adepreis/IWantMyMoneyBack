@@ -7,7 +7,7 @@ import Head from 'next/head';
 import { AppProps } from 'next/app';
 import { SessionProvider } from "next-auth/react"
 import "reflect-metadata";
-import SwitchUserMenu from '../components/SwitchUserMenu';
+import UserMenu from '../components/UserMenu';
 import '../styles/globals.scss';
 
 export default function App(props: AppProps) {
@@ -30,7 +30,7 @@ export default function App(props: AppProps) {
           marginBottom: -5
         }} alt="logo"/>
       </Group>
-      <SwitchUserMenu/>
+      <UserMenu/>
     </Group>
   </Header>;
 
