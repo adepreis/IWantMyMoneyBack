@@ -1,4 +1,4 @@
-import { Group, Text, Image, useMantineTheme, MantineTheme, Title } from "@mantine/core";
+import { Group, Text, Image, useMantineTheme, MantineTheme, Title, Textarea } from "@mantine/core";
 import { HiOutlineInformationCircle, HiOutlineXCircle } from "react-icons/hi";
 import { UILigne } from "../../pages/home/[params]";
 import { TempLigneDeFrais } from "../EditLineForm";
@@ -8,7 +8,7 @@ type SidePanelProps = {
 }
 
 export function renderLineFile(line: NonNullable<UILigne>, theme: MantineTheme) {
-    const {justificatif} = line;
+    const {justificatif, avance} = line;
 
     const files = (line as TempLigneDeFrais)?.files ?? [];
     const tempFile = files.find(f => f.name === justificatif);
@@ -47,8 +47,38 @@ export function renderLineFile(line: NonNullable<UILigne>, theme: MantineTheme) 
         </Group>
     }
 
-    return <>
+    return !avance ? <>
         <Title order={3}>Justificatif</Title>
+        {content}
+    </> : <></>
+}
+
+function renderComment(line: NonNullable<UILigne>, theme: MantineTheme) {
+    const {avance, commentaire} = line;
+
+    const content = commentaire === "" ? <Group position="center" spacing={7}>
+        <Text color={theme.colors.yellow[6]}>{"Pas de commentaire"}</Text>
+    </Group> : <Group position="center" spacing={7} style={{width: "100%"}}>
+        <Textarea
+            label="Commentaire"
+            value={commentaire}
+            style={{width: "100%"}}
+            styles={{
+                input: {
+                    cursor: "default",
+                    caretColor: "transparent",
+                    "&:focus": {
+                        border: "0px"
+                    }
+                }
+            }}
+        />
+    </Group>;
+
+    return !avance ? <>
+        {content}
+    </> : <>
+        <Title order={3}>Avance</Title>
         {content}
     </>
 }
@@ -59,6 +89,7 @@ export function SidePanel(props: SidePanelProps) {
 
     const content = viewedLine ? <>
         {renderLineFile(viewedLine, theme)}
+        {renderComment(viewedLine, theme)}
     </> : <Group  position="center" spacing={7}>
         <HiOutlineInformationCircle style={{fontSize: "1.2rem"}}/>
         <Text>{"Aucune ligne n'a été selectionnée !"}</Text>
