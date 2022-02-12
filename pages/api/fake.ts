@@ -56,8 +56,6 @@ export default async function handler(
         const prenom = faker.name.firstName();
         const nom = faker.name.lastName();
         const salt = genSaltSync(10);
-        console.log(prenom);
-        console.log(nom);
         const r = await conn.createQueryBuilder()
             .insert()
             .into(User)
@@ -208,7 +206,7 @@ export default async function handler(
                             {
                                 avance: false,
                                 titre: faker.commerce.product(),
-                                date: faker.date.soon(),
+                                date: faker.date.between(mission.dateDebut.toDateString(),mission.dateFin.toDateString()),
                                 etat: Math.random() > 0.5 ? LIGNEDEFRAIS_ETAT.VALIDEE :
                                     Math.random() > 0.5 ? LIGNEDEFRAIS_ETAT.REFUSEE :
                                         LIGNEDEFRAIS_ETAT.BROUILLON,
