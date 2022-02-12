@@ -225,10 +225,7 @@ export default function EditLineForm(props: LineFormProps) {
 			expenseType: (value) => Object.values(LIGNE_TYPE).includes(value as LIGNE_TYPE),
 			mission: (value) => value !== '',
 			ttc: 	(value) => {
-				const ht = form.values.ht as number;
-				const tva = form.values.tva as number;
-
-				return value > 0 && value === ht + tva;
+				return value > 0;
 			},
 			ht: 	(value) => value > 0.0,
 			tva: 	(value) => value > 0.0,	

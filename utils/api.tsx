@@ -125,7 +125,7 @@ export const Routes = {
             }
 
             var file: File | null = null;
-            if (!(line as TempLigneDeFrais)?.files) {
+            if (!(line as TempLigneDeFrais)?.files || (line as TempLigneDeFrais).files.length === 0) {
                 const {justificatif} = line;
                 if (justificatif !== "") {
                     // We need to fetch current file
