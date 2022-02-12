@@ -71,7 +71,7 @@ async function onYearChange(props: NavigationProps, item: string, modals: Modals
     if (preventPageChangeWithEditedNote(props, modals, action)) return;
 
     // If not edited
-    action();
+    await action();
 }
 
 async function onMonthChange(props: NavigationProps, item: string, modals: ModalsContext) {

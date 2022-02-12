@@ -55,7 +55,7 @@ export default function Home(props: HomeProps) {
       const res = await Routes.NOTE.get(currentNoteId);
       setNote(res);
     } else {
-      setNote(emptyNote(month, year))
+      setNote(emptyNote(year, month))
     }
   }
 

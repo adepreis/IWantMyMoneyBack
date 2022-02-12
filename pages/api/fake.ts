@@ -99,13 +99,11 @@ export default async function handler(
                             avance: false,
                             titre: faker.commerce.product(),
                             date: faker.date.soon(),
-                            validee: 0,
                             prixHT: ht,
                             prixTTC: ht + tva,
                             prixTVA: tva,
                             justificatif: Math.random() > 0.5 ? realFiles[Math.floor(Math.random()*realFiles.length)] : realFiles.concat(wrongFiles)[Math.floor(Math.random()*(realFiles.length + wrongFiles.length))],
                             perdu: false,
-                            raison_avance: "",
                             type: Math.random() > 0.5 ? LIGNE_TYPE.LOGEMENT :
                                 Math.random() > 0.5 ? LIGNE_TYPE.DEPLACEMENT :
                                 Math.random() > 0.5 ? LIGNE_TYPE.EVENEMENT_PROFESSIONNEL :
