@@ -17,9 +17,10 @@ export class User {
     @PrimaryGeneratedColumn('uuid')
     id!: string;
 
+    /*
     @Column({type: "varchar"})
     @Index({ unique: true })
-    public login!: string;
+    public login!: string;*/
 
     @Column({type: "varchar"})
     public password!: string;
