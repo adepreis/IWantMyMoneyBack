@@ -16,7 +16,7 @@ type NoteProps = {
     month: number,
     setMonth: Dispatch<SetStateAction<number>>,
     year: number,
-    refreshProps: () => Promise<void>;
+    refreshProps: (month: number) => Promise<void>;
     edited: boolean;
     setEdited: Dispatch<SetStateAction<boolean>>;
     clearLocalState: boolean;

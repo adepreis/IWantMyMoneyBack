@@ -22,7 +22,7 @@ type NoteButtonsProps = {
     month: number;
     setMonth: Dispatch<SetStateAction<number>>;
     year: number;
-    refreshProps: () => Promise<void>;
+    refreshProps: (month: number) => Promise<void>;
     localLines: UILigne[];
     setLocalLines: Dispatch<SetStateAction<UILigne[]>>;
 }
@@ -55,11 +55,8 @@ const saveNote = async (props: NoteButtonsProps, notifications: NotificationsCon
         }
     }
 
-    setMonth(month);
     setNote(null);
     setLocalLines([]);
-    await router.replace(router.asPath);
-    await refreshProps();
 
     // Procéder à la sauvegarde des lignes
     for (const localLine of localLines) {
@@ -109,6 +106,10 @@ const saveNote = async (props: NoteButtonsProps, notifications: NotificationsCon
         title: 'Note sauvegardée !',
         message: `La note de ${dayjs.months()[note.mois]} ${note.annee} a été sauvegardée !`,
     })
+
+    await router.replace(router.asPath);
+    await refreshProps(month);
+    setMonth(month);
   }
 
 const deleteNote = async (props: NoteButtonsProps, notifications: NotificationsContextProps, modals: ModalsContext) => {
@@ -153,7 +154,7 @@ const deleteNote = async (props: NoteButtonsProps, notifications: NotificationsC
             setMonth(month);
             setNote(null);
             await router.replace(router.asPath);
-            await refreshProps();
+            await refreshProps(month);
         
             notifications.showNotification({
                 title: 'Brouillon supprimé !',
