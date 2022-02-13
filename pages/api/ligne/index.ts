@@ -16,6 +16,18 @@ import { Avance } from '../../../entity/avance.entity';
 import { Mission } from '../../../entity/mission.entity';
 import { User } from '../../../entity/user.entity';
 
+import dayjs from 'dayjs'
+import "dayjs/locale/fr";
+import localeData from "dayjs/plugin/localeData";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+//dayjs.extend(localeData);
+dayjs.extend(utc)
+dayjs.extend(timezone)
+dayjs.tz.setDefault("France/Paris")
+dayjs().format();
+//dayjs.locale("fr");
+
 const upload = multer({
   storage: multer.diskStorage({
     destination: './public/justificatif',
@@ -86,18 +98,15 @@ export async function insertLigne(data: LigneDeFrais, justificatif: string, user
       .createQueryBuilder("mission")
       .where("id = :id", { id: data.mission })
       .getOne();
-
-    var dateUTC = new Date(data.date as any as string);
-    const date = dateUTC.toISOString();
-
+    var date = dayjs((data.date as any as string).substring(0, 15));
     await conn.createQueryBuilder()
       .insert()
       .into(LigneDeFrais)
       .values([
         {
           titre: data.titre,
-          date: date.substring(0, 10),
-          prixHT: data.prixTTC,
+          date: date.get('year')+"-"+(date.get('month')+1)+"-"+date.get('date'),
+          prixHT: data.prixHT,
           prixTTC: data.prixTTC,
           prixTVA: data.prixTVA,
           type: data.type,
@@ -148,15 +157,14 @@ export async function updateLigne(data: LigneDeFrais, justificatif: string, user
     deleteFile(avanceLigne?.justificatif as string);
   }
 
-  var dateUTC = new Date(data.date as any as string);
-  const date = dateUTC.toISOString();
+  var date = dayjs((data.date as any as string).substring(0, 15));
 
   const ligne = await conn.createQueryBuilder()
     .update(LigneDeFrais)
     .set(
       {
         titre: data.titre,
-        date: date.substring(0, 10),
+        date: date.get('year')+"-"+(date.get('month')+1)+"-"+date.get('date'),
         prixHT: data.prixHT,
         prixTTC: data.prixTTC,
         prixTVA: data.prixTVA,
