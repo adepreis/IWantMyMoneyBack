@@ -158,10 +158,15 @@ export default function NoteButtons(props: NoteButtonsProps) {
             </>
         }
         <Group style={{paddingLeft: "1rem"}}>
-            <PopoverButton disabled={!editable || localLines.length === 0} label="Vous ne pouvez pas sauvegarder une note dans cet état.">
+            <PopoverButton disabled={!editable || localLines.length === 0} label="Vous ne pouvez pas enregistrer une note dans cet état.">
                 <Button variant="outline"
                     onClick={() => saveNote(props, notifications)}
-                >Sauvegarder</Button>
+                >ENREGISTRER</Button>
+            </PopoverButton>
+            <PopoverButton disabled={!editable || localLines.length === 0} label="Vous ne pouvez pas enregistrer et demander la validation d'une note dans cet état.">
+                <Button variant="outline"
+                    //onClick={() => saveNote(props, notifications)}
+                >ENREGISTRER ET DEMANDER LA VALIDATION</Button>
             </PopoverButton>
             <PopoverButton disabled={!editable} label="Vous ne pouvez pas supprimer une note dans cet état.">
                 <Button variant="outline" color="red"
