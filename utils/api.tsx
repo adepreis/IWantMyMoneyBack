@@ -63,5 +63,19 @@ export const Routes = {
                 return null;
             }
         }
+    },
+    VALIDATEUR: {
+        get: async () => {
+            const request = await fetch(`/api/validateur/home`);
+    
+            if (request.status === 200) {
+                const result = await request.json();
+                return result;
+            } 
+            else {
+                // Error while fetching
+                return null;
+            }
+        }
     }
 }

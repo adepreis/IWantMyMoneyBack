@@ -62,7 +62,6 @@ export default function SwitchUserMenu() {
   var re = /validateur/g;
   var str = router.route;
   var isOnValidatorRoute = str.match(re) !== null;
-  console.log(isOnValidatorRoute);
 
   // Menu only available when the user is logged in
   if(!session)

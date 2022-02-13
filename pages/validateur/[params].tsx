@@ -1,82 +1,75 @@
-import { Group, Title, Text, Card, Chips, Chip, Avatar, TextInput, Select } from '@mantine/core'
-import { HiSearch, HiClock, HiCheck } from "react-icons/hi";
+import { Group, Alert } from '@mantine/core'
+import { HiOutlineSearchCircle } from "react-icons/hi";
 import type { GetServerSideProps } from 'next'
 import { Session } from 'next-auth'
 import { getSession } from 'next-auth/react'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 // import { getValidatorNote, ValidatorNote } from '../api/home'
-// import { INoteDeFrais } from '../../entity/notedefrais.entity'
-// import { NOTEDEFRAIS_ETAT } from '../../entity/utils'
+import { INoteDeFrais } from '../../entity/notedefrais.entity'
+import { NOTEDEFRAIS_ETAT } from '../../entity/utils'
 // import { ILigneDeFrais } from '../../entity/lignedefrais.entity'
-// import Note from '../../components/home/Note'
-// import { Routes } from '../../utils/api'
+import ValidatorFilters from '../../components/validateur/ValidatorFilters'
+import CardNote from '../../components/validateur/CardNote'
+import { Routes } from '../../utils/api'
 
 export interface ValidatorProps {
   session: Session | null
 }
 
 export default function Validator(props: ValidatorProps) {
-  const router = useRouter();
   // array of strings value when multiple is true
-  const [value, setValue] = useState(['pending', 'todo'])
-  const [filterBy, setFilter] = useState('date_ascending');
+  const [query, setQuery] = useState('');
+  // const [queryHasResult, setQueryHasResult] = useState(true);
+  const [sortStrategy, setSortStrategy] = useState('date_ascending');
+  const [filters, setFilters] = useState(['pending', 'todo']);
+
+  const [notes, setNotes] = useState([] as INoteDeFrais[]);
+
+  const updateNotesState = async () => {
+    const res = await Routes.VALIDATEUR.get();
+    /* TODO: handle res==null ? */
+  
+    const filteredNotes = res.filter((note: INoteDeFrais, noteIndex: number) => {
+      return (note.etat === NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION ||
+              note.etat === NOTEDEFRAIS_ETAT.VALIDEE);
+    })
+
+    setNotes(filteredNotes);
+  }
+
+  useEffect(() => {
+    updateNotesState();
+  }, []);
 
   return <Group grow direction="row" style={{width: "100%", margin: 20}}>
-    <Group direction="column" style={{height: "100%", maxWidth: "20%"}} spacing="md">
-      <Title order={4}>Filtres</Title>
-      <TextInput
-        placeholder="Rechercher"
-        icon={<HiSearch />}
-      />
-      <Select
-        label="Trier par :"
-        // placeholder="Pick one"
-        defaultValue={filterBy}
-        data={[
-          { value: 'date_ascending', label: 'Date de dépot (croissant)' },
-          { value: 'date_descending', label: 'Date de dépot (décroissant)' },
-          { value: 'alphabet_order', label: 'Ordre alphabétique' },
-          { value: 'alphabet_reverse', label: 'Ordre alphabétique inverse' },
-        ]}
-      />
-      <Chips value={value} onChange={setValue}
-        multiple variant="filled" direction="column">
-        <Chip value="pending">En cours de validation</Chip>
-        <Chip value="todo">Non traitées</Chip>
-        <Chip value="valid">Validées</Chip>
-      </Chips>
-    </Group>
-    <Group direction="column" style={{height: "100%", maxWidth: "80%"}} spacing="sm">
-      <Text>🚧 Ceci sera la future page validateur / Texte si recherche infructueuse 🚧</Text>
-    {/* Card examples : */}
-      <Card style={{ margin: 10, width: "8em", maxHeight: "8em", borderColor: "white" }}
-        component="a" padding="xl" shadow="sm" radius="md" withBorder={true}
-        href={router.pathname.replace("[params]", "note/123456789")}
-      >
-        <Card.Section><Avatar size="lg" radius="xl" /><HiClock /></Card.Section>
-        <Card.Section><Title order={5}>Prénom Nom</Title></Card.Section>
-        <Card.Section><Text>Mois Année</Text></Card.Section>
-      </Card>
+    <ValidatorFilters keyword={query}
+      setKeyword={setQuery}
+      sortStrategy={sortStrategy}
+      setSortStrategy={setSortStrategy}
+      filters={filters}
+      setFilters={setFilters}/>
 
-      <Card style={{ margin: 10, width: "8em", maxHeight: "8em", borderColor: "green" }}
-        component="a" padding="xl" shadow="sm" radius="md" withBorder={true}
-        href={router.pathname.replace("[params]", "note/123456789")}
-      >
-        <Card.Section><Avatar size="lg" radius="xl" /><HiCheck color="green" /></Card.Section>
-        <Card.Section><Title order={5}>Prénom Nom</Title></Card.Section>
-        <Card.Section><Text>Mois Année</Text></Card.Section>
-      </Card>
+    {/* TO FIX : ON SMALLER DEVICES, A HUGE GAP APPEARS "HERE" */}
 
-      <Card style={{ margin: 10, width: "8em", maxHeight: "8em", borderColor: "green" }}
-        component="a" padding="xl" shadow="sm" radius="md" withBorder={true}
-        href={router.pathname.replace("[params]", "note/123456789")}
-      >
-        <Card.Section><Avatar size="lg" radius="xl" /><HiCheck color="green" /></Card.Section>
-        <Card.Section><Title order={5}>Prénom Nom</Title></Card.Section>
-        <Card.Section><Text>Mois Année</Text></Card.Section>
-      </Card>
+    <Group direction="column" style={{height: "100%", maxWidth: "80%"}} spacing="sm" position="center">
+      {/* TODO: set hidden attribute according to a state "queryHasResult" */}
+      <Alert hidden={false} icon={<HiOutlineSearchCircle size={25} />}
+        title="TODO: conditional alert" color="gray" radius="md" variant="filled">
+        Aucune note ne correspond au critères de recherche que vous avez entrés.
+      </Alert>
+
+      <Group direction="row" style={{width: "90%", margin: 25}}>
+        { notes.map((note: INoteDeFrais, noteIndex: number) => {
+            // TODO: apply filters ('pending', 'todo', 'valid')
+            // TODO: apply "page" filters (params as/selected year and default/selected month)
+            // TODO: order by sortStrategy
+            // TODO: find keyword (+ toogle "queryHasResult" state ?)
+            return <CardNote key={noteIndex} note={note}/>
+          }
+        )}
+      </Group>
+
     </Group>
   </Group>
 }
