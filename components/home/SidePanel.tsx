@@ -24,9 +24,14 @@ export function renderLineFile(line: NonNullable<UILigne>, theme: MantineTheme) 
     if ([".png", ".jpeg", ".jpg"].some(fileType => fileURL.includes(fileType))) {
         content = <Image
             src={tempFile ? URL.createObjectURL(tempFile) : fileURL}
-            width="100%"
+            width="auto"
             height="auto"
-            style={{width: "100%"}}
+            styles={{
+                image: {
+                    maxWidth: "100%",
+                    maxHeight: "30vh"
+                },
+            }}
             alt="Justificatif"
         />
     }

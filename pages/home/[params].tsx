@@ -78,7 +78,10 @@ export default function Home(props: HomeProps) {
         setNote={setNote}
         month={month} 
         year={year}
-        refreshProps={async () => {await updateNoteState(-1)}}
+        refreshProps={async (month: number) => {
+          await updateNoteState(-1)
+          await updateNoteState(month)
+        }}
         edited={edited}
         setEdited={setEdited}
         clearLocalState={clearLocalState}

@@ -157,7 +157,7 @@ export async function updateLigne(data: LigneDeFrais, justificatif: string, user
       {
         titre: data.titre,
         date: date.substring(0, 10),
-        prixHT: data.prixTTC,
+        prixHT: data.prixHT,
         prixTTC: data.prixTTC,
         prixTVA: data.prixTVA,
         type: data.type,
