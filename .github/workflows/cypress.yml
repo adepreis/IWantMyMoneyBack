@@ -6,12 +6,36 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Start containers
-        run: npm run db
+      - name: Shutdown Ubuntu MySQL (SUDO)
+        run: sudo service mysql stop
+      - name: Create env file
+        run: |
+          touch .env
+          echo SECRET=$(openssl rand -base64 32) >> .env
+          echo NEXTAUTH_URL=http://localhost:3000 >> .env
+          echo DB_CONNECTION=mysql >> .env
+          echo DB_HOST=localhost >> .env
+          echo DB_USERNAME=root >> .env
+          echo DB_PASSWORD=example >> .env
+          echo DB_DATABASE=iwantmymoneyback >> .env
+          echo DB_PORT=3306 >> .env
+          echo DB_SYNCHRONIZE=true >> .env
+          echo DB_LOGGING=false >> .env
+          cat .env
+      - name: Set up MySQL
+        uses: mirromutth/mysql-action@v1.1
+        with:
+          host port: 3306
+          container port: 3306
+          character set server: 'utf8'
+          collation server: 'utf8_general_ci'
+          mysql version: '8.0'
+          mysql database: 'iwantmymoneyback'
+          mysql root password: 'example'
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
           spec: cypress/integration/projet-gl/*.js
           start: npm start
           # quote the url to be safe against YML parsing surprises
-          wait-on: 'http://localhost:3000'
+          wait-on: 'http://localhost:3000/'
