@@ -25,14 +25,21 @@ jobs:
           echo DB_LOGGING=false >> .env
           cat .env
 
-      - name: 🐬 Set up MySQL
-        uses: mirromutth/mysql-action@v1.1
+      # - name: 🐬 Set up MySQL
+      #   uses: mirromutth/mysql-action@v1.1
+      #   with:
+      #     host port: 3306
+      #     container port: 3306
+      #     character set server: 'utf8'
+      #     collation server: 'utf8_general_ci'
+      #     mysql version: '8.0'
+      #     mysql database: 'iwantmymoneyback'
+      #     mysql root password: 'example'
+
+      - name: 🦭 Set up MariaDB
+        uses: getong/mariadb-action@v1.1
         with:
-          host port: 3306
-          container port: 3306
-          character set server: 'utf8'
-          collation server: 'utf8_general_ci'
-          mysql version: '8.0'
+          mariadb version: '10.6'
           mysql database: 'iwantmymoneyback'
           mysql root password: 'example'
 
