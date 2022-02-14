@@ -1,0 +1,17 @@
+name: Main workflow
+on: [push]
+jobs:
+  cypress-run:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Start containers
+        run: npm run db
+      - name: Cypress run
+        uses: cypress-io/github-action@v2
+        with:
+          spec: cypress/integration/projet-gl/*.js
+          start: npm start
+          # quote the url to be safe against YML parsing surprises
+          wait-on: 'http://localhost:3000'
