@@ -4,11 +4,13 @@ jobs:
   cypress-run:
     runs-on: ubuntu-20.04
     steps:
-      - name: Checkout
+      - name: 🔀 Checkout
         uses: actions/checkout@v2
-      - name: Shutdown Ubuntu MySQL (SUDO)
+
+      - name: 🧹 Shutdown Ubuntu MySQL (SUDO)
         run: sudo service mysql stop
-      - name: Create env file
+
+      - name: 🔐 Create env file
         run: |
           touch .env
           echo SECRET=$(openssl rand -base64 32) >> .env
@@ -22,7 +24,8 @@ jobs:
           echo DB_SYNCHRONIZE=true >> .env
           echo DB_LOGGING=false >> .env
           cat .env
-      - name: Set up MySQL
+
+      - name: 🐬 Set up MySQL
         uses: mirromutth/mysql-action@v1.1
         with:
           host port: 3306
@@ -32,7 +35,14 @@ jobs:
           mysql version: '8.0'
           mysql database: 'iwantmymoneyback'
           mysql root password: 'example'
-      - name: Cypress run
+
+      - name: 🧰 Install dependencies
+        run: npm ci
+
+      - name: 📦 Build project
+        run: npm run build --if-present
+
+      - name: 🐛 Cypress run
         uses: cypress-io/github-action@v2
         with:
           spec: cypress/integration/projet-gl/*.js
