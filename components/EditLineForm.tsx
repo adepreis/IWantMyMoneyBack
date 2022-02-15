@@ -83,6 +83,7 @@ type LineFormProps = {
   	linesToSave: UILigne[],
   	setLineToSave: React.Dispatch<React.SetStateAction<UILigne[]>>,
   	note: INoteDeFrais | EmptyNote,
+	setViewedLine: Dispatch<SetStateAction<UILigne | null>>
 }
 
 type MissionSelectState = {
@@ -194,35 +195,36 @@ export default function EditLineForm(props: LineFormProps) {
 
 	const checkHtTva = (value: number): boolean => {
 		return form.values.repaymentMode === "advance" || value > 0.0;
-	} 
+	}
+
+	const initialValues = props?.line ? {
+		repaymentMode: props.line.avance ? "advance" : "expense",
+		lineTitle: props.line.titre,
+		date: dayjs(props.line.date).toDate(),
+		expenseType: props.line.type,
+		mission: props.line.mission.id,
+		ttc:  props.line.prixTTC,
+		ht: props.line.prixHT,
+		tva: props.line.prixTVA,
+		lost: props.line.perdu,
+		justification: props.line.justificatif,
+		comment: props.line.commentaire,
+	} : {
+		repaymentMode: "expense",
+		lineTitle: "",
+		date: null,
+		expenseType: "",
+		mission: "",
+		ttc: 0.000,
+		ht: 0.000,
+		tva: 0.000,
+		lost: false,
+		justification: "",
+		comment: "",
+	}
 
 	const form = useForm({
-		initialValues: props?.line ? {
-			repaymentMode: props.line.avance ? "advance" : "expense",
-			lineTitle: props.line.titre,
-			date: dayjs(props.line.date).toDate(),
-			expenseType: props.line.type,
-			mission: props.line.mission.id,
-			ttc:  props.line.prixTTC,
-			ht: props.line.prixHT,
-			tva: props.line.prixTVA,
-			lost: props.line.perdu,
-			justification: props.line.justificatif,
-			comment: props.line.commentaire,
-		} : {
-			repaymentMode: "expense",
-			lineTitle: "",
-			date: null,
-			expenseType: "",
-			mission: "",
-			ttc: 0.000,
-			ht: 0.000,
-			tva: 0.000,
-			lost: false,
-			justification: "",
-			comment: "",
-		},
-
+		initialValues,
 		validationRules: {
 			lineTitle: (value) => value.trim().length >= 5,
 			date: (value) => value !== null,
@@ -242,7 +244,8 @@ export default function EditLineForm(props: LineFormProps) {
 					return value;  
 				}
 
-				const res = (!(props?.line as TempLigneDeFrais)?.files && dropzone.files.length === 0) || dropzone.files.length > 0;
+				const res = (props?.line && !props.line.id.includes("temp-") && dropzone.files.length === 0) || 
+					dropzone.files.length > 0;
 
 				setDropzone({
 					...dropzone,
@@ -263,7 +266,15 @@ export default function EditLineForm(props: LineFormProps) {
 
 	const handleSubmit = async (values: typeof form['values']) => {
 		setLoading(true);
-		console.log(values);
+		console.log(values, initialValues);
+
+		var areSame = true;
+		for (const key in values) {
+			if (JSON.stringify((values as any)?.[key]) !== JSON.stringify((initialValues as any )?.[key])) {
+				console.log((values as any)?.[key], (initialValues as any )?.[key]);
+				areSame = false;
+			}
+		}
 
 		var tempLine: TempLigneDeFrais = {
 			avance: (values.repaymentMode === "advance" ? true : false),
@@ -275,14 +286,14 @@ export default function EditLineForm(props: LineFormProps) {
 			prixHT: values.ht,
 			prixTVA: values.tva,
 			perdu: values.lost,
-			justificatif: dropzone.files?.[0]?.name ?? props?.line?.justificatif ?? "",
+			justificatif: values.lost ? "" : dropzone.files?.[0]?.name ?? props?.line?.justificatif ?? "",
 			commentaire: values.comment,
 			files: !values.lost && dropzone.files ? dropzone.files : [],
 			id: props?.line?.id ? props.line.id : `temp-${props.linesToSave.length}`
 		}
 
 		// Line Exist
-		if (props?.line) {
+		if (!areSame && props?.line) {
 			// Line was created and is edited
 			if (props.line.id.includes("temp-")) {
 				const newLinesToSave = props.linesToSave.map(l => {
@@ -291,6 +302,7 @@ export default function EditLineForm(props: LineFormProps) {
 							...tempLine,
 							UI: "post" // Keeps "post" action since the line is not stored in DB
 						}
+						props.setViewedLine(temp);
 						return temp;
 					}
 					return l;
@@ -299,9 +311,11 @@ export default function EditLineForm(props: LineFormProps) {
 			} else { // Line is stored in database an is edited
 				const filtered = props.linesToSave.filter(l => l.id !== props?.line?.id);
 				props.setLineToSave([...filtered, {...tempLine, UI: "put"}]);
+				props.setViewedLine({...tempLine, UI: "put"})
 			}
-		} else { // Line does not exists
+		} else if (!areSame) { // Line does not exists
 			props.setLineToSave([...props.linesToSave, {...tempLine, UI: "post"}]);
+			props.setViewedLine({...tempLine, UI: "post"})
 		}
 		props.setOpened(false);
 	};

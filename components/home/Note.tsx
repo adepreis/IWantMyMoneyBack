@@ -95,7 +95,8 @@ export default function Note(props: NoteProps) {
             editedLine={editedLine} 
             note={note} 
             opened={openedModal} setOpened={setOpenedModal}
-            localLines={localLines} setLocalLinse={setLocalLines}
+            localLines={localLines} setLocalLine={setLocalLines}
+            setViewedLine={setViewedLine}
         />
         <Grid grow style={{width: "100%", height: "100%"}}>
             <Grid.Col span={8}>

@@ -8,7 +8,9 @@ type SidePanelProps = {
 }
 
 export function renderLineFile(line: NonNullable<UILigne>, theme: MantineTheme) {
-    const {justificatif, avance} = line;
+    const {avance, perdu} = line;
+
+    const justificatif = perdu ? "" : line.justificatif;
 
     const files = (line as TempLigneDeFrais)?.files ?? [];
     const tempFile = files.find(f => f.name === justificatif);
@@ -66,6 +68,7 @@ function renderComment(line: NonNullable<UILigne>, theme: MantineTheme) {
     </Group> : <Group position="center" spacing={7} style={{width: "100%"}}>
         <Textarea
             label="Commentaire"
+            onChange={() => {}}
             value={commentaire}
             style={{width: "100%"}}
             styles={{
