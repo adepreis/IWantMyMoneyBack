@@ -1,5 +1,5 @@
 // Mettre des .wait(X) et des .pause()
-// Commnter le code pour bien se repérer
+// Commenter le code pour bien se repérer
 
 describe('Tests sur la connexion', () => {
 
@@ -84,7 +84,8 @@ describe('Tests sur les lignes de frais', () => {
     })
     cy.get('div[role=option]').eq(count-1) // Sélection de la dernière mission dans la liste
       .click()
-    
+    cy.wait(1000)
+
     cy.get('form').contains('Montant HT').parent().children().should('have.length', 2).last().clear().type('38.82')
     cy.get('form').contains('Montant TVA').parent().children().should('have.length', 2).last().clear().type('3.88')
     const filepath = 'restau1.jpg'
@@ -168,8 +169,47 @@ describe('Tests sur les lignes de frais', () => {
     cy.wait(2000)
   })
 
-  // ICI, faire un test sur l'avance (pour pouvoir avoir une note à supprimer pour le Scénario 4 des Notes)
+  // Beaucoup de bugs:
+  // - Chargement infini après suppression d'une note
+  // - Cliquer 2 fois le radio button de la demande d'avance pour que ca marche
+  // - Affichage de la ligne de demande d'avance non appropriée (des choses qui sont à afficher différemment des simples lignes de frais)
+  it('Scénario 5 - Demander une avance', () => {
+    cy.get('label').eq(2).click()
+    cy.wait(2000)
+    cy.get('button').first().click()
+    cy.wait(1000)
+    cy.get('form').find('input[type=radio]').last().check()
+    cy.get('form').find('input[type=radio]').last().check()
+    cy.wait(5000)
+    cy.pause()
+    cy.get('form').find('[placeholder="Donnez un titre à cette ligne de frais"]').last().type('Frais de logement')
+    cy.get('form').find('[placeholder="Sélectionnez la date"]').click()
+    cy.wait(2000)
+    cy.get('table').last().find('td').eq(17).click()
+    cy.wait(1000)
+    cy.get('form').find('[placeholder="Sélectionnez le type de frais"]').click()
+    cy.wait(2000)
+    cy.contains('LOGEMENT').click()
+    cy.get('form').find('[placeholder="Sélectionnez la mission associée"]').click()
+    cy.wait(3000)
 
+    let count = 0
+    cy.get('div[role=option]').then($elements => {
+      count = $elements.length
+    })
+    cy.get('div[role=option]').eq(count-2) // Sélection de l'avant dernière mission dans la liste
+      .click()
+    cy.wait(1000)
+
+    cy.get('form').contains('Montant TTC').parent().children().should('have.length', 2).last().clear().type('110')
+    cy.get('form').find('button').last().click()
+    cy.wait(2000)
+    // Vérification de l'affichage de cette ligne de frais dans la note [après sauvegarde]
+    cy.get('button').eq(1).click()
+    cy.wait(5000)
+    cy.get('h3').contains('Carroll - Reichert').click()
+    cy.wait(2000)
+  })
 
 })
 
@@ -250,6 +290,17 @@ describe('Tests sur les notes de frais', () => {
     cy.wait(2000)
     cy.contains('Aucun justificatif n\'a été fournis.')
     cy.contains('Pas de commentaire')
+
+    // Puis on va supprimer la ligne que l'on a créer au tout début, en n'oubliant pas de sauvegarder.
+    // La ligne devrait disparaître.
+    cy.get('tbody').find('tr').contains('Repas professionnel').parent().children().last().find('button').last().click()
+    cy.wait(3000)
+    cy.get('button').last().click()
+    cy.wait(2000)
+    cy.get('button').eq(1).click()
+    cy.wait(5000)
+    // Vérification
+    cy.get('button').should('have.length', 11) // les 3 premiers + 1/mission + 3/ligne
   })
 
   it('Scénario 4 - Supprimer la note de frais', () => {
