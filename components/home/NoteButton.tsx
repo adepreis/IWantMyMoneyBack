@@ -5,7 +5,7 @@ import { NotificationsContextProps } from "@mantine/notifications/lib/types"
 import dayjs from "dayjs"
 import router from "next/router"
 import { Dispatch, SetStateAction } from "react"
-import { HiPlus } from "react-icons/hi"
+import { HiPlus, HiSave, HiPaperAirplane, HiTrash } from "react-icons/hi"
 import { INoteDeFrais } from "../../entity/notedefrais.entity"
 import { NOTEDEFRAIS_ETAT } from "../../entity/utils"
 import { UILigne, UINote } from "../../pages/home/[params]"
@@ -221,16 +221,19 @@ export default function NoteButtons(props: NoteButtonsProps) {
         {editable && <Group style={{paddingLeft: "1rem"}}>
             <PopoverButton disabled={!editable || localLines.length === 0} label="Vous ne pouvez pas enregistrer une note dans cet état.">
                 <Button variant="outline"
+                    leftIcon={<HiSave size={16} />}
                     onClick={() => saveNote(props, notifications)}
                 >Sauvegarder</Button>
             </PopoverButton>
             <PopoverButton disabled={!editable || localLines.length !== 0 || !(note as INoteDeFrais).id} label="Vous ne pouvez pas enregistrer et demander la validation d'une note dans cet état.">
                 <Button variant="outline"
+                    leftIcon={<HiPaperAirplane size={16} />}
                     onClick={() => sendNote(props, notifications)}
                 >Demande de validation</Button>
             </PopoverButton>
             <PopoverButton disabled={!editable} label="Vous ne pouvez pas supprimer une note dans cet état.">
                 <Button variant="outline" color="red"
+                    leftIcon={<HiTrash size={16} />}
                     onClick={() => deleteNote(props, notifications, modals)}
                 >Supprimer</Button>
             </PopoverButton>
