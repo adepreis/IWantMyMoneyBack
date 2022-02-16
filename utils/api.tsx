@@ -36,6 +36,25 @@ export const Routes = {
                 return null;
             }
         },
+        edit: async (id: string) => {
+            const request = await fetch(`/api/`, {
+                method: "PUT",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({id})
+            });
+    
+            if (request.status === 200) {
+                const result = await request.json();
+                return result;
+            } 
+            else {
+                // Error while fetching
+                return null;
+            }
+        },
         delete: async (id: string) => {
             const request = await fetch(`/api/${id}`, {
                 method: "DELETE",

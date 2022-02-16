@@ -110,7 +110,41 @@ const saveNote = async (props: NoteButtonsProps, notifications: NotificationsCon
     await router.replace(router.asPath);
     await refreshProps(month);
     setMonth(month);
-  }
+}
+
+const sendNote = async (props: NoteButtonsProps, notifications: NotificationsContextProps) => {
+    const {notes, month, setMonth, setNote, refreshProps} = props;
+    const note = notes.find(n => n.mois === month);
+
+    if (!note) {
+        notifications.showNotification({
+            title: 'Erreur !',
+            color: "red",
+            message: `Nous venons de rencontrer un problème 😔`,
+        });
+        return;
+    } else {
+        const temp = await Routes.NOTE.edit(note.id);
+        if (!temp) {
+            notifications.showNotification({
+                title: 'Erreur !',
+                color: "red",
+                message: `Nous venons de rencontrer un problème 😔`,
+            })
+            return;
+        }
+    }
+
+    setMonth(month);
+    setNote(null);
+    await router.replace(router.asPath);
+    await refreshProps(month);
+
+    notifications.showNotification({
+        title: 'Note soumise à validation !',
+        message: `La note de ${dayjs.months()[note.mois]} ${note.annee} a été soumise à validation !`,
+    });
+}
 
 const deleteNote = async (props: NoteButtonsProps, notifications: NotificationsContextProps, modals: ModalsContext) => {
     modals.openConfirmModal({
@@ -184,22 +218,22 @@ export default function NoteButtons(props: NoteButtonsProps) {
                 <Space w="md"/>
             </>
         }
-        <Group style={{paddingLeft: "1rem"}}>
+        {editable && <Group style={{paddingLeft: "1rem"}}>
             <PopoverButton disabled={!editable || localLines.length === 0} label="Vous ne pouvez pas enregistrer une note dans cet état.">
                 <Button variant="outline"
                     onClick={() => saveNote(props, notifications)}
-                >ENREGISTRER</Button>
+                >Sauvegarder</Button>
             </PopoverButton>
-            <PopoverButton disabled={!editable || localLines.length === 0} label="Vous ne pouvez pas enregistrer et demander la validation d'une note dans cet état.">
+            <PopoverButton disabled={!editable || localLines.length !== 0 || !(note as INoteDeFrais).id} label="Vous ne pouvez pas enregistrer et demander la validation d'une note dans cet état.">
                 <Button variant="outline"
-                    //onClick={() => saveNote(props, notifications)}
-                >ENREGISTRER ET DEMANDER LA VALIDATION</Button>
+                    onClick={() => sendNote(props, notifications)}
+                >Demande de validation</Button>
             </PopoverButton>
             <PopoverButton disabled={!editable} label="Vous ne pouvez pas supprimer une note dans cet état.">
                 <Button variant="outline" color="red"
                     onClick={() => deleteNote(props, notifications, modals)}
                 >Supprimer</Button>
             </PopoverButton>
-        </Group>
+        </Group>}
     </Group>
 }
