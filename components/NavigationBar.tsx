@@ -1,4 +1,4 @@
-import { Group, SegmentedControl, Center, Select, Text } from '@mantine/core';
+import { Group, SegmentedControl, Center, Select, Text, ScrollArea } from '@mantine/core';
 import router from 'next/router';
 import { Dispatch, SetStateAction, Props } from 'react';
 import { HiClock, HiXCircle, HiCheck } from 'react-icons/hi';
@@ -71,7 +71,7 @@ async function onYearChange(props: NavigationProps, item: string, modals: Modals
     if (preventPageChangeWithEditedNote(props, modals, action)) return;
 
     // If not edited
-    action();
+    await action();
 }
 
 async function onMonthChange(props: NavigationProps, item: string, modals: ModalsContext) {
@@ -141,12 +141,13 @@ export default function NavigationBar(props: NavigationProps) {
             onChange={(item: string) => onYearChange(props, item, modals)}
             style={{ flex: "unset" }}
         />
-        <SegmentedControl 
-            style={{flex: 1}}
-            value={`${month}`}
-            onChange={(item: string) => onMonthChange(props, item, modals)} 
-            fullWidth 
-            data={getSegmentedData(props)}
-        />
+        <ScrollArea style={{flex: 1}}>
+            <SegmentedControl 
+                value={`${month}`}
+                onChange={(item: string) => onMonthChange(props, item, modals)} 
+                fullWidth 
+                data={getSegmentedData(props)}
+            />
+        </ScrollArea>
     </Group> 
 }

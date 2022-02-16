@@ -16,6 +16,18 @@ import { Avance } from '../../../entity/avance.entity';
 import { Mission } from '../../../entity/mission.entity';
 import { User } from '../../../entity/user.entity';
 
+import dayjs from 'dayjs'
+import "dayjs/locale/fr";
+import localeData from "dayjs/plugin/localeData";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+//dayjs.extend(localeData);
+dayjs.extend(utc)
+dayjs.extend(timezone)
+dayjs.tz.setDefault("France/Paris")
+dayjs().format();
+//dayjs.locale("fr");
+
 const upload = multer({
   storage: multer.diskStorage({
     destination: './public/justificatif',
@@ -25,6 +37,17 @@ const upload = multer({
     }
   }),
 });
+
+export async function deleteFile(filename: string) {
+  var fs = require('fs');
+  if (filename != "") {
+
+    // delete file named filename
+    fs.unlink("./public/justificatif/" + filename, function (err: Error) {
+    });
+  }
+
+}
 
 export async function montantAvance(user: User, mission: Mission, montantAvance: number, montantRembourcement: number) {
   await prepareConnection();
@@ -75,18 +98,15 @@ export async function insertLigne(data: LigneDeFrais, justificatif: string, user
       .createQueryBuilder("mission")
       .where("id = :id", { id: data.mission })
       .getOne();
-
-    var dateUTC = new Date(data.date as any as string);
-    const date = dateUTC.toISOString();
-
+    var date = dayjs((data.date as any as string).substring(0, 15));
     await conn.createQueryBuilder()
       .insert()
       .into(LigneDeFrais)
       .values([
         {
           titre: data.titre,
-          date: date.substring(0, 10),
-          prixHT: data.prixTTC,
+          date: date.get('year')+"-"+(date.get('month')+1)+"-"+date.get('date'),
+          prixHT: data.prixHT,
           prixTTC: data.prixTTC,
           prixTVA: data.prixTVA,
           type: data.type,
@@ -134,15 +154,18 @@ export async function updateLigne(data: LigneDeFrais, justificatif: string, user
     } else {
       montantRemb = avanceLigne.prixTTC;
     }
+    deleteFile(avanceLigne?.justificatif as string);
   }
+
+  var date = dayjs((data.date as any as string).substring(0, 15));
 
   const ligne = await conn.createQueryBuilder()
     .update(LigneDeFrais)
     .set(
       {
         titre: data.titre,
-        date: data.date,
-        prixHT: data.prixTTC,
+        date: date.get('year')+"-"+(date.get('month')+1)+"-"+date.get('date'),
+        prixHT: data.prixHT,
         prixTTC: data.prixTTC,
         prixTVA: data.prixTVA,
         type: data.type,
@@ -223,15 +246,25 @@ apiRoute.post(async (req: any, res: NextApiResponse) => {
 });
 
 apiRoute.put(async (req: any, res: NextApiResponse) => {
+  //cas ou il n'y a pas de fichier 
+  var filename = "";
+
+  //pour avoir les valeur sous forme de boolean 
+  req.body.perdu = req.body.perdu === 'true';
+  req.body.avance = req.body.avance === 'true';
+
+  if (req.file && !req.body.perdu) {
+    filename = req.file.filename;
+  }
 
   var userId: string | null = null;
   const session = await getSession({ req })
   if (session) {
     userId = (session as any)?.id;
   } else {
+    deleteFile(filename);
     res.status(403).json({ error: "acces interdit" as string, code: 403 });
   }
-
   await prepareConnection();
   const conn = getConnection();
   const notes = await conn.getRepository(NoteDeFrais)
@@ -241,18 +274,13 @@ apiRoute.put(async (req: any, res: NextApiResponse) => {
     .getOne();
 
   if (!notes) {
+    deleteFile(filename);
     res.status(404).json({ error: "Notes non trouvée", code: 404 });
   } else if (!(notes.etat === NOTEDEFRAIS_ETAT.BROUILLON || notes.etat === NOTEDEFRAIS_ETAT.REFUSEE)) {
+
     res.status(423).json({ error: "Vous ne pouvez pas mettre à jours cette ligne" as string, code: 423 });
   }
-  //cas ou il n'y a pas de fichier 
-  var filename = "";
-  if (req.file) {
-    filename = req.file.filename;
-  }
-  //pour avoir les valeur sous forme de boolean 
-  req.body.perdu = req.body.perdu === 'true';
-  req.body.avance = req.body.avance === 'true';
+
   if (await updateLigne(req.body, filename, session as any)) {
     res.status(200).json({ resultat: "ligne mise à jours" });
   } else {

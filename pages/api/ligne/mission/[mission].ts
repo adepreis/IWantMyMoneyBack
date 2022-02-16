@@ -46,10 +46,11 @@ export default async function handler(
     if (mission && mission.length > 0) {
       res.status(200).json(mission);
     } else {
-      throw new Error("aucune mission correspondant");
+      res.status(200).json([]);
     }
 
   } catch (e) {
+    console.log(e);
     res.status(404).json({ error: e as string, code: 404 });
   }
 }

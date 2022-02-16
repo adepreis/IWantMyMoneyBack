@@ -16,7 +16,7 @@ type NoteProps = {
     month: number,
     setMonth: Dispatch<SetStateAction<number>>,
     year: number,
-    refreshProps: () => Promise<void>;
+    refreshProps: (month: number) => Promise<void>;
     edited: boolean;
     setEdited: Dispatch<SetStateAction<boolean>>;
     clearLocalState: boolean;
@@ -95,7 +95,8 @@ export default function Note(props: NoteProps) {
             editedLine={editedLine} 
             note={note} 
             opened={openedModal} setOpened={setOpenedModal}
-            localLines={localLines} setLocalLinse={setLocalLines}
+            localLines={localLines} setLocalLine={setLocalLines}
+            setViewedLine={setViewedLine}
         />
         <Grid grow style={{width: "100%", height: "100%"}}>
             <Grid.Col span={8}>
