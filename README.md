@@ -59,18 +59,18 @@ SECRET=
 NEXTAUTH_URL=http://localhost:3000
 
 # DATABASE
-TYPEORM_CONNECTION=mariadb
-TYPEORM_HOST=localhost
-TYPEORM_USERNAME=root
-TYPEORM_PASSWORD=example
-TYPEORM_DATABASE=
-TYPEORM_PORT=3306
-TYPEORM_SYNCHRONIZE=true
-TYPEORM_LOGGING=false
-TYPEORM_ENTITIES=entity/*.ts,modules/**/entity/*.ts
+DB_CONNECTION=mariadb
+DB_HOST=localhost
+DB_USERNAME=root
+DB_PASSWORD=example
+DB_DATABASE=
+DB_PORT=3306
+DB_SYNCHRONIZE=true
+DB_LOGGING=false
+ENTITIES=
 ```
 
-You also need to complete `TYPEORM_DATABASE=` with the name of the database created locally (thanks to your desktop [MariaDB](https://mariadb.org/) installation or the docker container described below).
+You also need to complete `DB_DATABASE=` with the name of the database created locally (thanks to your desktop [MariaDB](https://mariadb.org/) installation or the docker container described below).
 
 > Assuming you have [docker](https://docs.docker.com/get-docker/) installed, execute the following command to run a MariaDB image :
 > 
