@@ -83,6 +83,7 @@ type LineFormProps = {
   	linesToSave: UILigne[],
   	setLineToSave: React.Dispatch<React.SetStateAction<UILigne[]>>,
   	note: INoteDeFrais | EmptyNote,
+	setViewedLine: Dispatch<SetStateAction<UILigne | null>>
 }
 
 type MissionSelectState = {
@@ -192,52 +193,59 @@ export default function EditLineForm(props: LineFormProps) {
 
   	const theme = useMantineTheme();
 
-	const form = useForm({
-		initialValues: props?.line ? {
-			repaymentMode: props.line.avance ? "advance" : "expense",
-			lineTitle: props.line.titre,
-			date: dayjs(props.line.date).toDate(),
-			expenseType: props.line.type,
-			mission: props.line.mission.id,
-			ttc:  props.line.prixTTC,
-			ht: props.line.prixHT,
-			tva: props.line.prixTVA,
-			lost: props.line.perdu,
-			justification: props.line.justificatif, // TODO
-			comment: props.line.commentaire,
-		} : {
-			repaymentMode: "expense",
-			lineTitle: "",
-			date: null,
-			expenseType: "",
-			mission: "",
-			ttc: 0.000,
-			ht: 0.000,
-			tva: 0.000,
-			lost: false,
-			justification: "", // TODO
-			comment: "",
-		},
+	const checkHtTva = (value: number): boolean => {
+		return form.values.repaymentMode === "advance" || value > 0.0;
+	}
 
+	const initialValues = props?.line ? {
+		repaymentMode: props.line.avance ? "advance" : "expense",
+		lineTitle: props.line.titre,
+		date: dayjs(props.line.date).toDate(),
+		expenseType: props.line.type,
+		mission: props.line.mission.id,
+		ttc:  props.line.prixTTC,
+		ht: props.line.prixHT,
+		tva: props.line.prixTVA,
+		lost: props.line.perdu,
+		justification: props.line.justificatif,
+		comment: props.line.commentaire,
+	} : {
+		repaymentMode: "expense",
+		lineTitle: "",
+		date: null,
+		expenseType: "",
+		mission: "",
+		ttc: 0.000,
+		ht: 0.000,
+		tva: 0.000,
+		lost: false,
+		justification: "",
+		comment: "",
+	}
+
+	const form = useForm({
+		initialValues,
 		validationRules: {
 			lineTitle: (value) => value.trim().length >= 5,
 			date: (value) => value !== null,
 			expenseType: (value) => Object.values(LIGNE_TYPE).includes(value as LIGNE_TYPE),
 			mission: (value) => value !== '',
 			ttc: 	(value) => {
-				const ht = form.values.ht as number;
-				const tva = form.values.tva as number;
-
-				return value > 0 && value === ht + tva;
+				return value > 0;
 			},
-			ht: 	(value) => value > 0.0,
-			tva: 	(value) => value > 0.0,	
+			ht: 	checkHtTva,
+			tva: 	checkHtTva,	
 			lost: 	(value) => {
+				if (((form as any)?.values?.repaymentMode as any) === "advance") {
+					return true;
+				}
+
 				if (value) {
 					return value;  
 				}
 
-				const res = (!(props?.line as TempLigneDeFrais)?.files && dropzone.files.length === 0) || dropzone.files.length > 0;
+				const res = (props?.line && !props.line.id.includes("temp-") && dropzone.files.length === 0) || 
+					dropzone.files.length > 0;
 
 				setDropzone({
 					...dropzone,
@@ -258,7 +266,15 @@ export default function EditLineForm(props: LineFormProps) {
 
 	const handleSubmit = async (values: typeof form['values']) => {
 		setLoading(true);
-		console.log(values);
+		console.log(values, initialValues);
+
+		var areSame = true;
+		for (const key in values) {
+			if (JSON.stringify((values as any)?.[key]) !== JSON.stringify((initialValues as any )?.[key])) {
+				console.log((values as any)?.[key], (initialValues as any )?.[key]);
+				areSame = false;
+			}
+		}
 
 		var tempLine: TempLigneDeFrais = {
 			avance: (values.repaymentMode === "advance" ? true : false),
@@ -270,14 +286,14 @@ export default function EditLineForm(props: LineFormProps) {
 			prixHT: values.ht,
 			prixTVA: values.tva,
 			perdu: values.lost,
-			justificatif: dropzone.files?.[0]?.name ?? props?.line?.justificatif ?? "",
+			justificatif: values.lost ? "" : dropzone.files?.[0]?.name ?? props?.line?.justificatif ?? "",
 			commentaire: values.comment,
-			files: dropzone.files,
+			files: !values.lost && dropzone.files ? dropzone.files : [],
 			id: props?.line?.id ? props.line.id : `temp-${props.linesToSave.length}`
 		}
 
 		// Line Exist
-		if (props?.line) {
+		if (!areSame && props?.line) {
 			// Line was created and is edited
 			if (props.line.id.includes("temp-")) {
 				const newLinesToSave = props.linesToSave.map(l => {
@@ -286,6 +302,7 @@ export default function EditLineForm(props: LineFormProps) {
 							...tempLine,
 							UI: "post" // Keeps "post" action since the line is not stored in DB
 						}
+						props.setViewedLine(temp);
 						return temp;
 					}
 					return l;
@@ -294,9 +311,11 @@ export default function EditLineForm(props: LineFormProps) {
 			} else { // Line is stored in database an is edited
 				const filtered = props.linesToSave.filter(l => l.id !== props?.line?.id);
 				props.setLineToSave([...filtered, {...tempLine, UI: "put"}]);
+				props.setViewedLine({...tempLine, UI: "put"})
 			}
-		} else { // Line does not exists
+		} else if (!areSame) { // Line does not exists
 			props.setLineToSave([...props.linesToSave, {...tempLine, UI: "post"}]);
+			props.setViewedLine({...tempLine, UI: "post"})
 		}
 		props.setOpened(false);
 	};
@@ -333,7 +352,8 @@ export default function EditLineForm(props: LineFormProps) {
 					// maxDate={dayjs(new Date()).endOf('month').subtract(5, 'days').toDate()}
 					{...form.getInputProps('date')}
 					onChange={(date: Date | null) => {
-						form.setFieldValue('date', date)
+						form.setFieldValue('date', date);
+						form.setFieldValue("mission", "")
 						fillMissionData(date, setMissionSelectState, notifications);
 					}}
 					onBlur={() => form.validateField('date')}
@@ -362,41 +382,51 @@ export default function EditLineForm(props: LineFormProps) {
 			<Space h="md" />
 
 			<Group direction="row">
-				<NumberInput label="Montant HT" size="xs"
-					{...form.getInputProps('ht')}
-					precision={2} step={0.01}
-					required min={0} // max={10000}
-					onChange={(value) => {
-						form.setFieldValue('ht', value ?? 0);
-						form.setFieldValue("ttc", (value ?? 0) + form.values.tva);
-						["ttc", "ht", "tva"].forEach(field => form.validateField(field as any));
-					}}
-				/>
-				<NumberInput label="Montant TVA" size="xs"
-					{...form.getInputProps('tva')}
-					precision={2} step={0.01}
-					required min={0} // max={10000}
-					onChange={(value) => {
-						form.setFieldValue('tva', value ?? 0);
-						form.setFieldValue("ttc", (value ?? 0) + form.values.ht);
-						["ttc", "ht", "tva"].forEach(field => form.validateField(field as any));
-					}}
-				/>
+				{form.values.repaymentMode !== "advance" ? <>
+					<NumberInput label="Montant HT" size="xs"
+						{...form.getInputProps('ht')}
+						precision={2} step={0.01}
+						required min={0} // max={10000}
+						onChange={(value) => {
+							form.setFieldValue('ht', value ?? 0);
+							form.setFieldValue("ttc", (value ?? 0) + form.values.tva);
+							["ttc", "ht", "tva"].forEach(field => form.validateField(field as any));
+						}}
+					/>
+					<NumberInput label="Montant TVA" size="xs"
+						{...form.getInputProps('tva')}
+						precision={2} step={0.01}
+						required min={0} // max={10000}
+						onChange={(value) => {
+							form.setFieldValue('tva', value ?? 0);
+							form.setFieldValue("ttc", (value ?? 0) + form.values.ht);
+							["ttc", "ht", "tva"].forEach(field => form.validateField(field as any));
+						}}
+					/>
+				</> : <></>}
 				<NumberInput label="Montant TTC" size="xs"
 					{...form.getInputProps('ttc')}
+					style={{
+						width: form.values.repaymentMode === "advance" ? "100%" : ""
+					}}
 					precision={2} step={0.01}
 					required min={0} // max={10000}
-					disabled={true}
+					disabled={form.values.repaymentMode !== "advance"}
 					onChange={(value) => {
 						form.setFieldValue('ttc', value ?? 0);
-						["ttc", "ht", "tva"].forEach(field => form.validateField(field as any));
+						if (form.values.repaymentMode !== "advance") {
+							["ttc", "ht", "tva"].forEach(field => form.validateField(field as any));
+						}
 					}}
 				/>
 			</Group>
 
 			<Space h="md" />
 
-			{renderFile(props, form, form.getInputProps("lost").value, dropzone, setDropzone, notifications, theme)}
+			{form.values.repaymentMode !== "advance" ?
+				renderFile(props, form, form.getInputProps("lost").value, dropzone, setDropzone, notifications, theme) :
+				<></>
+			}
 
 			{!form.getInputProps("lost").value && dropzone.error ? 
 				<Text size="sm" sx={(theme) => ({
@@ -404,14 +434,17 @@ export default function EditLineForm(props: LineFormProps) {
 					color: dropzone.error ? theme.colors.red[6] : "",
 				})}>{form.getInputProps("lost").error}</Text> : <></>}
 
-			<Checkbox label="J'ai perdu mon justificatif" mt="md"
+			{form.values.repaymentMode !== "advance" ? <Checkbox label="J'ai perdu mon justificatif" mt="md"
 				{...form.getInputProps('lost', { type: 'checkbox' })}
-			/>
+			/> : <></>}
 			<Space h="md" />
 
 			<Textarea
-				placeholder="Si besoin, ajouter des détails à destination du validateur"
-				label="Commentaire"
+				placeholder={form.values.repaymentMode !== "advance" ?
+					"Si besoin, ajouter des détails à destination du validateur" :
+					"Si besoin, ajouter le motif de l'avance à destination du validateur"
+				}
+				label={form.values.repaymentMode !== "advance" ? "Commentaire" : "Motif de l'avance"}
 				{...form.getInputProps('comment')}
 			/>
 			<Space h="md" />

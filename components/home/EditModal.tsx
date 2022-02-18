@@ -7,13 +7,14 @@ type EditModalProps = {
     note: NonNullable<UINote>,
     editedLine: UILigne | null,
     localLines: UILigne[],
-    setLocalLinse: Dispatch<SetStateAction<UILigne[]>>,
+    setLocalLine: Dispatch<SetStateAction<UILigne[]>>,
     opened: boolean,
     setOpened: Dispatch<SetStateAction<boolean>>,
+    setViewedLine: Dispatch<SetStateAction<UILigne | null>>
 }
 
 export default function EditModal(props: EditModalProps) {
-    const {note, editedLine, opened, setOpened, localLines, setLocalLinse} = props;
+    const {note, editedLine, opened, setOpened, localLines, setLocalLine, setViewedLine} = props;
 
     return <Modal centered opened={opened}
         onClose={() => setOpened(false)}
@@ -26,8 +27,9 @@ export default function EditModal(props: EditModalProps) {
             line={editedLine} 
             setOpened={setOpened}
             linesToSave={localLines} 
-            setLineToSave={setLocalLinse}
+            setLineToSave={setLocalLine}
             note={note}
+            setViewedLine={setViewedLine}
         />
     </Modal>
 }
