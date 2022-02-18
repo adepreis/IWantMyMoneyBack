@@ -5,7 +5,7 @@ import { getConnection } from 'typeorm';
 import { RequestError } from '../../../entity/geneal_struct';
 import { INoteDeFrais, NoteDeFrais } from '../../../entity/notedefrais.entity';
 import { Service } from '../../../entity/service.entity';
-import { User, USER_ROLES } from '../../../entity/user.entity';
+import { USER_ROLES } from '../../../entity/utils';
 import { prepareConnection } from '../database';
 
 export type RequestNote = INoteDeFrais[] | RequestError;

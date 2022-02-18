@@ -25,7 +25,7 @@ export interface HomeProps {
   years?: number[],
 }
 
-export type EmptyNote = Omit<INoteDeFrais, "id">;
+export type EmptyNote = Omit<INoteDeFrais, "id" | "user">;
 
 export type UINote = INoteDeFrais | EmptyNote | null;
 export type UILigne = (ILigneDeFrais | TempLigneDeFrais) & { UI: "default" | "delete" | "post" | "put"}

@@ -5,7 +5,7 @@ import { useSession, signOut } from "next-auth/react"
 import { forwardRef } from 'react';
 import { HiChevronDown, HiOutlinePencil, HiOutlineLogout, HiAdjustments, HiUserGroup, HiClipboardList, HiOutlinePresentationChartLine } from "react-icons/hi";
 import { Group, Avatar, Text, Menu, Divider, UnstyledButton, Button, UnstyledButtonProps } from '@mantine/core';
-import { USER_ROLES } from '../entity/user.entity'
+import { USER_ROLES } from '../entity/utils';
 
 interface UserButtonProps extends UnstyledButtonProps {
   name: string;
@@ -52,6 +52,7 @@ const UserButton = forwardRef<HTMLButtonElement, UserButtonProps>(
     </UnstyledButton>
   )
 );
+UserButton.displayName = "UserButton";
 
 export default function SwitchUserMenu() {
   const { data: session } = useSession()

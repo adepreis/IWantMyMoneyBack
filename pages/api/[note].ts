@@ -26,7 +26,6 @@ export async function getNote(noteId: string, userId: string): Promise<NotesRequ
     } else {
         return noteToApi(note);
     }
-
 }
 
 export async function rmNote(noteId: string, userId: string): Promise<boolean> {
