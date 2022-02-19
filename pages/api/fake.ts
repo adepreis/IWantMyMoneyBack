@@ -62,7 +62,7 @@ export default async function handler(
             .values([
                 {
                     password: hashSync(prenom, salt),
-                    email: (prenom + "." + nom + "@iwantmymoneyback.com").toLowerCase(),
+                    email: (prenom + "." + nom + "@pops2122.fr").toLowerCase(),
                     nom: nom,
                     prenom: prenom,
                     role: index < SERVICE_NUMBER ? USER_ROLES.CHEF_DE_SERVICE : USER_ROLES.USER

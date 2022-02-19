@@ -22,7 +22,7 @@ export async function getNoteValidateur(noteId: string, validateurId: string): P
         .where("notedefrais.id = :noteId",{noteId: noteId})
         .leftJoinAndSelect("notedefrais.lignes", "lignedefrais")
         .leftJoinAndSelect("lignedefrais.mission", "mission")
-        .leftJoin("notedefrais.user","user", "user.id != :validateurId", {validateurId:validateurId})
+        .leftJoinAndSelect("notedefrais.user","user", "user.id != :validateurId", {validateurId:validateurId})
         .leftJoin("user.collaborateurAnterieur","collaborateuranterieur")
         .leftJoin("user.chefsAnterieurs", "chefsanterieurs")
         .andWhere("(collaborateuranterieur.serviceId = :serviceId OR chefsanterieurs.serviceValidateurId = :serviceId)", {serviceId: serviceId})
