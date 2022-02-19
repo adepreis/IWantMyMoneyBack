@@ -13,6 +13,13 @@ import ValidatorFilters from '../../components/validateur/ValidatorFilters'
 import CardNote from '../../components/validateur/CardNote'
 import { Routes } from '../../utils/api'
 
+import dayjs from 'dayjs'
+import "dayjs/locale/fr";
+import localeData from "dayjs/plugin/localeData";
+dayjs.extend(localeData);
+dayjs().format();
+dayjs.locale("fr");
+
 export interface ValidatorProps {
     session: Session | null
 }
@@ -24,7 +31,7 @@ export default function Validator(props: ValidatorProps) {
     const [query, setQuery] = useState('');
     // const [queryHasResult, setQueryHasResult] = useState(true);
     const [sortStrategy, setSortStrategy] = useState('date_ascending');
-    const [filters, setFilters] = useState(['pending', 'todo']);
+    const [filters, setFilters] = useState([NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION]);
 
     const [notes, setNotes] = useState([] as INoteDeFrais[]);
 
@@ -42,7 +49,7 @@ export default function Validator(props: ValidatorProps) {
         }
 
         await action();
-        await updateNotesState();
+        // await updateNotesState();
     }
 
     const updateNotesState = async () => {
@@ -72,6 +79,16 @@ export default function Validator(props: ValidatorProps) {
         updateNotesState();
     }, []);
 
+    useEffect(() => {
+        if (notes.length > 0 && notes[0].annee !== year) {
+            updateNotesState();
+        }
+    });
+
+    // No notes if no filter...
+    const filteredNotes: INoteDeFrais[] = notes.filter(note => filters.includes(note.etat));
+
+
     return <Group grow direction="row" style={{width: "100%", margin: 20}}>
         <ValidatorFilters keyword={query}
             setKeyword={setQuery}
@@ -93,39 +110,37 @@ export default function Validator(props: ValidatorProps) {
             </Alert>
 
 
+            <Accordion offsetIcon={false} style={{width: "100%"}}>
+                {/*
+                const currentYearNotes = notes.filter((note: INoteDeFrais, noteIndex: number) => {
+                    return (note.year === year);
+                  }
+                )}
+                // TODO: iterate on (existing ?) months :
+                const monthsWithNotes = dayjs.months().map((month, monthIndex) => {
 
-        {/*
-          // TODO: apply "page" filters (params as/selected year and default/selected month)
-          return <Accordion offsetIcon={false} style={{width: "100%"}}>
-        {
-            const currentYearNotes = notes.filter((note: INoteDeFrais, noteIndex: number) => {
-                return (note.year === year);
-              }
-            )}
-            // TODO: iterate on (existing ?) months :
-            const monthsWithNotes = dayjs.months().map((month, monthIndex) => {
+                  return {...}
+                });
 
-              return {...}
-            });
-
-            currentYearNotes.map((note, key) => {
-                return <Accordion.Item label={month} key={key}>
-            */}
-
-            <Group direction="row" style={{width: "90%", margin: 25}}>
-                { notes.map((note: INoteDeFrais, noteIndex: number) => {
-                    // TODO: apply filters ('pending', 'todo', 'valid')
-                    // TODO: order by sortStrategy
-                    // TODO: find keyword (+ toogle "queryHasResult" state ?)
-                    return <CardNote key={noteIndex} note={note}/>
-                })
-            }
-            </Group>
-
-            {/*     </Accordion.Item>
-                })
-            }
-        </Accordion>*/}
+                currentYearNotes.map((note, key) => {
+                    return ...
+                */}
+                {
+                    Array.from(new Set(filteredNotes.map(note => note.mois))).sort((a, b) => a-b).map((month, key) => {
+                        return <Accordion.Item label={dayjs(new Date(year, month)).format('MMMM YYYY')} key={key}>
+                            <Group direction="row" style={{width: "90%", margin: 25}}>
+                                { filteredNotes.filter(note => note.mois === month).map((note: INoteDeFrais, noteIndex: number) => {
+                                    // TODO: apply filters ('pending', 'todo', 'valid')
+                                    // TODO: order by sortStrategy
+                                    // TODO: find keyword (+ toogle "queryHasResult" state ?)
+                                    return <CardNote key={noteIndex} note={note}/>
+                                })
+                            }
+                            </Group>
+                         </Accordion.Item>
+                        })
+                }
+            </Accordion>
         </Group>
     </Group>
 }

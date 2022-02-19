@@ -23,7 +23,7 @@ export default function CardNote(props: CardNoteProps) {
 
     const color = valid ? "green" : "white";
 
-    return <UnstyledButton>
+    return <UnstyledButton title={valid ? "Note validée" : "Note à valider"}>
       {/* Card examples : */}
       <Card padding="xl" shadow="sm" radius="md" withBorder={true}
         style={{ margin: 10, width: "10em", maxHeight: "10em", borderColor: color }}
