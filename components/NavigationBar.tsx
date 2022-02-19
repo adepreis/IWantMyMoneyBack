@@ -102,19 +102,19 @@ function getSegmentedData(props: NavigationProps) {
     })
 
     return monthData.map(el => {
-        var icon = <></>;
+        var icon = <></>;    // To replace by a Tooltip with label=title ?
         switch (el.state) {
             case NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION:
-                icon = <HiClock />
+                icon = <HiClock title="En attente de validation"/>
                 break;
             case NOTEDEFRAIS_ETAT.REFUSEE:
-                icon = <HiXCircle />
+                icon = <HiXCircle title="Note refusée"/>
                 break;
             case NOTEDEFRAIS_ETAT.VALIDEE:
-                icon = <HiCheck />
+                icon = <HiCheck title="Note validée"/>
                 break;
             case NOTEDEFRAIS_ETAT.BROUILLON:
-                icon = <RiDraftLine />
+                icon = <RiDraftLine title="En cours d'édition"/>
                 break;
         }
         return {

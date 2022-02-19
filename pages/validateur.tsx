@@ -11,43 +11,43 @@ dayjs().format();
 dayjs.locale("fr");
 
 type Props = {
-  session: Session | null,
+    session: Session | null,
 }
 
 export default function Validator(props: Props) {
-  return <p>Loading</p>
+    return <p>Loading</p>
 }
 
 export const getServerSideProps: GetServerSideProps<Props> = async (context) => {
-  const session = await getSession(context);
-  if (!session) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: "/",
-      },
-      props: { session }
+    const session = await getSession(context);
+    if (!session) {
+        return {
+            redirect: {
+                permanent: false,
+                destination: "/",
+            },
+            props: { session }
+        }
     }
-  }
 
-  if (session.role !== USER_ROLES.CHEF_DE_SERVICE) {
+    if (session.role !== USER_ROLES.CHEF_DE_SERVICE) {
+
+        return {
+            redirect: {
+                permanent: false,
+                destination: `/home`,
+            },
+            props: { session }
+        }
+    }
+
+    const currentYear = dayjs().year();
 
     return {
-      redirect: {
-        permanent: false,
-        destination: `/home`,
-      },
-      props: { session }
+        redirect: {
+            permanent: false,
+            destination: `/validateur/${currentYear}`,
+        },
+        props: { session }
     }
-  }
-
-  const currentYear = dayjs().year();
-
-  return {
-    redirect: {
-      permanent: false,
-      destination: `/validateur/${currentYear}`,
-    },
-    props: { session }
-  }
 }
