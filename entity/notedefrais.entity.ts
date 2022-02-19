@@ -10,7 +10,7 @@ export interface INoteDeFrais {
     mois: number,
     annee: number,
     etat: NOTEDEFRAIS_ETAT,
-    user?: IUser,
+    user: IUser | null,
     lignes: ILigneDeFrais[],
     notifications: INotification[]
 }
@@ -50,7 +50,7 @@ export const noteToApi = (note: NoteDeFrais): INoteDeFrais => {
         mois: note.mois,
         annee: note.annee,
         etat: note.etat,
-        user: note.user ? userToApi(note.user) : undefined,
+        user: note.user ? userToApi(note.user) : null,
         lignes: (note?.lignes ?? []).map(lignes => lineToApi(lignes)),
         notifications: (note?.notifications ?? []).map(notifications => notificationToApi(notifications)),
     };

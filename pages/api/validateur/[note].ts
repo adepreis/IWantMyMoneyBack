@@ -3,8 +3,7 @@ import { getSession } from "next-auth/react";
 import { getConnection } from "typeorm";
 import { RequestError } from "../../../entity/geneal_struct";
 import { INoteDeFrais, NoteDeFrais, noteToApi } from "../../../entity/notedefrais.entity";
-import { USER_ROLES } from "../../../entity/user.entity";
-import { NOTEDEFRAIS_ETAT } from "../../../entity/utils";
+import { NOTEDEFRAIS_ETAT, USER_ROLES } from "../../../entity/utils";
 import { prepareConnection } from "../database";
 import { getService } from "./home";
 
@@ -13,10 +12,10 @@ export type NotesRequest = INoteDeFrais | RequestError | {message: string};
 export async function getNoteValidateur(noteId: string, validateurId: string): Promise<NotesRequest | null>{
 
     const serviceId = await getService(validateurId);
-  if (!serviceId) {
-    return null;
-  }
-  await prepareConnection();
+    if (!serviceId) {
+        return null;
+    }
+    await prepareConnection();
     const conn = getConnection();
     const note = await conn.getRepository(NoteDeFrais)
         .createQueryBuilder("notedefrais")
@@ -46,7 +45,6 @@ export default async function handler(
   ) {
     var userId: string | null = null;
     try {
-        
         //recupération de la session
         const session = await getSession({ req });
         if (!session || (session as any).role != USER_ROLES.CHEF_DE_SERVICE) {
