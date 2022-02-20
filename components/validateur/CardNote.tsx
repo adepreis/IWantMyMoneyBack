@@ -26,7 +26,7 @@ export default function CardNote(props: CardNoteProps) {
     return <UnstyledButton title={valid ? "Note validée" : "Note à valider"}>
       {/* Card examples : */}
       <Card padding="xl" shadow="sm" radius="md" withBorder={true}
-        style={{ margin: 10, width: "10em", maxHeight: "10em", borderColor: color }}
+        style={{ paddingLeft: 30, paddingRight: 30, margin: 10, width: "10em", maxHeight: "10em", borderColor: color }}
         onClick={() => {
             router.push(router.pathname.replace("[params]", `note/${id}`))
         }}

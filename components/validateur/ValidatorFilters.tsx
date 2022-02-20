@@ -1,4 +1,4 @@
-import { Title, Group, TextInput, Select, Chips, Chip } from "@mantine/core";
+import { Title, Group, TextInput, Select, Chips, Chip, SelectItem } from "@mantine/core";
 import { HiSearch } from "react-icons/hi";
 import { Dispatch, SetStateAction } from "react";
 import { NOTEDEFRAIS_ETAT } from '../../entity/utils'
@@ -8,6 +8,7 @@ type ValidatorFiltersProps = {
     keyword: string,
     setKeyword: Dispatch<SetStateAction<string>>,
     sortStrategy: string,
+    sortStrategies: SelectItem[],
     setSortStrategy: Dispatch<SetStateAction<string>>,
     filters: NOTEDEFRAIS_ETAT[],
     setFilters: Dispatch<SetStateAction<NOTEDEFRAIS_ETAT[]>>,
@@ -27,27 +28,25 @@ function getSelectData(yearList: number[]) {
 
 export default function ValidatorFilters(props: ValidatorFiltersProps) {
 
-    return <Group direction="column" style={{height: "100%", maxWidth: "20%"}} spacing="md">
+    return <Group direction="column" style={{ maxWidth: "20%" }} spacing="md">
         <Title order={4}>Filtres</Title>
         <TextInput disabled
+            title="Recherche par mot-clé"
             placeholder="Rechercher"
             icon={<HiSearch />}
             value={props.keyword}
             onChange={(event) => props.setKeyword(event.currentTarget.value)}
         />
         <Select disabled
+            title="Stratégie de triage"
             label="Trier par :"
-            // placeholder="Pick one"
+            placeholder="Tri par défaut"
             defaultValue={props.sortStrategy}
             onChange={(value) => props.setSortStrategy(value as string)} // setSortStrategy}
-            data={[
-                { value: 'date_ascending', label: 'Date de dépot (croissant)' },
-                { value: 'date_descending', label: 'Date de dépot (décroissant)' },
-                { value: 'alphabet_order', label: 'Ordre alphabétique' },
-                { value: 'alphabet_reverse', label: 'Ordre alphabétique inverse' },
-                ]}
+            data={props.sortStrategies}
             />
         <Select
+            title="Modifier l'année consultée"
             placeholder="Année"
             data={getSelectData(props.years)}
             value={props.year ? `${props.year}` : null}
@@ -55,7 +54,7 @@ export default function ValidatorFilters(props: ValidatorFiltersProps) {
             style={{ flex: "unset" }}
         />
         <Chips value={props.filters} onChange={props.setFilters}
-            multiple variant="filled" direction="column">
+            multiple variant="filled" direction="column" title="Filtrer les notes par statut">
             <Chip value={NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION}>Non traitées</Chip>
             <Chip value={NOTEDEFRAIS_ETAT.VALIDEE}>Validées</Chip>
 

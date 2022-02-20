@@ -1,4 +1,4 @@
-import { Group, Alert, Select, Accordion } from '@mantine/core'
+import { Title, Group, Alert, Select, Accordion, SelectItem } from '@mantine/core'
 import { HiOutlineSearchCircle } from "react-icons/hi";
 import type { GetServerSideProps } from 'next'
 import { Session } from 'next-auth'
@@ -24,13 +24,22 @@ export interface ValidatorProps {
     session: Session | null
 }
 
+const sortStrategies: SelectItem[] = [
+    // { value: 'date_ascending', label: 'Date de dépot (croissant)', sortMethod: (a, b) => {a-b}},
+    // { value: 'date_descending', label: 'Date de dépot (décroissant)', sortMethod: (a, b) => {a-b}},
+    { value: 'alphabet_order', label: 'Ordre alphabétique'}, //, sortMethod: (a:INoteDeFrais, b: INoteDeFrais) => a.user?.nom.localeCompare(b.user.nom)},
+    { value: 'alphabet_reverse', label: 'Ordre alphabétique inverse'}, //, sortMethod: (a:INoteDeFrais, b: INoteDeFrais) => b.user?.nom.localeCompare(a.user.nom)},
+];
+
 export default function Validator(props: ValidatorProps) {
+    console.log(sortStrategies)
+    console.log(sortStrategies.values())
     const router = useRouter();
 
     // array of strings value when multiple is true
     const [query, setQuery] = useState('');
     // const [queryHasResult, setQueryHasResult] = useState(true);
-    const [sortStrategy, setSortStrategy] = useState('date_ascending');
+    const [sortStrategy, setSortStrategy] = useState('alphabet_order');
     const [filters, setFilters] = useState([NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION]);
 
     const [notes, setNotes] = useState([] as INoteDeFrais[]);
@@ -53,26 +62,21 @@ export default function Validator(props: ValidatorProps) {
     }
 
     const updateNotesState = async () => {
-        const res = await Routes.VALIDATEUR.get();
         /* TODO: handle res==null ? */
+        const res = await Routes.VALIDATEUR.get();
 
-        setYearsState(res);
+        // Update available (unique) years
+        const allYears = res.map(note => note.annee);
+        setYears(Array.from(new Set(allYears)));
 
-        console.log("Update " + year + " notes")
-
+        // Apply "primary" filters
         const filteredNotes = res.filter((note: INoteDeFrais, noteIndex: number) => {
             return (note.annee === year) &&
                     (note.etat === NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION ||
                     note.etat === NOTEDEFRAIS_ETAT.VALIDEE);
         })
-
+        // Keep only filtered notes
         setNotes(filteredNotes);
-    }
-
-    const setYearsState = (res: INoteDeFrais[]) => {
-        const allYears = res.map(note => note.annee);
-
-        setYears(Array.from(new Set(allYears)));
     }
 
     useEffect(() => {
@@ -85,14 +89,16 @@ export default function Validator(props: ValidatorProps) {
         }
     });
 
-    // No notes if no filter...
+    // TODO: apply filters ('pending', 'todo', 'valid')
+    // TODO: find keyword (+ toogle "queryHasResult" state ?)
     const filteredNotes: INoteDeFrais[] = notes.filter(note => filters.includes(note.etat));
 
 
-    return <Group grow direction="row" style={{width: "100%", margin: 20}}>
+    return <Group grow direction="row" align="stretch" style={{width: "100%", margin: 20}}>
         <ValidatorFilters keyword={query}
             setKeyword={setQuery}
             sortStrategy={sortStrategy}
+            sortStrategies={sortStrategies}
             setSortStrategy={setSortStrategy}
             filters={filters}
             setFilters={setFilters}
@@ -100,39 +106,29 @@ export default function Validator(props: ValidatorProps) {
             onYearChange={onYearChange}
             years={years} />
 
-        {/* TO FIX : ON SMALLER DEVICES, A HUGE GAP APPEARS "HERE" */}
+        <Group direction="column" style={{ maxWidth: "80%" }} spacing="sm" position="center">
 
-        <Group direction="column" style={{height: "100%", maxWidth: "80%"}} spacing="sm" position="center">
-            {/* TODO: set hidden attribute according to a state "queryHasResult" */}
-            <Alert hidden={false} icon={<HiOutlineSearchCircle size={25} />}
-            title="TODO: conditional alert" color="gray" radius="md" variant="filled">
-            Aucune note ne correspond au critères de recherche que vous avez entrés.
-            </Alert>
+            { filteredNotes.length === 0
+                ? <Alert hidden={false} icon={<HiOutlineSearchCircle size={25} />}
+                title="Résultat de recherche" color="gray" radius="md" variant="filled">
+                    Aucune note ne correspond aux critères de recherche que vous avez entrés.
+                </Alert>
+                : <Title order={2}>Notes de frais - année {year}</Title>
+            }
 
 
             <Accordion offsetIcon={false} style={{width: "100%"}}>
-                {/*
-                const currentYearNotes = notes.filter((note: INoteDeFrais, noteIndex: number) => {
-                    return (note.year === year);
-                  }
-                )}
-                // TODO: iterate on (existing ?) months :
-                const monthsWithNotes = dayjs.months().map((month, monthIndex) => {
-
-                  return {...}
-                });
-
-                currentYearNotes.map((note, key) => {
-                    return ...
-                */}
                 {
+                    // Iterate over "existing" months :
                     Array.from(new Set(filteredNotes.map(note => note.mois))).sort((a, b) => a-b).map((month, key) => {
-                        return <Accordion.Item label={dayjs(new Date(year, month)).format('MMMM YYYY')} key={key}>
+                        const monthName = dayjs(new Date(year, month)).format('MMMM YYYY');
+                        return <Accordion.Item key={key} title={"Dérouler les notes de " + monthName}
+                                label={monthName}>
                             <Group direction="row" style={{width: "90%", margin: 25}}>
-                                { filteredNotes.filter(note => note.mois === month).map((note: INoteDeFrais, noteIndex: number) => {
-                                    // TODO: apply filters ('pending', 'todo', 'valid')
-                                    // TODO: order by sortStrategy
-                                    // TODO: find keyword (+ toogle "queryHasResult" state ?)
+                                { filteredNotes.filter(note => note.mois === month)
+                                               // TODO: order by sortStrategy
+                                               // .sort(sortStrategies.find(s => s.value === sortStrategy)?.sortMethod)
+                                               .map((note: INoteDeFrais, noteIndex: number) => {
                                     return <CardNote key={noteIndex} note={note}/>
                                 })
                             }
