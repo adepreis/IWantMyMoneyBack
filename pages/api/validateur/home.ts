@@ -35,7 +35,8 @@ export async function getValidateur(validateurId: string): Promise<INoteDeFrais[
     const conn = getConnection();
     const notes = await conn.getRepository(NoteDeFrais)
         .createQueryBuilder("notedefrais")
-        .leftJoinAndSelect("notedefrais.user","user", "user.id != :validateurId", {validateurId:validateurId})
+        .where("user.id != :validateurId", {validateurId:validateurId})
+        .leftJoinAndSelect("notedefrais.user","user")
         .leftJoin("user.collaborateurAnterieur","collaborateuranterieur")
         .leftJoin("user.chefsAnterieurs", "chefsanterieurs")
         .andWhere("collaborateuranterieur.serviceId = :serviceId OR chefsanterieurs.serviceValidateurId = :serviceId", {serviceId: serviceId})
