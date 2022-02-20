@@ -6,7 +6,7 @@ import dayjs from 'dayjs'
 import "dayjs/locale/fr";
 import localeData from "dayjs/plugin/localeData";
 import numbro from "numbro";
-import { NOTEDEFRAIS_ETAT } from "../../entity/utils";
+import { NOTEDEFRAIS_ETAT, USER_ROLES } from "../../entity/utils";
 import LineButtons from "./LineButton";
 dayjs.extend(localeData);
 dayjs().format();
@@ -21,6 +21,7 @@ type LineProps = {
     setOpenedModal: Dispatch<SetStateAction<boolean>>;
     viewedLine: UILigne | null;
     setViewedLine: Dispatch<SetStateAction<UILigne | null>>;
+    mode: USER_ROLES;
 }
 
 function getUIStateIcon(line: UILigne, theme: MantineTheme) {
@@ -51,7 +52,7 @@ function getUIStateTableElement(edited: boolean, line: UILigne, theme: MantineTh
 }
 
 export default function Line(props: LineProps) {
-    const {note, lines, localLines, viewedLine} = props;
+    const {note, lines, localLines, viewedLine, mode} = props;
     const theme = useMantineTheme();
     
     const edited = localLines.length !== 0;
@@ -86,9 +87,15 @@ export default function Line(props: LineProps) {
                 noteState={note.etat} 
                 setEditedLine={props.setEditedLine} 
                 setOpenedModal={props.setOpenedModal}
+                mode={mode}
             />
         </tr>
     });
+
+    const action = mode === USER_ROLES.USER && 
+        note.etat !== NOTEDEFRAIS_ETAT.VALIDEE && note.etat !== NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION ?
+        <th>Action</th> :
+        mode === USER_ROLES.CHEF_DE_SERVICE ? <th>Action</th> : <></>;
 
     return <Table striped highlightOnHover>
         <thead>
@@ -98,8 +105,7 @@ export default function Line(props: LineProps) {
                 <th>Date</th>
                 <th>Montant HT</th>
                 <th>Justificatif</th>
-                {note.etat !== NOTEDEFRAIS_ETAT.VALIDEE && note.etat !== NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION ? 
-                    <th>Action</th> : <></>}
+                {action}
             </tr>
         </thead>
         <tbody>{rows}</tbody>
