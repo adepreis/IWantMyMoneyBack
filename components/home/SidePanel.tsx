@@ -1,4 +1,5 @@
 import { Group, Text, Image, useMantineTheme, MantineTheme, Title, Textarea } from "@mantine/core";
+import { CSSProperties } from "react";
 import { HiOutlineInformationCircle, HiOutlineXCircle } from "react-icons/hi";
 import { UILigne } from "../../pages/home/[params]";
 import { TempLigneDeFrais } from "../EditLineForm";
@@ -60,10 +61,10 @@ export function renderLineFile(line: NonNullable<UILigne>, theme: MantineTheme) 
     </> : <></>
 }
 
-function renderComment(line: NonNullable<UILigne>, theme: MantineTheme) {
+export function renderComment(line: NonNullable<UILigne>, theme: MantineTheme, style?: CSSProperties) {
     const {avance, commentaire} = line;
 
-    const content = commentaire === "" ? <Group position="center" spacing={7}>
+    const content = commentaire === "" ? <Group position={style ? undefined : "center"} spacing={7} style={style}>
         <Text color={theme.colors.yellow[6]}>{"Pas de commentaire"}</Text>
     </Group> : <Group position="center" spacing={7} style={{width: "100%"}}>
         <Textarea

@@ -4,22 +4,26 @@ import { getSession } from "next-auth/react";
 import Note from "../../../components/home/Note";
 import { RequestError } from "../../../entity/geneal_struct";
 import { INoteDeFrais } from "../../../entity/notedefrais.entity";
-import { NOTEDEFRAIS_ETAT } from "../../../entity/utils";
+import { NOTEDEFRAIS_ETAT, USER_ROLES } from "../../../entity/utils";
 import { getNoteValidateur } from "../../api/validateur/[note]";
 import { ValidatorProps } from "../[params]";
+import dayjs from 'dayjs'
+import localeData from "dayjs/plugin/localeData";
+import "dayjs/locale/fr";
+dayjs.extend(localeData);
+dayjs().format();
+dayjs.locale("fr");
 
 export interface ValidatorNoteProps extends ValidatorProps {
     note?: INoteDeFrais
 }
-
-
 
 export default function ValidatorNote(props: Required<ValidatorNoteProps>) {
     const {note} = props;
 
     return note ? <Group style={{width: "100%"}}>
         <Group style={{width: "100%", borderBottom: "solid 1px #373a40", padding: "0.75rem"}}>
-            <Text>{`Note du ${note.mois}/${note.annee} de ${note.user?.prenom} ${note.user?.nom}${note.etat === NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION ? "" : " - Visionnage"}`}</Text>
+            <Text>{`Note de ${dayjs.months()[note.mois]} ${note.annee} de ${note.user?.prenom} ${note.user?.nom}${note.etat === NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION ? "" : " - Visionnage"}`}</Text>
         </Group>
         <Note
             notes={[note]}
@@ -33,6 +37,7 @@ export default function ValidatorNote(props: Required<ValidatorNoteProps>) {
             setEdited={() => {}}
             clearLocalState={false}
             setClearLocalState={() => {}}
+            mode={USER_ROLES.CHEF_DE_SERVICE}
         /> 
     </Group>: <Loader />
 }
