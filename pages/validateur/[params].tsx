@@ -1,12 +1,12 @@
 import { Title, Group, Alert, Select, Accordion, SelectItem } from '@mantine/core'
 import { HiOutlineSearchCircle } from "react-icons/hi";
-import type { GetServerSideProps } from 'next'
-import { Session } from 'next-auth'
-import { getSession } from 'next-auth/react'
 import Link from 'next/link'
+import { Session } from 'next-auth'
 import { useRouter } from 'next/router'
+import { getSession } from 'next-auth/react'
+import type { GetServerSideProps } from 'next'
 import { useState, useEffect } from 'react'
-// import { getValidatorNote, ValidatorNote } from '../api/home'
+
 import { INoteDeFrais } from '../../entity/notedefrais.entity'
 import { NOTEDEFRAIS_ETAT } from '../../entity/utils'
 import ValidatorFilters from '../../components/validateur/ValidatorFilters'
@@ -27,18 +27,15 @@ export interface ValidatorProps {
 const sortStrategies: SelectItem[] = [
     // { value: 'date_ascending', label: 'Date de dépot (croissant)', sortMethod: (a, b) => {a-b}},
     // { value: 'date_descending', label: 'Date de dépot (décroissant)', sortMethod: (a, b) => {a-b}},
-    { value: 'alphabet_order', label: 'Ordre alphabétique'}, //, sortMethod: (a:INoteDeFrais, b: INoteDeFrais) => a.user?.nom.localeCompare(b.user.nom)},
-    { value: 'alphabet_reverse', label: 'Ordre alphabétique inverse'}, //, sortMethod: (a:INoteDeFrais, b: INoteDeFrais) => b.user?.nom.localeCompare(a.user.nom)},
+    { value: 'alphabet_order', label: 'Ordre alphabétique', sortMethod: (a:INoteDeFrais, b: INoteDeFrais) => a.user?.nom.localeCompare(b.user.nom)},
+    { value: 'alphabet_reverse', label: 'Ordre alphabétique inverse', sortMethod: (a:INoteDeFrais, b: INoteDeFrais) => b.user?.nom.localeCompare(a.user.nom)},
 ];
 
 export default function Validator(props: ValidatorProps) {
-    console.log(sortStrategies)
-    console.log(sortStrategies.values())
     const router = useRouter();
 
-    // array of strings value when multiple is true
+    // Search parameters
     const [query, setQuery] = useState('');
-    // const [queryHasResult, setQueryHasResult] = useState(true);
     const [sortStrategy, setSortStrategy] = useState('alphabet_order');
     const [filters, setFilters] = useState([NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION]);
 
@@ -89,9 +86,16 @@ export default function Validator(props: ValidatorProps) {
         }
     });
 
-    // TODO: apply filters ('pending', 'todo', 'valid')
-    // TODO: find keyword (+ toogle "queryHasResult" state ?)
-    const filteredNotes: INoteDeFrais[] = notes.filter(note => filters.includes(note.etat));
+    // Apply filters ('pending', 'todo', 'valid')
+    let filteredNotes: INoteDeFrais[] = notes.filter(note => filters.includes(note.etat));
+    
+    if (query !== "") {
+        // Find keyword
+        const keywords = query.trim().replace(' ', '|');
+        const pattern = new RegExp(`${keywords}`, 'i');
+        filteredNotes = filteredNotes.filter(note => (pattern.test(note.user.nom) ||
+                                                       pattern.test(note.user.prenom)))
+    }
 
 
     return <Group grow direction="row" align="stretch" style={{width: "100%", margin: 20}}>
@@ -126,8 +130,8 @@ export default function Validator(props: ValidatorProps) {
                                 label={monthName}>
                             <Group direction="row" style={{width: "90%", margin: 25}}>
                                 { filteredNotes.filter(note => note.mois === month)
-                                               // TODO: order by sortStrategy
-                                               // .sort(sortStrategies.find(s => s.value === sortStrategy)?.sortMethod)
+                                               // Order by sortStrategy
+                                               .sort(sortStrategies.find(s => s.value === sortStrategy)?.sortMethod)
                                                .map((note: INoteDeFrais, noteIndex: number) => {
                                     return <CardNote key={noteIndex} note={note}/>
                                 })

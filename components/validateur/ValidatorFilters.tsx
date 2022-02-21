@@ -30,14 +30,14 @@ export default function ValidatorFilters(props: ValidatorFiltersProps) {
 
     return <Group direction="column" style={{ maxWidth: "20%" }} spacing="md">
         <Title order={4}>Filtres</Title>
-        <TextInput disabled
+        <TextInput
             title="Recherche par mot-clé"
             placeholder="Rechercher"
             icon={<HiSearch />}
             value={props.keyword}
             onChange={(event) => props.setKeyword(event.currentTarget.value)}
         />
-        <Select disabled
+        <Select
             title="Stratégie de triage"
             label="Trier par :"
             placeholder="Tri par défaut"

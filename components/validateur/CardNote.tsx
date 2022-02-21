@@ -12,6 +12,7 @@ dayjs().format();
 dayjs.locale("fr");
 
 type CardNoteProps = {
+    // TODO : Assert that the note have no undefined user ?
     note: INoteDeFrais // Required<INoteDeFrais, "user"> ??
 }
 
@@ -37,7 +38,6 @@ export default function CardNote(props: CardNoteProps) {
             </Center>
         </Card.Section>
         <Card.Section>
-            {/* TO DEBUG : Why some note have undefined users (but no pb in db) ? */}
             <Title order={6}>
                 {user
                     ? user.prenom + " " + user.nom
