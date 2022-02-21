@@ -49,7 +49,6 @@ export async function deleteFile(filename: string) {
 }
 
 export async function montantAvance(user: User, mission: Mission, montantAvance: number, montantRembourcement: number) {
-  await prepareConnection();
   const conn = await getConnection();
   const avance = await conn.getRepository(Avance)
     .createQueryBuilder("avance")
@@ -84,7 +83,6 @@ export async function montantAvance(user: User, mission: Mission, montantAvance:
       .execute();
   }
 
-  conn.close();
 }
 
 
@@ -119,12 +117,13 @@ export async function insertLigne(data: LigneDeFrais, justificatif: string, user
         }
       ])
       .execute();
-    conn.close();
+    
     if (data.avance) {
       montantAvance(user, data.mission, data.prixTTC, 0.)
     } else {
       montantAvance(user, data.mission, 0., data.prixTTC)
     }
+    conn.close();
     return true;
 
   } catch (error) {
