@@ -25,10 +25,10 @@ export interface ValidatorProps {
 }
 
 const sortStrategies: SelectItem[] = [
-    // { value: 'date_ascending', label: 'Date de dépot (croissant)', sortMethod: (a, b) => {a-b}},
-    // { value: 'date_descending', label: 'Date de dépot (décroissant)', sortMethod: (a, b) => {a-b}},
     { value: 'alphabet_order', label: 'Ordre alphabétique', sortMethod: (a:INoteDeFrais, b: INoteDeFrais) => a.user?.nom.localeCompare(b.user.nom)},
     { value: 'alphabet_reverse', label: 'Ordre alphabétique inverse', sortMethod: (a:INoteDeFrais, b: INoteDeFrais) => b.user?.nom.localeCompare(a.user.nom)},
+    { value: 'date_ascending', label: 'Date de dépot (croissant)', disabled: true }, // , sortMethod: (a, b) => {a-b}},
+    { value: 'date_descending', label: 'Date de dépot (décroissant)', disabled: true }, // , sortMethod: (a, b) => {a-b}},
 ];
 
 export default function Validator(props: ValidatorProps) {
@@ -117,7 +117,7 @@ export default function Validator(props: ValidatorProps) {
                 title="Résultat de recherche" color="gray" radius="md" variant="filled">
                     Aucune note ne correspond aux critères de recherche que vous avez entrés.
                 </Alert>
-                : <Title order={2}>Notes de frais - année {year}</Title>
+                : <Title order={2}>Notes de vos collaborateurs ({year})</Title>
             }
 
 
