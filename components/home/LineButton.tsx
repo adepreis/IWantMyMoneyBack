@@ -1,14 +1,11 @@
-import { LIGNE_TYPE, NOTEDEFRAIS_ETAT } from "../../entity/utils"
+import { NOTEDEFRAIS_ETAT, USER_ROLES } from "../../entity/utils"
 import { ActionIcon, Group, MantineTheme, Space, Text, useMantineTheme } from "@mantine/core";
 import { UILigne } from "../../pages/home/[params]";
 import { HiDocumentAdd, HiOutlinePencil, HiX } from "react-icons/hi";
 import { Dispatch, SetStateAction } from "react";
 import { useModals } from "@mantine/modals";
 import { ModalsContext } from "@mantine/modals/lib/context";
-import dayjs from "dayjs";
-import { IMission } from "../../entity/mission.entity";
 import { TempLigneDeFrais } from "../EditLineForm";
-import { ILigneDeFrais } from "../../entity/lignedefrais.entity";
 
 type LineButtonsProps = {
     noteState: NOTEDEFRAIS_ETAT,
@@ -17,6 +14,7 @@ type LineButtonsProps = {
     setOpenedModal: Dispatch<SetStateAction<boolean>>;
     localLines: UILigne[];
     setLocalLines: Dispatch<SetStateAction<UILigne[]>>;
+    mode: USER_ROLES;
 }
 
 function editButton(props: LineButtonsProps, theme: MantineTheme) {
@@ -95,19 +93,37 @@ function removeRestoreButton(props: LineButtonsProps, modals: ModalsContext) {
     </ActionIcon>
 }
 
+function validatorEditButton(props: LineButtonsProps, theme: MantineTheme) {
+    const {line, setOpenedModal, setEditedLine} = props;
+
+    return <ActionIcon size="xl" radius="lg" title="Modifier la ligne" color={theme.colors.blue[6]} onClick={() => {
+        setOpenedModal(true);
+        setEditedLine(line);
+    }}>
+        <HiOutlinePencil/>
+    </ActionIcon>;
+}
+
 export default function LineButtons(props: LineButtonsProps) {
-    const {noteState} = props;
+    const {noteState, mode} = props;
     const modals = useModals();
     const theme = useMantineTheme();
 
-    if (!(noteState !== NOTEDEFRAIS_ETAT.VALIDEE && noteState !== NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION)) {
+    if ((mode === USER_ROLES.USER && (noteState === NOTEDEFRAIS_ETAT.VALIDEE || noteState === NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION)) ||
+        (mode === USER_ROLES.CHEF_DE_SERVICE && (noteState !== NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION))) {
         return <></>
     }
 
+    const content = mode === USER_ROLES.USER ? <>
+        {editButton(props, theme)}
+        {removeRestoreButton(props, modals)}
+    </> : <>
+        {validatorEditButton(props, theme)}
+    </>;
+
     return <td>
         <Group direction="row" spacing={0}>
-            {editButton(props, theme)}
-            {removeRestoreButton(props, modals)}
+            {content}
         </Group>
     </td>
 }

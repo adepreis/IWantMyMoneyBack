@@ -22,8 +22,8 @@ export async function getNoteValidateur(noteId: string, validateurId: string): P
         .where("notedefrais.id = :noteId", { noteId: noteId })
         .leftJoinAndSelect("notedefrais.lignes", "lignedefrais")
         .leftJoinAndSelect("lignedefrais.mission", "mission")
-        .leftJoin("notedefrais.user", "user", "user.id != :validateurId", { validateurId: validateurId })
-        .leftJoin("user.collaborateurAnterieur", "collaborateuranterieur")
+        .leftJoinAndSelect("notedefrais.user","user", "user.id != :validateurId", {validateurId:validateurId})
+        .leftJoin("user.collaborateurAnterieur","collaborateuranterieur")
         .leftJoin("user.chefsAnterieurs", "chefsanterieurs")
         .andWhere("(collaborateuranterieur.serviceId = :serviceId OR chefsanterieurs.serviceValidateurId = :serviceId)", { serviceId: serviceId })
         .andWhere("(collaborateuranterieur.dateFin >= CONCAT(notedefrais.annee, '-', notedefrais.mois, '-', '01') OR collaborateuranterieur.dateFin is null OR chefsanterieurs.dateFin >= CONCAT(notedefrais.annee, '-', notedefrais.mois, '-', '01') OR chefsanterieurs.dateFin is null)")
@@ -45,7 +45,7 @@ export default async function handler(
 ) {
     var userId: string | null = null;
     try {
-
+        
         //recupération de la session
         const session = await getSession({ req });
         if (!session || (session as any).role != USER_ROLES.CHEF_DE_SERVICE) {

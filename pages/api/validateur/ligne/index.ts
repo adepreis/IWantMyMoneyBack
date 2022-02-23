@@ -4,8 +4,8 @@ import { getConnection } from 'typeorm';
 import { RequestError } from '../../../../entity/geneal_struct'
 import { ILigneDeFrais, LigneDeFrais } from '../../../../entity/lignedefrais.entity';
 import { INoteDeFrais, NoteDeFrais } from '../../../../entity/notedefrais.entity';
-import { User, USER_ROLES } from '../../../../entity/user.entity';
-import { LIGNEDEFRAIS_ETAT, NOTEDEFRAIS_ETAT } from '../../../../entity/utils';
+import { User } from '../../../../entity/user.entity';
+import { LIGNEDEFRAIS_ETAT, NOTEDEFRAIS_ETAT, USER_ROLES } from '../../../../entity/utils';
 import { prepareConnection } from '../../database';
 import { getNote } from '../../[note]';
 import { getService } from '../home';

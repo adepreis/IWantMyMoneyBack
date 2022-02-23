@@ -2,6 +2,7 @@ import { Accordion, Center, Grid, Loader, Group } from "@mantine/core";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { IMission } from "../../entity/mission.entity";
 import { INoteDeFrais } from "../../entity/notedefrais.entity";
+import { USER_ROLES } from "../../entity/utils";
 import { UILigne, UINote } from "../../pages/home/[params]";
 import { TempLigneDeFrais } from "../EditLineForm";
 import EditModal from "./EditModal";
@@ -21,6 +22,7 @@ type NoteProps = {
     setEdited: Dispatch<SetStateAction<boolean>>;
     clearLocalState: boolean;
     setClearLocalState: Dispatch<SetStateAction<boolean>>;
+    mode: USER_ROLES;
 }
 
 type MissionData = {
@@ -53,7 +55,7 @@ function getLinesPerMission(note: NonNullable<UINote>, localLines: UILigne[]) {
 }
 
 export default function Note(props: NoteProps) {
-    const {note, notes, month, year, refreshProps, setMonth, setNote, setEdited, clearLocalState, setClearLocalState} = props;
+    const {note, notes, month, year, refreshProps, setMonth, setNote, setEdited, clearLocalState, setClearLocalState, mode} = props;
     const [openedModal, setOpenedModal] = useState(false);
     const [viewedLine, setViewedLine] = useState(null as UILigne | null);
     const [editedLine, setEditedLine] = useState(null as UILigne | null);
@@ -90,14 +92,17 @@ export default function Note(props: NoteProps) {
     
     const missionsLines = getLinesPerMission(note, localLines);
 
+    const modal = <EditModal 
+        editedLine={editedLine} 
+        note={note} 
+        opened={openedModal} setOpened={setOpenedModal}
+        localLines={localLines} setLocalLine={setLocalLines}
+        setViewedLine={setViewedLine}
+        mode={mode}
+    />;
+
     return <>
-        <EditModal 
-            editedLine={editedLine} 
-            note={note} 
-            opened={openedModal} setOpened={setOpenedModal}
-            localLines={localLines} setLocalLine={setLocalLines}
-            setViewedLine={setViewedLine}
-        />
+        {modal}
         <Grid grow style={{width: "100%", height: "100%"}}>
             <Grid.Col span={8}>
                 <NoteButtons
@@ -112,13 +117,23 @@ export default function Note(props: NoteProps) {
                     refreshProps={refreshProps}
                     setNote={setNote}
                     setLocalLines={setLocalLines}
+                    mode={mode}
                 />
                 <Accordion offsetIcon={false} style={{width: "100%"}}>
                 {
                     Array.from(missionsLines).map((mission, key) => {
                         return <Accordion.Item label={mission[1].mission.titre} key={key}>
-                            <Line note={note} lines={mission[1].lignes} setOpenedModal={setOpenedModal} setViewedLine={setViewedLine}
-                                localLines={localLines} setLocalLines={setLocalLines} setEditedLine={setEditedLine} viewedLine={viewedLine}/>
+                            <Line
+                                note={note}
+                                lines={mission[1].lignes}
+                                setOpenedModal={setOpenedModal}
+                                setViewedLine={setViewedLine}
+                                localLines={localLines} 
+                                setLocalLines={setLocalLines} 
+                                setEditedLine={setEditedLine}
+                                viewedLine={viewedLine}
+                                mode={mode}
+                            />
                         </Accordion.Item>
                     })
                 }
