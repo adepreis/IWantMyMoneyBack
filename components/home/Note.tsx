@@ -105,7 +105,7 @@ export default function Note(props: NoteProps) {
         {modal}
         <Grid grow style={{width: "100%", height: "100%"}}>
             <Grid.Col span={8}>
-                {mode === USER_ROLES.USER && <NoteButtons
+                <NoteButtons
                     notes={notes} 
                     note={note} 
                     setOpenedModal={setOpenedModal}
@@ -117,7 +117,8 @@ export default function Note(props: NoteProps) {
                     refreshProps={refreshProps}
                     setNote={setNote}
                     setLocalLines={setLocalLines}
-                />}
+                    mode={mode}
+                />
                 <Accordion offsetIcon={false} style={{width: "100%"}}>
                 {
                     Array.from(missionsLines).map((mission, key) => {
