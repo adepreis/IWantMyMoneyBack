@@ -15,6 +15,7 @@ import { ChefAnterieur } from "../../entity/chefanterieur.entity";
 import { Notification } from "../../entity/notification.entity";
 import { insertNote } from ".";
 import { Avance } from "../../entity/avance.entity";
+import { montantAvance } from "./ligne";
 
 var USER_ID = "0";
 const MISSION_NUMBER = 3;
@@ -106,12 +107,14 @@ export default async function handler(
         const missionRepo = conn.getRepository(Mission);
 
         const missions: Mission[] = [];
+        const missionname = [["Consultant 3j Client", "formation au nouveau logicielle", "Visite usine de production"],
+        ["Coloque de rentré", "Prospection client potentiel Yveline", "Séminaire sur la sécurité informatique" ]];
         for (let i = 0; i < MISSION_NUMBER; i++) {
             const newMission = missionRepo.create({
-                titre: faker.company.companyName(),
+                titre: missionname[index%SERVICE_NUMBER][i],
                 dateDebut: faker.date.past(),
                 dateFin: faker.date.future(),
-                description: faker.company.catchPhraseDescriptor(),
+                description: missionname[index%SERVICE_NUMBER][i],
                 service: service[index % SERVICE_NUMBER]
             })
 
@@ -260,7 +263,11 @@ export default async function handler(
                             titre = faker.commerce.product();
                             break;
                     }
-
+                    const ttc = ht * (1 + tva/100);
+                    let avance = false;
+                    if (i != LIGNE_NUMBER-1) {
+                        avance = Math.random() > 0.5 ? true: false;
+                    }
                     await conn.createQueryBuilder()
                         .insert()
                         .into(LigneDeFrais)
@@ -271,7 +278,7 @@ export default async function handler(
                                 date: faker.date.between(mission.dateDebut.toDateString(), mission.dateFin.toDateString()),
                                 etat: etat,
                                 prixHT: ht,
-                                prixTTC: ht + tva,
+                                prixTTC: ttc,
                                 prixTVA: tva,
                                 justificatif: Math.random() > 0.5 ? realFiles[Math.floor(Math.random() * realFiles.length)] : realFiles.concat(wrongFiles)[Math.floor(Math.random() * (realFiles.length + wrongFiles.length))],
                                 perdu: false,
@@ -283,6 +290,13 @@ export default async function handler(
                             }
                         ])
                         .execute();
+                        
+                        if (avance) {
+                            montantAvance(user, mission, ttc, 0);
+                        }else{
+                            montantAvance(user, mission, 0, ttc);
+                        }
+                        
                 }
             }
         }
