@@ -1,22 +1,22 @@
 import { Column, Entity, Index, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique } from "typeorm";
 import { ILigneDeFrais, LigneDeFrais, lineToApi } from "./lignedefrais.entity";
 import { INotification, Notification, notificationToApi } from "./notification.entity";
-import { User } from "./user.entity";
+import { IUser, User, userToApi } from "./user.entity";
 import { NOTEDEFRAIS_ETAT } from "./utils";
-//ajouter a database.ts la classe 
+//ajouter a database.ts la classe
 
 export interface INoteDeFrais {
     id: string,
     mois: number,
     annee: number,
     etat: NOTEDEFRAIS_ETAT,
-    //user: User
+    user: IUser | null,
     lignes: ILigneDeFrais[],
     notifications: INotification[]
 }
 
 @Entity("notedefrais")
-@Unique(["user","mois","annee"]) //clé unique pour qu'il puisse pas y avoire plusieur note pour 1 mois
+@Unique(["user","mois","annee"]) //clé unique pour qu'il puisse pas y avoir plusieurs notes pour 1 mois
 export class NoteDeFrais implements INoteDeFrais {
     @PrimaryGeneratedColumn('uuid')
     id!: string;
@@ -50,7 +50,7 @@ export const noteToApi = (note: NoteDeFrais): INoteDeFrais => {
         mois: note.mois,
         annee: note.annee,
         etat: note.etat,
-        //user:
+        user: note.user ? userToApi(note.user) : null,
         lignes: (note?.lignes ?? []).map(lignes => lineToApi(lignes)),
         notifications: (note?.notifications ?? []).map(notifications => notificationToApi(notifications)),
     };

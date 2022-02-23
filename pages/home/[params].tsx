@@ -8,7 +8,7 @@ import dayjs from 'dayjs'
 import "dayjs/locale/fr";
 import localeData from "dayjs/plugin/localeData";
 import { INoteDeFrais } from '../../entity/notedefrais.entity'
-import { NOTEDEFRAIS_ETAT } from '../../entity/utils'
+import { NOTEDEFRAIS_ETAT, USER_ROLES } from '../../entity/utils'
 import { TempLigneDeFrais } from '../../components/EditLineForm'
 import { useRouter } from 'next/router'
 import NavigationBar from '../../components/NavigationBar'
@@ -25,7 +25,7 @@ export interface HomeProps {
   years?: number[],
 }
 
-export type EmptyNote = Omit<INoteDeFrais, "id">;
+export type EmptyNote = Omit<INoteDeFrais, "id" | "user">;
 
 export type UINote = INoteDeFrais | EmptyNote | null;
 export type UILigne = (ILigneDeFrais | TempLigneDeFrais) & { UI: "default" | "delete" | "post" | "put"}
@@ -86,6 +86,7 @@ export default function Home(props: HomeProps) {
         setEdited={setEdited}
         clearLocalState={clearLocalState}
         setClearLocalState={setClearLocalState}
+        mode={USER_ROLES.USER}
       />
     </Group>
     <NavigationBar 

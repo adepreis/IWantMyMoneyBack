@@ -1,5 +1,7 @@
 import { Group, Text, Image, useMantineTheme, MantineTheme, Title, Textarea } from "@mantine/core";
+import { CSSProperties } from "react";
 import { HiOutlineInformationCircle, HiOutlineXCircle } from "react-icons/hi";
+import { ILigneDeFrais } from "../../entity/lignedefrais.entity";
 import { UILigne } from "../../pages/home/[params]";
 import { TempLigneDeFrais } from "../EditLineForm";
 
@@ -60,10 +62,10 @@ export function renderLineFile(line: NonNullable<UILigne>, theme: MantineTheme) 
     </> : <></>
 }
 
-function renderComment(line: NonNullable<UILigne>, theme: MantineTheme) {
+export function renderComment(line: NonNullable<UILigne>, theme: MantineTheme, style?: CSSProperties) {
     const {avance, commentaire} = line;
 
-    const content = commentaire === "" ? <Group position="center" spacing={7}>
+    const content = commentaire === "" ? <Group position={style ? undefined : "center"} spacing={7} style={style}>
         <Text color={theme.colors.yellow[6]}>{"Pas de commentaire"}</Text>
     </Group> : <Group position="center" spacing={7} style={{width: "100%"}}>
         <Textarea
@@ -91,6 +93,29 @@ function renderComment(line: NonNullable<UILigne>, theme: MantineTheme) {
     </>
 }
 
+
+export function renderCommentValidateur(commentaire: string, theme: MantineTheme) {
+    return commentaire === "" ? <Group spacing={7}>
+        <Text color={theme.colors.yellow[6]}>{"Pas de commentaire validateur"}</Text>
+    </Group> : <Group position="center" spacing={7} style={{width: "100%"}}>
+        <Textarea
+            label="Commentaire validateur"
+            onChange={() => {}}
+            value={commentaire}
+            style={{width: "100%"}}
+            styles={{
+                input: {
+                    cursor: "default",
+                    caretColor: "transparent",
+                    "&:focus": {
+                        border: "0px"
+                    }
+                }
+            }}
+        />
+    </Group>
+}
+
 export function SidePanel(props: SidePanelProps) {
     const { viewedLine } = props;
     const theme = useMantineTheme();
@@ -98,6 +123,7 @@ export function SidePanel(props: SidePanelProps) {
     const content = viewedLine ? <>
         {renderLineFile(viewedLine, theme)}
         {renderComment(viewedLine, theme)}
+        {renderCommentValidateur((viewedLine as ILigneDeFrais)?.commentaire_validateur ?? "", theme)}
     </> : <Group  position="center" spacing={7}>
         <HiOutlineInformationCircle style={{fontSize: "1.2rem"}}/>
         <Text>{"Aucune ligne n'a été selectionnée !"}</Text>

@@ -21,7 +21,7 @@ Here are some instructions on how to get the development env running.
 First, clone this repository with the following command :
 
 ```bash
-git clone https://github.com/0xWryth/Projet-GL.git`
+git clone https://github.com/0xWryth/Projet-GL.git
 ```
 
 Then, you must install the project's dependencies :
@@ -106,20 +106,28 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 
 Project creation. Read the [v1.0.0 release][30] changelog for more information.
 
-- Auth configuration
-- ...
+- Homepage
+- Authentication
+	- Login
+	- Logout
+- User homepage
+- User menu
+- Validator homepage
 
 ---
 
 ### Built with
 
-![React](https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=React&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat-square&logo=TypeScript&logoColor=white)
-![SASS](https://img.shields.io/badge/SASS-CC6699?style=flat-square&logo=SASS&logoColor=white)
-<!-- NextJS ? -->
+![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
+![Next JS](https://img.shields.io/badge/Next-black?style=for-the-badge&logo=next.js&logoColor=white)
+![SASS](https://img.shields.io/badge/SASS-hotpink.svg?style=for-the-badge&logo=SASS&logoColor=white)
 <!-- Mantine ? -->
-<!-- Docker ? -->
-<!-- MariaDB ? -->
+
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
+![MariaDB](https://img.shields.io/badge/MariaDB-003545?style=for-the-badge&logo=mariadb&logoColor=white)
+
+![cypress](https://img.shields.io/badge/-cypress-%23E5E5E5?style=for-the-badge&logo=cypress&logoColor=058a5e)
 
 [10]: https://www.npmjs.com/get-npm
 [20]: https://facebook.github.io/create-react-app/docs/getting-started

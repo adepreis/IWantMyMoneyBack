@@ -18,3 +18,9 @@ export enum LIGNEDEFRAIS_ETAT {
     VALIDEE = "VALIDEE",
     REFUSEE = "REFUSEE"
 }
+
+export enum USER_ROLES {
+    ADMIN = "ADMIN",
+    USER = "USER",
+    CHEF_DE_SERVICE = "CHEF_DE_SERVICE"
+}

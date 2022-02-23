@@ -8,7 +8,6 @@ import { NoteDeFrais } from '../../../entity/notedefrais.entity';
 import { prepareConnection } from '../database';
 
 
-
 import nextConnect from 'next-connect';
 import multer from 'multer';
 import { LIGNEDEFRAIS_ETAT, NOTEDEFRAIS_ETAT } from '../../../entity/utils';
@@ -50,7 +49,6 @@ export async function deleteFile(filename: string) {
 }
 
 export async function montantAvance(user: User, mission: Mission, montantAvance: number, montantRembourcement: number) {
-  await prepareConnection();
   const conn = await getConnection();
   const avance = await conn.getRepository(Avance)
     .createQueryBuilder("avance")
@@ -85,7 +83,6 @@ export async function montantAvance(user: User, mission: Mission, montantAvance:
       .execute();
   }
 
-  conn.close();
 }
 
 
@@ -120,12 +117,13 @@ export async function insertLigne(data: LigneDeFrais, justificatif: string, user
         }
       ])
       .execute();
-    conn.close();
+    
     if (data.avance) {
       montantAvance(user, data.mission, data.prixTTC, 0.)
     } else {
       montantAvance(user, data.mission, 0., data.prixTTC)
     }
+    conn.close();
     return true;
 
   } catch (error) {
@@ -208,13 +206,13 @@ apiRoute.use(upload.single('justificatif'));
 apiRoute.post(async (req: any, res: NextApiResponse) => {
 
   var userId: string | null = null;
-  const session = await getSession({ req })
-  if (session) {
-    userId = (session as any)?.id;
-  } else {
-    res.status(403).json({ error: "acces interdit" as string, code: 403 });
-    return;
-  }
+    const session = await getSession({ req })
+    if (session) {
+      userId = (session as any)?.id;
+    } else {
+      res.status(403).json({error: "Accès interdit" as string, code: 403});
+      return;
+    }
 
   await prepareConnection();
   const conn = getConnection();

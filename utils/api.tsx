@@ -1,6 +1,7 @@
 import { TempLigneDeFrais } from "../components/EditLineForm";
 import { IMission } from "../entity/mission.entity";
 import { INoteDeFrais } from "../entity/notedefrais.entity";
+import { LIGNEDEFRAIS_ETAT, NOTEDEFRAIS_ETAT } from "../entity/utils";
 import { UILigne, UINote } from "../pages/home/[params]";
 
 export const Routes = {
@@ -208,6 +209,69 @@ export const Routes = {
             else {
                 // Error while fetching
                 return null;
+            }
+        }
+    },
+    VALIDATEUR: {
+        get: async () => {
+            const request = await fetch(`/api/validateur/home`);
+    
+            if (request.status === 200) {
+                const result = await request.json();
+                return result;
+            } 
+            else {
+                // Error while fetching
+                return null;
+            }
+        },
+        LINE: {
+            edit: async (options: {
+                id: string,
+                etat: LIGNEDEFRAIS_ETAT,
+                commentaire_validateur: string,
+            }) => {
+                const request = await fetch(`/api/validateur/ligne`, {
+                    method: "PUT",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(options)
+                });
+        
+                if (request.status === 200) {
+                    const result = await request.json();
+                    return result;
+                } 
+                else {
+                    // Error while fetching
+                    return null;
+                }
+            }
+        },
+        NOTE: {
+            edit: async (options: {
+                id: string,
+                etat: NOTEDEFRAIS_ETAT
+            }) => {
+                const request = await fetch(`/api/validateur`, {
+                    method: "PUT",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(options)
+                });
+        
+                if (request.status === 200) {
+                    const result = await request.json();
+                    return result;
+                } 
+                else {
+                    // Error while fetching
+                    return null;
+                }
             }
         }
     }

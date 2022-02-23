@@ -19,7 +19,7 @@ export const getHomeNote = async (session: Session | null) => {
     if (session) {
         userId = session?.id as string;
     } else {
-        return {error: "acces interdit" as string, code: 403};
+        return {error: "Accès interdit" as string, code: 403};
     }
 
     const year = new Date().getFullYear();
