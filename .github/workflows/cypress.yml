@@ -44,7 +44,7 @@ jobs:
           mysql root password: 'example'
 
       - name: 🗃 DB creation
-        run: mariadb -h 127.0.0.1 -uroot -pexample iwantmymoneyback < cypress/fixtures/DbFinal.sql
+        run: mysql -h 127.0.0.1 -uroot -pexample iwantmymoneyback < cypress/fixtures/DbFinal.sql
 
       - name: 📪 Cache node modules
         uses: actions/cache@v2
