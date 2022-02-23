@@ -1,4 +1,4 @@
-import { Group, Loader, Text } from "@mantine/core";
+import { Group, Loader, Text, Button, Title } from "@mantine/core";
 import { GetServerSideProps } from "next";
 import { getSession } from "next-auth/react";
 import Note from "../../../components/home/Note";
@@ -13,6 +13,7 @@ import "dayjs/locale/fr";
 dayjs.extend(localeData);
 dayjs().format();
 dayjs.locale("fr");
+import { HiArrowSmLeft } from "react-icons/hi";
 
 export interface ValidatorNoteProps extends ValidatorProps {
     note?: INoteDeFrais
@@ -23,7 +24,13 @@ export default function ValidatorNote(props: Required<ValidatorNoteProps>) {
 
     return note ? <Group style={{width: "100%"}}>
         <Group style={{width: "100%", borderBottom: "solid 1px #373a40", padding: "0.75rem"}}>
-            <Text>{`Note de ${dayjs.months()[note.mois]} ${note.annee} de ${note.user?.prenom} ${note.user?.nom}${note.etat === NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION ? "" : " - Visionnage"}`}</Text>
+            <Button
+                component="a"
+                rel="noopener noreferrer"
+                href="/validateur"
+                leftIcon={<HiArrowSmLeft />}
+            >Retour</Button>
+            <Title order={5}>{`Note de ${dayjs.months()[note.mois]} ${note.annee} de ${note.user?.prenom} ${note.user?.nom}${note.etat === NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION ? "" : " - Visionnage"}`}</Title>
         </Group>
         <Note
             notes={[note]}

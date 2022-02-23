@@ -148,12 +148,17 @@ export default function Line(props: LineProps) {
                 spaceSeparated: true,
                 spaceSeparatedCurrency: true,
                 thousandSeparated: true,
-                }).replace(",", " ")}
+            }).replace(",", " ")}
             </td>
-            <td>
-                { line.perdu ? <Text style={{color: theme.colors.red[6]}}>Pas de justificatif</Text> : 
-                    <Button title="TODO: afficher ligne.justificatif" variant="subtle" rightIcon={<HiOutlinePaperClip size={16}/>}>Justificatif</Button>}
+            <td>{numbro(line.prixTTC).formatCurrency({ mantissa: 2, 
+                currencySymbol: "€", 
+                currencyPosition: "postfix",
+                spaceSeparated: true,
+                spaceSeparatedCurrency: true,
+                thousandSeparated: true,
+            }).replace(",", " ")}
             </td>
+            <td style={{textTransform: "capitalize"}}>{line.type.toLowerCase()}</td>
             <LineButtons 
                 line={line} 
                 localLines={localLines}
@@ -170,7 +175,7 @@ export default function Line(props: LineProps) {
     const action = mode === USER_ROLES.USER && 
         note.etat !== NOTEDEFRAIS_ETAT.VALIDEE && note.etat !== NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION ?
         <th>Action</th> :
-        mode === USER_ROLES.CHEF_DE_SERVICE ? <th>Action</th> : <></>;
+        mode === USER_ROLES.CHEF_DE_SERVICE && note.etat === NOTEDEFRAIS_ETAT.EN_ATTENTE_DE_VALIDATION ? <th>Action</th> : <></>;
 
     return <Table striped highlightOnHover>
         <thead>
@@ -179,7 +184,8 @@ export default function Line(props: LineProps) {
                 <th>Titre</th>
                 <th>Date</th>
                 <th>Montant HT</th>
-                <th>Justificatif</th>
+                <th>Montant TTC</th>
+                <th>Type</th>
                 {action}
             </tr>
         </thead>
