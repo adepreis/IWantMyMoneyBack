@@ -36,17 +36,17 @@ jobs:
       #     mysql database: 'iwantmymoneyback'
       #     mysql root password: 'example'
 
-      - name: 🦭 Set up MariaDB
+      - name: Set up MariaDB
         uses: getong/mariadb-action@v1.1
         with:
           mariadb version: '10.6'
           mysql database: 'iwantmymoneyback'
           mysql root password: 'example'
-          mysql user: 'admin'
-          mysql password: 'admin'
+      #     mysql user: 'admin'
+      #     mysql password: 'admin'
 
-      - name: 🗃 DB creation
-        run: mysql -h 127.0.0.1 --connect-timeout=20 -uadmin -padmin iwantmymoneyback < cypress/fixtures/DbFinal.sql
+      # - name: 🗃 DB creation
+      #   run: mysql -h 127.0.0.1 --connect-timeout=20 -uadmin -padmin iwantmymoneyback < cypress/fixtures/DbFinal.sql
 
       - name: 📪 Cache node modules
         uses: actions/cache@v2
