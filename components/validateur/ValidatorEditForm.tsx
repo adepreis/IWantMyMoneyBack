@@ -41,7 +41,20 @@ export default function ValidatorEditForm(props: LineFormProps) {
 
 	const handleSubmit = async (values: typeof form['values']) => {
 		setLoading(true);
-		console.log(values);
+
+        const tempLine: ILigneDeFrais = {
+            ...(line as ILigneDeFrais),
+            commentaire_validateur: values["comment"],
+            etat: values["valid"],
+        }
+
+        const UI = values["valid"] === LIGNEDEFRAIS_ETAT.VALIDEE ? "post" :
+            values["valid"] === LIGNEDEFRAIS_ETAT.REFUSEE ? "delete" : "default";
+
+        const filtered = props.linesToSave.filter(l => l.id !== props?.line?.id);
+        props.setLineToSave([...filtered, {...tempLine, UI }]);
+        props.setViewedLine({...tempLine, UI})
+
 		props.setOpened(false);
 	};
 
