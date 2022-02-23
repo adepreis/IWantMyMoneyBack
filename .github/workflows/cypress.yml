@@ -44,7 +44,9 @@ jobs:
           mysql root password: 'example'
 
       - name: 🗃 DB creation
-        run: mysql -uroot -pexample iwantmymoneyback < cypress/fixtures/DbFinal.sql
+        run: |
+          sudo /etc/init.d/mysql start
+          mariadb -uroot -pexample iwantmymoneyback < cypress/fixtures/DbFinal.sql
 
       - name: 📪 Cache node modules
         uses: actions/cache@v2
