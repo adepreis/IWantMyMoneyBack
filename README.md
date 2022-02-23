@@ -2,6 +2,8 @@
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+[![Actions Status](https://github.com/0xWryth/Projet-GL/workflows/Main%20workflow/badge.svg)](https://github.com/0xWryth/Projet-GL/actions)
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development purpose.
@@ -19,7 +21,7 @@ Here are some instructions on how to get the development env running.
 First, clone this repository with the following command :
 
 ```bash
-git clone https://github.com/0xWryth/Projet-GL.git`
+git clone https://github.com/0xWryth/Projet-GL.git
 ```
 
 Then, you must install the project's dependencies :
@@ -59,18 +61,18 @@ SECRET=
 NEXTAUTH_URL=http://localhost:3000
 
 # DATABASE
-TYPEORM_CONNECTION=mariadb
-TYPEORM_HOST=localhost
-TYPEORM_USERNAME=root
-TYPEORM_PASSWORD=example
-TYPEORM_DATABASE=
-TYPEORM_PORT=3306
-TYPEORM_SYNCHRONIZE=true
-TYPEORM_LOGGING=false
-TYPEORM_ENTITIES=entity/*.ts,modules/**/entity/*.ts
+DB_CONNECTION=mariadb
+DB_HOST=localhost
+DB_USERNAME=root
+DB_PASSWORD=example
+DB_DATABASE=
+DB_PORT=3306
+DB_SYNCHRONIZE=true
+DB_LOGGING=false
+ENTITIES=
 ```
 
-You also need to complete `TYPEORM_DATABASE=` with the name of the database created locally (thanks to your desktop [MariaDB](https://mariadb.org/) installation or the docker container described below).
+You also need to complete `DB_DATABASE=` with the name of the database created locally (thanks to your desktop [MariaDB](https://mariadb.org/) installation or the docker container described below).
 
 > Assuming you have [docker](https://docs.docker.com/get-docker/) installed, execute the following command to run a MariaDB image :
 > 
@@ -104,20 +106,28 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 
 Project creation. Read the [v1.0.0 release][30] changelog for more information.
 
-- Auth configuration
-- ...
+- Homepage
+- Authentication
+	- Login
+	- Logout
+- User homepage
+- User menu
+- Validator homepage
 
 ---
 
 ### Built with
 
-![React](https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=React&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat-square&logo=TypeScript&logoColor=white)
-![SASS](https://img.shields.io/badge/SASS-CC6699?style=flat-square&logo=SASS&logoColor=white)
-<!-- NextJS ? -->
+![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
+![Next JS](https://img.shields.io/badge/Next-black?style=for-the-badge&logo=next.js&logoColor=white)
+![SASS](https://img.shields.io/badge/SASS-hotpink.svg?style=for-the-badge&logo=SASS&logoColor=white)
 <!-- Mantine ? -->
-<!-- Docker ? -->
-<!-- MariaDB ? -->
+
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
+![MariaDB](https://img.shields.io/badge/MariaDB-003545?style=for-the-badge&logo=mariadb&logoColor=white)
+
+![cypress](https://img.shields.io/badge/-cypress-%23E5E5E5?style=for-the-badge&logo=cypress&logoColor=058a5e)
 
 [10]: https://www.npmjs.com/get-npm
 [20]: https://facebook.github.io/create-react-app/docs/getting-started

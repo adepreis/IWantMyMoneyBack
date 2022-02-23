@@ -1,33 +1,19 @@
-import { Button } from '@mantine/core'
 import type { GetServerSideProps } from 'next'
 import { Session } from 'next-auth'
-import { getSession, signOut } from 'next-auth/react'
-import styles from '../styles/Home.module.scss'
-import { HiOutlineLogout } from "react-icons/hi";
+import { getSession } from 'next-auth/react'
+import dayjs from 'dayjs'
+import "dayjs/locale/fr";
+import localeData from "dayjs/plugin/localeData";
+dayjs.extend(localeData);
+dayjs().format();
+dayjs.locale("fr");
 
 type Props = {
   session: Session | null,
 }
 
 export default function Home(props: Props) {
-    const {session} = props;
-
-    return <div className={styles.container}>
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          I Want My Money Back
-        </h1>
-
-        <div className={styles.grid} style={{display: "flex", flexDirection: "column", marginTop: "1.75rem"}}>
-            <span style={{display: "block", paddingBottom: "1rem"}}>
-                Bonjour <strong>{session?.user?.email}</strong>,
-            </span>
-            <Button onClick={() => signOut()} size="md" leftIcon={
-                <HiOutlineLogout />
-            }>Se déconnecter</Button>
-        </div>
-      </main>
-    </div>;
+  return <p>Loading</p>
 }
 
 export const getServerSideProps: GetServerSideProps<Props> = async (context) => {
@@ -42,9 +28,13 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
     }
   }
 
+  const currentYear = dayjs().year();
+
   return {
-    props: {
-      session
+    redirect: {
+      permanent: false,
+      destination: `/home/${currentYear}`,
     },
+    props: { session }
   }
 }

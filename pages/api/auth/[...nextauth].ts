@@ -1,5 +1,8 @@
-import NextAuth from "next-auth";
+import { compare } from "bcrypt";
+import { Session } from "inspector";
+import NextAuth, { getServerSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { decode } from "punycode";
 import { getConnection } from "typeorm";
 import { User } from "../../../entity/user.entity";
 import { prepareConnection } from "../database";
@@ -17,15 +20,25 @@ export default NextAuth({
             await prepareConnection();
             const conn = getConnection();
             const usersRepo = conn.getRepository(User);
-
+            
             const user = await usersRepo.findOne({
-              "email": credentials?.email,
-              // Must be hashed :)
-              "password": credentials?.password
+              "email": credentials?.email
             });
-            return user ? { 
-              email: credentials?.email
-            } : null;
+
+            if (user && credentials?.password) {
+              if (await compare(credentials?.password,user.password)) {
+                return { 
+                  //variable global rendu pour l'utilisateur
+                  id: user.id,
+                  email: user.email,
+                  nom: user.nom,
+                  prenom: user.prenom,
+                  role: user.role
+                } 
+              }
+            }
+          
+            return null;
           }
           catch (e) {
             console.log(e);
@@ -53,10 +66,26 @@ export default NextAuth({
     //   return true 
     // },
     // // async redirect({ url, baseUrl }) { return baseUrl },
-    // async session({ session, token, user }) {
-    //   return session
-    // },
-    // async jwt({ token, user, account, profile, isNewUser }) { return token }
+    async session({ session, token }) {
+      session.id = (token as any).id;
+      session.nom = (token as any).nom;
+      session.prenom = (token as any).prenom;
+      session.email = (token as any).email;
+      session.role = (token as any).role;
+
+      return session
+    },
+    async jwt({ token, user, account, profile, isNewUser }) {
+      if (user) {
+        token.id = user.id;
+        token.nom = user.nom;
+        token.prenom = user.prenom;
+        token.email = user.email;
+        token.role = user.role;
+      }
+
+      return token
+    }
   },
   events: {},
   debug: false,
