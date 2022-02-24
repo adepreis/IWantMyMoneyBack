@@ -1,9 +1,9 @@
-# Projet-GL
+# IWantMyMoneyBack
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-[![Actions Status](https://github.com/0xWryth/Projet-GL/workflows/Main%20workflow/badge.svg)](https://github.com/0xWryth/Projet-GL/actions)
-[![Actions Status](https://github.com/0xWryth/Projet-GL/workflows/CodeQL/badge.svg)](https://github.com/0xWryth/Projet-GL/actions)
+[![Actions Status](https://github.com/adepreis/IWantMyMoneyBack/workflows/Main%20workflow/badge.svg)](https://github.com/adepreis/IWantMyMoneyBack/actions)
+[![Actions Status](https://github.com/adepreis/IWantMyMoneyBack/workflows/CodeQL/badge.svg)](https://github.com/adepreis/IWantMyMoneyBack/actions)
 
 ## Getting Started
 
@@ -22,7 +22,7 @@ Here are some instructions on how to get the development env running.
 First, clone this repository with the following command :
 
 ```bash
-git clone https://github.com/0xWryth/Projet-GL.git
+git clone https://github.com/adepreis/IWantMyMoneyBack.git
 ```
 
 Then, you must install the project's dependencies :
