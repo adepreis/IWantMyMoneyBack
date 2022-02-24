@@ -4,23 +4,17 @@ jobs:
   cypress-run:
     runs-on: ubuntu-20.04
     env:
-      MYSQL_ROOT_PASSWORD: example
+      MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: iwantmymoneyback
-    services:
-        mysql:
-            image: mariadb:10.6
-            env:
-              MYSQL_ROOT_PASSWORD: ${{ job.env.MYSQL_ROOT_PASSWORD }}
-              MYSQL_DATABASE: ${{ job.env.MYSQL_DATABASE }}
-            ports:
-              - 3306/tcp
-            options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=10s --health-retries=10
     steps:
       - name: 🔀 Checkout
         uses: actions/checkout@v2
 
       - name: Start mysql service
-        run: sudo systemctl start mysql
+        run: |
+          sudo /etc/init.d/mysql start
+          mysql -e 'CREATE DATABASE $MYSQL_DATABASE;' -uroot -proot
+          mysql -e 'SHOW DATABASES;' -uroot -proot
 
       - name: 🔐 Create env file
         run: |
