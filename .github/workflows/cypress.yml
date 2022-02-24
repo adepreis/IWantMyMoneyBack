@@ -5,14 +5,22 @@ jobs:
     runs-on: ubuntu-20.04
     env:
       MYSQL_ROOT_PASSWORD: example
-      MYSQL_PORT: 3307
+      MYSQL_DATABASE: iwantmymoneyback
+    services:
+        mysql:
+            image: mariadb:10.6
+            env:
+              MYSQL_ROOT_PASSWORD: ${{ job.env.MYSQL_ROOT_PASSWORD }}
+              MYSQL_DATABASE: ${{ job.env.MYSQL_DATABASE }}
+            ports:
+              - 3306/tcp
+            options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=10s --health-retries=10
     steps:
       - name: 🔀 Checkout
         uses: actions/checkout@v2
 
-      # Maybe not useful since github.com/actions/virtual-environments/issues/375 ?
-      # - name: 🧹 Shutdown Ubuntu MySQL (SUDO)
-      #   run: sudo service mysql stop
+      - name: Start mysql service
+        run: sudo systemctl start mysql
 
       - name: 🔐 Create env file
         run: |
@@ -23,32 +31,14 @@ jobs:
           echo DB_HOST=localhost >> .env
           echo DB_USERNAME=root >> .env
           echo DB_PASSWORD=$MYSQL_ROOT_PASSWORD >> .env
-          echo DB_DATABASE=iwantmymoneyback >> .env
-          echo DB_PORT=$MYSQL_PORT >> .env
+          echo DB_DATABASE=$MYSQL_DATABASE >> .env
+          echo DB_PORT=3306 >> .env
           echo DB_SYNCHRONIZE=true >> .env
           echo DB_LOGGING=false >> .env
           cat .env
 
-      - name: 🐬 Set up MySQL
-        uses: mirromutth/mysql-action@v1.1
-        with:
-          host port: $MYSQL_PORT
-          container port: $MYSQL_PORT
-          character set server: 'utf8'
-          collation server: 'utf8_general_ci'
-          mysql version: '8.0'
-          mysql database: 'iwantmymoneyback'
-          mysql root password: $MYSQL_ROOT_PASSWORD
-
-      - name: ⏲ Wait for MySQL
-        run: |
-          while ! mysqladmin ping --port=$MYSQL_PORT --password=$MYSQL_ROOT_PASSWORD --silent; do
-            mysqladmin status --port=$MYSQL_PORT --password=$MYSQL_ROOT_PASSWORD
-            sleep 1
-          done
-
       - name: 🗃 DB creation
-        run: mysql --port=$MYSQL_PORT -u root --password=$MYSQL_ROOT_PASSWORD iwantmymoneyback < cypress/fixtures/DbFinal.sql
+        run: mysql -u root --password=$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE < cypress/fixtures/DbFinal.sql
 
       - name: 📪 Cache node modules
         uses: actions/cache@v2
