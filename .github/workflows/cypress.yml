@@ -64,3 +64,21 @@ jobs:
           start: npm run dev
           # quote the url to be safe against YML parsing surprises
           wait-on: 'http://localhost:3000/'
+
+      # Store screenshots after the test run completes
+      # NOTE: screenshots will be generated only if E2E test failed
+      # thus we store screenshots only on failures
+      - name: 🖼 Upload screenshot artifacts
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
+
+      # Test run video was always captured, so this action uses "always()" condition
+      # - name: 🎥 Upload video artifacts
+      #   uses: actions/upload-artifact@v2
+      #   if: always()
+      #   with:
+      #     name: cypress-videos
+      #     path: cypress/videos
