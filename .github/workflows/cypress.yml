@@ -1,4 +1,4 @@
-name: Main workflow
+name: Cypress tests
 on: [push]
 jobs:
   cypress-run:
@@ -30,7 +30,7 @@ jobs:
           echo DB_LOGGING=false >> .env
           cat .env
       - name: 🗃 DB creation
-        run: mysql -u root --password=$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE < cypress/fixtures/DbFinal_V1.sql
+        run: mysql -u root --password=$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE < cypress/fixtures/DbFinal_V2.sql
 
       - name: 📪 Cache node modules
         uses: actions/cache@v2
