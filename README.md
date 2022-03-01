@@ -2,8 +2,10 @@
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-[![Actions Status](https://github.com/adepreis/IWantMyMoneyBack/workflows/Main%20workflow/badge.svg)](https://github.com/adepreis/IWantMyMoneyBack/actions)
-[![Actions Status](https://github.com/adepreis/IWantMyMoneyBack/workflows/CodeQL/badge.svg)](https://github.com/adepreis/IWantMyMoneyBack/actions)
+[![Actions Status](https://github.com/adepreis/IWantMyMoneyBack/workflows/Main%20workflow/badge.svg)](https://github.com/adepreis/IWantMyMoneyBack/actions/workflows/cypress.yml)
+[![Actions Status](https://github.com/adepreis/IWantMyMoneyBack/workflows/CodeQL/badge.svg)](https://github.com/adepreis/IWantMyMoneyBack/actions/workflows/codeql.yml)
+
+![Application screenshot](./Screenshot.jpg)
 
 ## Getting Started
 
@@ -81,6 +83,38 @@ You also need to complete `DB_DATABASE=` with the name of the database created l
 > npm run db
 > ```
 
+
+### Front-end testing
+#### Configuration
+
+As a randomly generated database would not comply with test scenarios, you must load a test-dedicated database named `DbFinal.sql` located in `cypress/fixtures` using phpMyAdmin dashboard.
+
+#### Run tests
+
+To run your first tests, you can use the following command, **once the dev server is running**:
+
+```bash
+npm run cypress
+```
+
+<!--
+To run a set of tests in a specific folder
+```bash
+???
+```
+To run a specific test method
+```bash
+???
+```
+-->
+
+#### Create your test
+
+Please create new functional tests (`.js` files) under `cypress/integration/projet-gl` if you want them to run automatically in CI.
+
+See [cypress documentation](https://docs.cypress.io/guides/getting-started/writing-your-first-test#Write-your-first-test) to learn how to write test scenarios.
+
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
@@ -105,7 +139,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 
 #### Version 1.0.0
 
-Project creation. Read the [v1.0.0 release][30] changelog for more information.
+Project creation. Read [0xWryth's v1.0.0 release][30] changelog for more information.
 
 - Homepage
 - Authentication
